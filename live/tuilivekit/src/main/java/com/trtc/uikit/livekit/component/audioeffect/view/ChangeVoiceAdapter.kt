@@ -9,8 +9,8 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.trtc.uikit.livekit.R
-import io.trtc.tuikit.atomicxcore.api.AudioChangerType
-import io.trtc.tuikit.atomicxcore.api.AudioEffectStore
+import io.trtc.tuikit.atomicxcore.api.device.AudioChangerType
+import io.trtc.tuikit.atomicxcore.api.device.AudioEffectStore
 
 class ChangeVoiceAdapter(
     private val context: Context,

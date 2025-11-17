@@ -16,14 +16,14 @@ import com.trtc.uikit.livekit.component.gift.view.animation.ImageAnimationView
 import com.trtc.uikit.livekit.component.gift.view.animation.ImageAnimationView.GiftImageAnimationInfo
 import com.trtc.uikit.livekit.component.gift.view.animation.manager.AnimationPlayer
 import com.trtc.uikit.livekit.component.gift.view.animation.manager.GiftAnimationManager
-import com.trtc.uikit.livekit.component.gift.viewmodel.GiftModel
 import com.trtc.uikit.livekit.component.gift.view.like.GiftHeartLayout
-import io.trtc.tuikit.atomicxcore.api.Gift
-import io.trtc.tuikit.atomicxcore.api.GiftListener
-import io.trtc.tuikit.atomicxcore.api.GiftStore
-import io.trtc.tuikit.atomicxcore.api.LikeListener
-import io.trtc.tuikit.atomicxcore.api.LikeStore
-import io.trtc.tuikit.atomicxcore.api.LiveUserInfo
+import com.trtc.uikit.livekit.component.gift.viewmodel.GiftModel
+import io.trtc.tuikit.atomicxcore.api.gift.Gift
+import io.trtc.tuikit.atomicxcore.api.gift.GiftListener
+import io.trtc.tuikit.atomicxcore.api.gift.GiftStore
+import io.trtc.tuikit.atomicxcore.api.live.LikeListener
+import io.trtc.tuikit.atomicxcore.api.live.LikeStore
+import io.trtc.tuikit.atomicxcore.api.live.LiveUserInfo
 import kotlin.math.max
 import kotlin.math.min
 

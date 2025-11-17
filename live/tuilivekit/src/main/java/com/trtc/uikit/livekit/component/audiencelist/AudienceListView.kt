@@ -13,7 +13,6 @@ import android.widget.RelativeLayout
 import android.widget.TextView
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.tencent.cloud.tuikit.engine.extension.TUILiveListManager
 import com.tencent.cloud.tuikit.engine.room.TUIRoomDefine
 import com.tencent.qcloud.tuicore.util.ScreenUtil
 import com.trtc.uikit.livekit.R
@@ -26,11 +25,12 @@ import com.trtc.uikit.livekit.component.audiencelist.viewmodel.AudienceListConst
 import com.trtc.uikit.livekit.component.audiencelist.viewmodel.AudienceListConstants.LIVEKIT_AUDIENCE_LIST_ROOM_MAX_SHOW_USER_COUNT
 import com.trtc.uikit.livekit.component.audiencelist.viewmodel.AudienceListConstants.LIVEKIT_METRICS_PANEL_SHOW_LIVE_ROOM_AUDIENCE_LIST
 import com.trtc.uikit.livekit.component.audiencelist.viewmodel.AudienceListConstants.LIVEKIT_METRICS_PANEL_SHOW_VOICE_ROOM_AUDIENCE_LIST
-import io.trtc.tuikit.atomicxcore.api.LiveAudienceStore
-import io.trtc.tuikit.atomicxcore.api.LiveEndedReason
-import io.trtc.tuikit.atomicxcore.api.LiveListListener
-import io.trtc.tuikit.atomicxcore.api.LiveListStore
-import io.trtc.tuikit.atomicxcore.api.LiveUserInfo
+import io.trtc.tuikit.atomicxcore.api.live.LiveAudienceStore
+import io.trtc.tuikit.atomicxcore.api.live.LiveEndedReason
+import io.trtc.tuikit.atomicxcore.api.live.LiveInfo
+import io.trtc.tuikit.atomicxcore.api.live.LiveListListener
+import io.trtc.tuikit.atomicxcore.api.live.LiveListStore
+import io.trtc.tuikit.atomicxcore.api.live.LiveUserInfo
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -69,15 +69,10 @@ class AudienceListView @JvmOverloads constructor(
         recycleAudienceList = findViewById(R.id.rv_audience_list)
     }
 
-    @Deprecated("Use init(TUILiveListManager.LiveInfo) instead")
-    fun init(roomInfo: TUIRoomDefine.RoomInfo) {
-        init(convertToLiveInfo(roomInfo))
-    }
-
-    fun init(liveInfo: TUILiveListManager.LiveInfo) {
-        super.init(liveInfo.roomId)
+    fun init(liveInfo: LiveInfo) {
+        super.init(liveInfo.liveID)
         initView()
-        reportData(liveInfo.roomId)
+        reportData(liveInfo.liveID)
     }
 
     fun setOnUserItemClickListener(listener: OnUserItemClickListener?) {
@@ -119,16 +114,6 @@ class AudienceListView @JvmOverloads constructor(
     private fun initView() {
         initAudienceCountView()
         initAudienceAvatarView()
-    }
-
-    private fun convertToLiveInfo(roomInfo: TUIRoomDefine.RoomInfo): TUILiveListManager.LiveInfo {
-        return TUILiveListManager.LiveInfo().apply {
-            roomId = roomInfo.roomId
-            name = roomInfo.name
-            ownerId = roomInfo.ownerId
-            ownerName = roomInfo.ownerName
-            ownerAvatarUrl = roomInfo.ownerAvatarUrl
-        }
     }
 
     private fun initAudienceCountView() {

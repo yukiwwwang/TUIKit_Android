@@ -1,10 +1,12 @@
 package com.trtc.uikit.livekit.common.ui
 
 import android.content.Context
-import android.graphics.*
+import android.graphics.Canvas
+import android.graphics.Path
+import android.graphics.RectF
+import android.graphics.Region
 import android.util.AttributeSet
 import android.widget.FrameLayout
-import androidx.annotation.Nullable
 import com.tencent.qcloud.tuicore.util.ScreenUtil
 
 class RoundFrameLayout @JvmOverloads constructor(

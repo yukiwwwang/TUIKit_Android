@@ -61,51 +61,51 @@
                 tools:ignore="ContentDescription" />
         </RelativeLayout>
 
-        <com.trtc.uikit.livekit.voiceroomcore.view.RippleView
+        <com.trtc.uikit.livekit.voiceroomcore.view.VoiceWaveView
             android:id="@+id/iv_talk_border"
             android:layout_width="70dp"
             android:layout_height="70dp"
             android:layout_gravity="center"
             android:visibility="gone"
-            app:color="@color/common_speak_ripple_color"
-            app:start_radius="25dp" />
+            app:ripple_inner_radius="25dp"
+            app:ripple_outer_radius="35dp" />
     </FrameLayout>
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:foregroundGravity="center_vertical"
-        app:layout_constraintTop_toBottomOf="@id/head_icon_group"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent">
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/head_icon_group">
 
         <ImageView
             android:id="@+id/iv_room_owner"
             android:layout_width="14dp"
             android:layout_height="14dp"
-            android:visibility="gone"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"
             android:scaleType="fitCenter"
             android:src="@drawable/livekit_ic_room_owner"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
             tools:ignore="ContentDescription" />
 
         <TextView
             android:id="@+id/tv_name"
-            android:maxLines="1"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="2dp"
-            app:layout_constraintStart_toEndOf="@id/iv_room_owner"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            android:gravity="center_vertical"
             android:ellipsize="end"
+            android:gravity="center_vertical"
             android:maxWidth="50dp"
+            android:maxLines="1"
             android:textColor="@color/common_design_standard_g7"
             android:textSize="12sp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/iv_room_owner"
+            app:layout_constraintTop_toTopOf="parent"
             tools:text="123123" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

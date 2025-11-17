@@ -15,7 +15,7 @@ import com.trtc.uikit.livekit.common.ErrorLocalized.Companion.onError
 import com.trtc.uikit.livekit.common.LiveKitLogger.Companion.getComponentLogger
 import com.trtc.uikit.livekit.common.ui.BasicView
 import io.trtc.tuikit.atomicxcore.api.CompletionHandler
-import io.trtc.tuikit.atomicxcore.api.LikeStore
+import io.trtc.tuikit.atomicxcore.api.live.LikeStore
 
 @SuppressLint("ViewConstructor")
 class LikeButton @JvmOverloads constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0) :

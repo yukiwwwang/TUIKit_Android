@@ -2,18 +2,18 @@ package com.trtc.uikit.livekit.features.livelist.access
 
 import android.content.Context
 import android.view.View
-import com.tencent.cloud.tuikit.engine.extension.TUILiveListManager
 import com.trtc.uikit.livekit.features.livelist.LiveListViewAdapter
+import io.trtc.tuikit.atomicxcore.api.live.LiveInfo
 
 class SingleColumnListViewAdapter(private val context: Context) : LiveListViewAdapter {
 
-    override fun createLiveInfoView(liveInfo: TUILiveListManager.LiveInfo): View {
+    override fun createLiveInfoView(liveInfo: LiveInfo): View {
         val widgetView = SingleColumnWidgetView(context)
         widgetView.init(liveInfo)
         return widgetView
     }
 
-    override fun updateLiveInfoView(view: View, liveInfo: TUILiveListManager.LiveInfo) {
+    override fun updateLiveInfoView(view: View, liveInfo: LiveInfo) {
         val widgetView = view as SingleColumnWidgetView
         widgetView.updateLiveInfoView(liveInfo)
     }

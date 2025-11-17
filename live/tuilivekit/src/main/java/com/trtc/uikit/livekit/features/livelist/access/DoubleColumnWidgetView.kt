@@ -1,5 +1,6 @@
 package com.trtc.uikit.livekit.features.livelist.access
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.text.TextUtils
 import android.util.AttributeSet
@@ -7,9 +8,9 @@ import android.view.LayoutInflater
 import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.TextView
-import com.tencent.cloud.tuikit.engine.extension.TUILiveListManager
 import com.trtc.tuikit.common.imageloader.ImageLoader
 import com.trtc.uikit.livekit.R
+import io.trtc.tuikit.atomicxcore.api.live.LiveInfo
 
 class DoubleColumnWidgetView @JvmOverloads constructor(
     context: Context,
@@ -30,14 +31,15 @@ class DoubleColumnWidgetView @JvmOverloads constructor(
         textAudienceCountInfo = findViewById(R.id.tv_audience_count_info)
     }
 
-    fun init(liveInfo: TUILiveListManager.LiveInfo) {
+    fun init(liveInfo: LiveInfo) {
         updateLiveInfoView(liveInfo)
     }
 
-    fun updateLiveInfoView(liveInfo: TUILiveListManager.LiveInfo) {
-        ImageLoader.load(context, imageAvatar, liveInfo.ownerAvatarUrl, R.drawable.livelist_default_avatar)
-        textRoomName.text = if (TextUtils.isEmpty(liveInfo.name)) liveInfo.roomId else liveInfo.name
-        textAnchorName.text = if (TextUtils.isEmpty(liveInfo.ownerName)) liveInfo.ownerId else liveInfo.ownerName
-        textAudienceCountInfo.text = context.getString(R.string.livelist_viewed_audience_count, liveInfo.viewCount)
+    @SuppressLint("StringFormatMatches")
+    fun updateLiveInfoView(liveInfo: LiveInfo) {
+        ImageLoader.load(context, imageAvatar, liveInfo.liveOwner.avatarURL, R.drawable.livelist_default_avatar)
+        textRoomName.text = if (TextUtils.isEmpty(liveInfo.liveName)) liveInfo.liveID else liveInfo.liveName
+        textAnchorName.text = if (TextUtils.isEmpty(liveInfo.liveOwner.userName)) liveInfo.liveOwner.userID else liveInfo.liveOwner.userName
+        textAudienceCountInfo.text = context.getString(R.string.livelist_viewed_audience_count, liveInfo.totalViewerCount)
     }
 }

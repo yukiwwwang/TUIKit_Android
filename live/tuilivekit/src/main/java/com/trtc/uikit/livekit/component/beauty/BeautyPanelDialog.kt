@@ -3,7 +3,7 @@ package com.trtc.uikit.livekit.component.beauty
 import android.content.Context
 import android.os.Bundle
 import android.view.View
-import com.trtc.tuikit.common.ui.PopupDialog
+import com.trtc.uikit.livekit.common.ui.PopupDialog
 import com.trtc.uikit.livekit.component.beauty.basicbeauty.BeautyListPanel
 import com.trtc.uikit.livekit.component.beauty.tebeauty.TEBeautyManager
 import com.trtc.uikit.livekit.component.beauty.tebeauty.TEBeautyView

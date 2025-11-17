@@ -21,13 +21,13 @@ import com.tencent.qcloud.tuicore.util.SPUtils
 import com.tencent.qcloud.tuicore.util.ScreenUtil
 import com.tencent.qcloud.tuicore.util.ToastUtil
 import com.trtc.uikit.livekit.R
+import com.trtc.uikit.livekit.common.ErrorLocalized
 import com.trtc.uikit.livekit.common.completionHandler
 import com.trtc.uikit.livekit.common.reportEventData
 import com.trtc.uikit.livekit.component.barrage.store.model.DefaultEmojiResource
 import com.trtc.uikit.livekit.component.barrage.view.util.OnDecorViewListener
 import com.trtc.uikit.livekit.component.barrage.viewmodel.BarrageConstants
-import com.trtc.uikit.livekit.component.barrage.viewmodel.ErrorLocalized
-import io.trtc.tuikit.atomicxcore.api.BarrageStore
+import io.trtc.tuikit.atomicxcore.api.barrage.BarrageStore
 
 class BarrageSendView(
     context: Context,

@@ -8,14 +8,14 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import android.widget.ImageView
-import com.tencent.cloud.tuikit.engine.extension.TUILiveListManager
 import com.trtc.tuikit.common.imageloader.ImageLoader
 import com.trtc.tuikit.common.imageloader.ImageOptions
 import com.trtc.uikit.livekit.R
 import com.trtc.uikit.livekit.common.LiveKitLogger
 import com.trtc.uikit.livekit.component.pictureinpicture.PictureInPictureStore
 import com.trtc.uikit.livekit.features.livelist.LiveListViewAdapter
-import io.trtc.tuikit.atomicxcore.api.LiveCoreView
+import io.trtc.tuikit.atomicxcore.api.live.LiveInfo
+import io.trtc.tuikit.atomicxcore.api.view.LiveCoreView
 
 class SingleColumnItemView @JvmOverloads constructor(
     context: Context,
@@ -37,7 +37,7 @@ class SingleColumnItemView @JvmOverloads constructor(
 
     private var isPlaying = false
     private var pauseByPictureInPicture = false
-    private var liveInfo: TUILiveListManager.LiveInfo? = null
+    private var liveInfo: LiveInfo? = null
 
     init {
         initView()
@@ -45,17 +45,17 @@ class SingleColumnItemView @JvmOverloads constructor(
 
     fun createLiveInfoView(
         adapter: LiveListViewAdapter,
-        liveInfo: TUILiveListManager.LiveInfo
+        liveInfo: LiveInfo
     ) {
         liveListViewAdapter = adapter
-        setLayoutBackground(liveInfo.coverUrl)
+        setLayoutBackground(liveInfo.coverURL)
         widgetView = liveListViewAdapter.createLiveInfoView(liveInfo)
         widgetViewGroup.addView(widgetView)
         this.liveInfo = liveInfo
     }
 
-    fun updateLiveInfoView(liveInfo: TUILiveListManager.LiveInfo) {
-        setLayoutBackground(liveInfo.coverUrl)
+    fun updateLiveInfoView(liveInfo: LiveInfo) {
+        setLayoutBackground(liveInfo.coverURL)
         stopPreviewLiveStream()
         liveListViewAdapter.updateLiveInfoView(widgetView, liveInfo)
         this.liveInfo = liveInfo
@@ -84,7 +84,7 @@ class SingleColumnItemView @JvmOverloads constructor(
             return
         }
 
-        val roomId = currentLiveInfo.roomId
+        val roomId = currentLiveInfo.liveID
         if (TextUtils.isEmpty(roomId)) {
             LOGGER.error("startPreviewLiveStream failed, roomId is empty")
             return
@@ -93,13 +93,13 @@ class SingleColumnItemView @JvmOverloads constructor(
         if (roomId == getPictureInPictureRoomId()) {
             liveCoreView.visibility = GONE
             pauseByPictureInPicture = true
-            LOGGER.info("picture in picture view is showing, startPreviewLiveStream ignore, roomId:${currentLiveInfo.roomId}")
+            LOGGER.info("picture in picture view is showing, startPreviewLiveStream ignore, roomId:${currentLiveInfo.liveID}")
             return
         }
 
         liveCoreView.visibility = VISIBLE
-        LOGGER.info("startPreviewLiveStream, roomId:${currentLiveInfo.roomId}")
-        liveCoreView.startPreviewLiveStream(currentLiveInfo.roomId, isMuteAudio, null)
+        LOGGER.info("startPreviewLiveStream, roomId:${currentLiveInfo.liveID}")
+        liveCoreView.startPreviewLiveStream(currentLiveInfo.liveID, isMuteAudio, null)
         isPlaying = true
     }
 
@@ -109,7 +109,7 @@ class SingleColumnItemView @JvmOverloads constructor(
             return
         }
 
-        val roomId = currentLiveInfo.roomId
+        val roomId = currentLiveInfo.liveID
         if (TextUtils.isEmpty(roomId)) {
             LOGGER.error("stopPreviewLiveStream failed, roomId is empty")
             return
@@ -117,13 +117,13 @@ class SingleColumnItemView @JvmOverloads constructor(
 
         if (roomId == getPictureInPictureRoomId()) {
             liveCoreView.visibility = GONE
-            LOGGER.info("picture in picture view is showing, stopPreviewLiveStream ignore, roomId:${currentLiveInfo.roomId}")
+            LOGGER.info("picture in picture view is showing, stopPreviewLiveStream ignore, roomId:${currentLiveInfo.liveID}")
             return
         }
 
         LOGGER.info("stopPreviewLiveStream, roomId:$roomId, isPlaying:$isPlaying")
         if (isPlaying) {
-            liveCoreView.stopPreviewLiveStream(currentLiveInfo.roomId)
+            liveCoreView.stopPreviewLiveStream(currentLiveInfo.liveID)
             liveCoreView.visibility = GONE
             isPlaying = false
             pauseByPictureInPicture = false

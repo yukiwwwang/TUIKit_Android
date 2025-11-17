@@ -2,7 +2,7 @@ package com.trtc.uikit.livekit.voiceroomcore.impl
 
 import com.trtc.tuikit.common.util.ScreenUtil
 import com.trtc.uikit.livekit.voiceroomcore.VoiceRoomDefine
-import io.trtc.tuikit.atomicxcore.api.SeatInfo
+import io.trtc.tuikit.atomicxcore.api.live.SeatInfo
 
 class SeatLayoutConfigManager {
     private var layoutMode = VoiceRoomDefine.LayoutMode.GRID

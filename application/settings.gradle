@@ -21,6 +21,11 @@ project(':tuicallkit-kt').projectDir = new File(settingsDir, "../call/tuicallkit
 include ':tuilivekit'
 project(':tuilivekit').projectDir = new File(settingsDir, "../live/tuilivekit")
 
+include ':tuiroomkit'
+project(':tuiroomkit').projectDir = new File(settingsDir, "../room/tuiroomkit")
+
+include ':timcommon'
+project(':timcommon').projectDir = new File(settingsDir, "../TIMCommon/timcommon")
 
 include(":atomic")
 project(':atomic').projectDir = new File(settingsDir, "../atomic_x")

@@ -18,7 +18,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.trtc.uikit.livekit.R
 import com.trtc.uikit.livekit.component.barrage.store.model.DefaultEmojiResource
 import com.trtc.uikit.livekit.component.barrage.view.EmojiSpan
-import io.trtc.tuikit.atomicxcore.api.Barrage
+import io.trtc.tuikit.atomicxcore.api.barrage.Barrage
 import kotlin.math.ceil
 
 class BarrageItemDefaultAdapter(

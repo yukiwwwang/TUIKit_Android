@@ -4,6 +4,7 @@ import android.view.View
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import com.tencent.cloud.tuikit.engine.common.TUICommonDefine
 import com.tencent.cloud.tuikit.engine.room.TUIRoomDefine
+import io.trtc.tuikit.atomicxcore.api.live.SeatInfo
 
 object VoiceRoomDefine {
     enum class LayoutMode {
@@ -20,19 +21,19 @@ object VoiceRoomDefine {
 
     data class Size(
         val width: Int = WRAP_CONTENT,
-        val height: Int = WRAP_CONTENT
+        val height: Int = WRAP_CONTENT,
     )
 
     class SeatViewLayoutConfig(
         var rowConfigs: MutableList<SeatViewLayoutRowConfig> = mutableListOf(),
-        var rowSpacing: Int = 10
+        var rowSpacing: Int = 10,
     )
 
     class SeatViewLayoutRowConfig(
         var count: Int = 4,
         var seatSpacing: Int = 0,
         var seatSize: Size = Size(),
-        var alignment: SeatViewLayoutRowAlignment = SeatViewLayoutRowAlignment.SPACE_AROUND
+        var alignment: SeatViewLayoutRowAlignment = SeatViewLayoutRowAlignment.SPACE_AROUND,
     )
 
     interface RequestCallback {
@@ -45,7 +46,23 @@ object VoiceRoomDefine {
 
     interface SeatViewAdapter {
         fun createSeatView(seatGridView: SeatGridView, seatInfo: TUIRoomDefine.SeatInfo): View
-        fun updateSeatView(seatGridView: SeatGridView, seatInfo: TUIRoomDefine.SeatInfo, seatView: View)
+        fun updateSeatView(
+            seatGridView: SeatGridView,
+            seatInfo: TUIRoomDefine.SeatInfo,
+            seatView: View,
+        )
+
         fun updateUserVolume(seatGridView: SeatGridView, volume: Int, seatView: View)
+    }
+
+    interface CoHostViewAdapter {
+        fun createOccupiedSeatView(
+            seatInfo: SeatInfo,
+            isMyRoom: Boolean,
+        ): View
+
+        fun createAvailableSeatView(seatInfo: SeatInfo): View
+
+        fun createRemoteSeatPlaceholderView(seatInfo: SeatInfo): View
     }
 }

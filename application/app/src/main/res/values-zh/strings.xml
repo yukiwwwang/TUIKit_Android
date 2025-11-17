@@ -39,6 +39,8 @@
     <string name="app_main_item_live">直播</string>
     <string name="app_main_item_chatroom">语聊房</string>
     <string name="app_main_item_call_sub">响铃通知·通话悬浮窗·通话卡顿优化</string>
+    <string name="app_main_item_meeting">会议</string>
+    <string name="app_main_item_meeting_sub">快速会议·邀请入会·会中管控·共享屏幕</string>
     <string name="app_main_item_live_sub">开播预览·智能美颜·连麦PK</string>
     <string name="app_main_item_chatroom_sub">高音质·大房间·平滑上下麦</string>
     <string name="app_main_item_category_kit">UI组件</string>
@@ -100,5 +102,7 @@
     <string name="app_main_item_video_live_sub">通过 Live API 构建互动视频直播，为您带来清晰流畅的直播体验。</string>
     <string name="app_main_item_voice_room">语聊房</string>
     <string name="app_main_item_voice_room_sub">通过 Live API 搭建互动语音聊天室，为您带来低延迟高音质的体验。</string>
-
+    <string name="app_enable_hight_perperformance">开启高性能模式</string>
+    <string name="app_disable_feature">关闭高级特性</string>
+    <string name="app_enable_test_env">开启测试环境</string>
 </resources>

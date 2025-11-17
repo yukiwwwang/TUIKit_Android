@@ -37,6 +37,7 @@ dependencies {
     api project(':tuilivekit')
     api project(':debug')
     api rootProject.getProperties().containsKey("common") ? rootProject.ext.common : "io.trtc.uikit:common:3.3.0.1194"
+    api project(':tuiroomkit')
 
     implementation("androidx.core:core:1.13.0")
     implementation("androidx.appcompat:appcompat:1.6.1")

@@ -11,7 +11,6 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.Observer
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-import com.tencent.cloud.tuikit.engine.extension.TUILiveListManager
 import com.trtc.uikit.livekit.R
 import com.trtc.uikit.livekit.common.LiveKitLogger
 import com.trtc.uikit.livekit.component.pictureinpicture.PictureInPictureStore
@@ -20,6 +19,7 @@ import com.trtc.uikit.livekit.features.livelist.OnItemClickListener
 import com.trtc.uikit.livekit.features.livelist.manager.LiveInfoListService
 import com.trtc.uikit.livekit.features.livelist.view.liveListviewpager.LiveListViewPager
 import com.trtc.uikit.livekit.features.livelist.view.liveListviewpager.LiveListViewPagerAdapter
+import io.trtc.tuikit.atomicxcore.api.live.LiveInfo
 
 class SingleColumnListView @JvmOverloads constructor(
     context: Context,
@@ -74,7 +74,7 @@ class SingleColumnListView @JvmOverloads constructor(
         playStreamView.clear()
 
         liveListViewPagerAdapter = object : LiveListViewPagerAdapter(fragmentActivity, liveInfoListService) {
-            override fun createLiveInfoView(liveInfo: TUILiveListManager.LiveInfo): View {
+            override fun createLiveInfoView(liveInfo: LiveInfo): View {
                 return SingleColumnItemView(context).apply {
                     createLiveInfoView(liveListViewAdapter, liveInfo)
                     setOnClickListener { view ->
@@ -84,7 +84,7 @@ class SingleColumnListView @JvmOverloads constructor(
                 }
             }
 
-            override fun updateLiveInfoView(view: View, liveInfo: TUILiveListManager.LiveInfo) {
+            override fun updateLiveInfoView(view: View, liveInfo: LiveInfo) {
                 (view as SingleColumnItemView).apply {
                     updateLiveInfoView(liveInfo)
                     setOnClickListener { v ->

@@ -2,6 +2,7 @@ package com.tencent.uikit.app.main
 
 import com.tencent.uikit.app.R
 import com.tencent.uikit.app.main.call.GroupCallActivity
+import com.tencent.uikit.app.main.conference.ConferenceActivity
 import com.tencent.uikit.app.main.live.LiveActivity
 
 class TRTCMainData {
@@ -18,6 +19,12 @@ class TRTCMainData {
             MainItemData(
                 MainTypeEnum.TYPE_ITEM_LIVE, R.drawable.app_ic_main_live, R.string.app_main_item_live,
                 R.string.app_main_item_live_sub, LiveActivity::class.java, MainItemData.Category.KIT
+            )
+        )
+        itemDataList.add(
+            MainItemData(
+                MainTypeEnum.TYPE_ITEM_MEETING, R.drawable.app_ic_main_meeting, R.string.app_main_item_meeting,
+                R.string.app_main_item_meeting_sub, ConferenceActivity::class.java, MainItemData.Category.KIT
             )
         )
     }

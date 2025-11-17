@@ -9,8 +9,8 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.trtc.uikit.livekit.R
-import io.trtc.tuikit.atomicxcore.api.AudioEffectStore
-import io.trtc.tuikit.atomicxcore.api.AudioReverbType
+import io.trtc.tuikit.atomicxcore.api.device.AudioEffectStore
+import io.trtc.tuikit.atomicxcore.api.device.AudioReverbType
 
 class ReverbAdapter(private val context: Context, private val audioEffectStore: AudioEffectStore) :
     RecyclerView.Adapter<ReverbAdapter.ViewHolder>() {

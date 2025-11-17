@@ -58,7 +58,7 @@
                 android:layout_width="32dp"
                 android:layout_height="32dp"
                 android:layout_marginStart="10dp"
-                android:src="@drawable/voice_mode_icon" />
+                android:src="@drawable/livekit_voiceroom_voice_mode_layout" />
 
             <TextView
                 android:layout_width="wrap_content"

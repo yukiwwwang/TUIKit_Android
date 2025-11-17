@@ -2,72 +2,60 @@ package com.trtc.uikit.livekit.voiceroomcore
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.res.Resources
+import android.text.TextUtils
 import android.util.AttributeSet
+import android.util.Log
 import android.view.View
 import android.widget.FrameLayout
+import android.widget.LinearLayout
+import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.constraintlayout.widget.ConstraintSet
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LifecycleRegistry
 import androidx.lifecycle.lifecycleScope
 import com.google.gson.Gson
-import com.tencent.cloud.tuikit.engine.common.TUICommonDefine
-import com.tencent.cloud.tuikit.engine.extension.TUILiveListManager
 import com.tencent.cloud.tuikit.engine.room.TUIRoomDefine
 import com.tencent.cloud.tuikit.engine.room.TUIRoomEngine
-import com.trtc.uikit.livekit.common.LIVEKIT_METRICS_METHOD_CALL_SEAT_GRID_VIEW_CANCEL_REQUEST
-import com.trtc.uikit.livekit.common.LIVEKIT_METRICS_METHOD_CALL_SEAT_GRID_VIEW_JOIN_ROOM
-import com.trtc.uikit.livekit.common.LIVEKIT_METRICS_METHOD_CALL_SEAT_GRID_VIEW_KICK_USER_OFF_SEAT
-import com.trtc.uikit.livekit.common.LIVEKIT_METRICS_METHOD_CALL_SEAT_GRID_VIEW_LEAVE_ROOM
-import com.trtc.uikit.livekit.common.LIVEKIT_METRICS_METHOD_CALL_SEAT_GRID_VIEW_LEAVE_SEAT
-import com.trtc.uikit.livekit.common.LIVEKIT_METRICS_METHOD_CALL_SEAT_GRID_VIEW_LOCK_SEAT
-import com.trtc.uikit.livekit.common.LIVEKIT_METRICS_METHOD_CALL_SEAT_GRID_VIEW_MOVE_TO_SEAT
-import com.trtc.uikit.livekit.common.LIVEKIT_METRICS_METHOD_CALL_SEAT_GRID_VIEW_MUTE_MICROPHONE
-import com.trtc.uikit.livekit.common.LIVEKIT_METRICS_METHOD_CALL_SEAT_GRID_VIEW_RESPONSE_REQUEST
+import com.trtc.uikit.livekit.R
 import com.trtc.uikit.livekit.common.LIVEKIT_METRICS_METHOD_CALL_SEAT_GRID_VIEW_SET_LAYOUT_MODE
-import com.trtc.uikit.livekit.common.LIVEKIT_METRICS_METHOD_CALL_SEAT_GRID_VIEW_SET_SEAT_VIEW_ADAPTER
-import com.trtc.uikit.livekit.common.LIVEKIT_METRICS_METHOD_CALL_SEAT_GRID_VIEW_START_MICROPHONE
-import com.trtc.uikit.livekit.common.LIVEKIT_METRICS_METHOD_CALL_SEAT_GRID_VIEW_START_ROOM
-import com.trtc.uikit.livekit.common.LIVEKIT_METRICS_METHOD_CALL_SEAT_GRID_VIEW_STOP_MICROPHONE
-import com.trtc.uikit.livekit.common.LIVEKIT_METRICS_METHOD_CALL_SEAT_GRID_VIEW_STOP_ROOM
-import com.trtc.uikit.livekit.common.LIVEKIT_METRICS_METHOD_CALL_SEAT_GRID_VIEW_TAKE_SEAT
-import com.trtc.uikit.livekit.common.LIVEKIT_METRICS_METHOD_CALL_SEAT_GRID_VIEW_TAKE_USER_ON_SEAT
-import com.trtc.uikit.livekit.common.LIVEKIT_METRICS_METHOD_CALL_SEAT_GRID_VIEW_UNMUTE_MICROPHONE
-import com.trtc.uikit.livekit.common.LIVEKIT_METRICS_METHOD_CALL_SEAT_GRID_VIEW_UPDATE_SEAT_MODE
 import com.trtc.uikit.livekit.common.LIVEKIT_METRICS_PANEL_HIDE_SEAT_GRID_VIEW
 import com.trtc.uikit.livekit.common.LIVEKIT_METRICS_PANEL_SHOW_SEAT_GRID_VIEW
 import com.trtc.uikit.livekit.common.LiveKitLogger
-import com.trtc.uikit.livekit.common.convertToKickedOutReason
 import com.trtc.uikit.livekit.common.convertToSeatInfo
-import com.trtc.uikit.livekit.common.convertToUserInfo
-import com.trtc.uikit.livekit.common.liveInfoFromEngineLiveInfo
-import com.trtc.uikit.livekit.common.liveInfoToEngineLiveInfo
 import com.trtc.uikit.livekit.common.reportEventData
-import com.trtc.uikit.livekit.common.seatModeFromEngineSeatMode
+import com.trtc.uikit.livekit.common.ui.StandardDialog
+import com.trtc.uikit.livekit.common.ui.StandardToast
+import com.trtc.uikit.livekit.common.ErrorLocalized
+import com.trtc.uikit.livekit.voiceroom.interaction.battle.BattleInfoView
 import com.trtc.uikit.livekit.voiceroomcore.impl.SeatGridLayout
 import com.trtc.uikit.livekit.voiceroomcore.impl.SeatGridViewObserverManager
 import com.trtc.uikit.livekit.voiceroomcore.impl.SeatInfoWrapper
 import com.trtc.uikit.livekit.voiceroomcore.impl.SeatLayoutConfigManager
 import com.trtc.uikit.livekit.voiceroomcore.view.SeatInfoView
-import io.trtc.tuikit.atomicxcore.api.CoGuestStore
 import io.trtc.tuikit.atomicxcore.api.CompletionHandler
-import io.trtc.tuikit.atomicxcore.api.DeviceStore
-import io.trtc.tuikit.atomicxcore.api.GuestListener
-import io.trtc.tuikit.atomicxcore.api.HostListener
-import io.trtc.tuikit.atomicxcore.api.LiveEndedReason
-import io.trtc.tuikit.atomicxcore.api.LiveInfo
-import io.trtc.tuikit.atomicxcore.api.LiveInfoCompletionHandler
-import io.trtc.tuikit.atomicxcore.api.LiveKickedOutReason
-import io.trtc.tuikit.atomicxcore.api.LiveListListener
-import io.trtc.tuikit.atomicxcore.api.LiveListStore
-import io.trtc.tuikit.atomicxcore.api.LiveSeatStore
-import io.trtc.tuikit.atomicxcore.api.LiveUserInfo
-import io.trtc.tuikit.atomicxcore.api.MoveSeatPolicy
-import io.trtc.tuikit.atomicxcore.api.NoResponseReason
-import io.trtc.tuikit.atomicxcore.api.StopLiveCompletionHandler
-import io.trtc.tuikit.atomicxcore.api.TakeSeatMode
+import io.trtc.tuikit.atomicxcore.api.device.DeviceStore
+import io.trtc.tuikit.atomicxcore.api.live.BattleConfig
+import io.trtc.tuikit.atomicxcore.api.live.BattleInfo
+import io.trtc.tuikit.atomicxcore.api.live.BattleListener
+import io.trtc.tuikit.atomicxcore.api.live.BattleRequestCallback
+import io.trtc.tuikit.atomicxcore.api.live.BattleStore
+import io.trtc.tuikit.atomicxcore.api.live.CoGuestStore
+import io.trtc.tuikit.atomicxcore.api.live.CoHostListener
+import io.trtc.tuikit.atomicxcore.api.live.CoHostStore
+import io.trtc.tuikit.atomicxcore.api.live.GuestListener
+import io.trtc.tuikit.atomicxcore.api.live.HostListener
+import io.trtc.tuikit.atomicxcore.api.live.LiveAudienceStore
+import io.trtc.tuikit.atomicxcore.api.live.LiveListStore
+import io.trtc.tuikit.atomicxcore.api.live.LiveSeatStore
+import io.trtc.tuikit.atomicxcore.api.live.LiveUserInfo
+import io.trtc.tuikit.atomicxcore.api.live.NoResponseReason
+import io.trtc.tuikit.atomicxcore.api.live.SeatInfo
+import io.trtc.tuikit.atomicxcore.api.live.SeatUserInfo
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
-
 
 @SuppressLint("ViewConstructor")
 class SeatGridView @JvmOverloads constructor(
@@ -75,371 +63,36 @@ class SeatGridView @JvmOverloads constructor(
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0,
 ) : FrameLayout(context, attrs, defStyleAttr), LifecycleOwner {
-    companion object {
-        private val LOGGER = LiveKitLogger.Companion.getComponentLogger("SeatGridView")
-    }
-
+    private var extensionInfo: String = "needRequestBattle"
+    private val connectionUserCountPreRoom = 6
+    private val BATTLE_DURATION: Int = 30
     private val seatGridLayout = SeatGridLayout(context)
     private var seatViewAdapter: VoiceRoomDefine.SeatViewAdapter? = null
     private var observerManager = SeatGridViewObserverManager()
     private val seatLayoutConfigManager = SeatLayoutConfigManager()
-    private var applicationCallback: VoiceRoomDefine.RequestCallback? = null
-    private val inviteCallbackMap = HashMap<String, VoiceRoomDefine.RequestCallback?>()
-
     private val deviceStore: DeviceStore
     private val liveListStore: LiveListStore = LiveListStore.shared()
     private var coGuestStore: CoGuestStore? = null
     private var seatStore: LiveSeatStore? = null
-    private var liveInfo: LiveInfo? = null
-
+    private var coHostStore: CoHostStore? = null
+    private var battleStore: BattleStore? = null
+    private var liveAudienceStore: LiveAudienceStore? = null
+    private var battleInvitationDialog: StandardDialog? = null
+    private var connectionInvitationDialog: StandardDialog? = null
+    private var coHostContainerView: ConstraintLayout? = null
+    private var coHostViewAdapter: VoiceRoomDefine.CoHostViewAdapter? = null
+    private val isCoHostingState = MutableStateFlow(false)
+    private var battleInfoView: BattleInfoView? = null
     private val lifecycleRegistry = LifecycleRegistry(this)
     private val collectJobs = mutableListOf<Job>()
+
+    override val lifecycle: Lifecycle get() = lifecycleRegistry
 
     init {
         lifecycleRegistry.currentState = Lifecycle.State.INITIALIZED
         deviceStore = DeviceStore.shared()
     }
 
-    override val lifecycle: Lifecycle get() = lifecycleRegistry
-
-    @Deprecated("")
-    fun startMicrophone(callback: TUIRoomDefine.ActionCallback?) {
-        LOGGER.info("API startMicrophone")
-        reportEventData(LIVEKIT_METRICS_METHOD_CALL_SEAT_GRID_VIEW_START_MICROPHONE)
-        deviceStore.openLocalMicrophone(ActionCallback(callback))
-    }
-
-    @Deprecated("")
-    fun stopMicrophone() {
-        LOGGER.info("API stopMicrophone")
-        reportEventData(LIVEKIT_METRICS_METHOD_CALL_SEAT_GRID_VIEW_STOP_MICROPHONE)
-        deviceStore.closeLocalMicrophone()
-    }
-
-    @Deprecated("")
-    fun muteMicrophone() {
-        LOGGER.info("API muteMicrophone")
-        reportEventData(LIVEKIT_METRICS_METHOD_CALL_SEAT_GRID_VIEW_MUTE_MICROPHONE)
-        if (seatStore == null) {
-            LOGGER.info("user is not in room, operation not allowed")
-            return
-        }
-        seatStore?.muteMicrophone()
-    }
-
-    @Deprecated("")
-    fun unmuteMicrophone(callback: TUIRoomDefine.ActionCallback?) {
-        LOGGER.info("API unmuteMicrophone")
-        reportEventData(LIVEKIT_METRICS_METHOD_CALL_SEAT_GRID_VIEW_UNMUTE_MICROPHONE)
-        if (seatStore == null) {
-            LOGGER.info("user is not in room, operation not allowed")
-            callback?.onError(
-                TUICommonDefine.Error.FAILED,
-                "user is not in room, operation not allowed"
-            )
-            return
-        }
-        seatStore?.unmuteMicrophone(ActionCallback(callback))
-    }
-
-    @Deprecated("")
-    fun startVoiceRoom(
-        liveInfo: TUILiveListManager.LiveInfo,
-        callback: TUILiveListManager.LiveInfoCallback?,
-    ) {
-        LOGGER.info("API startVoiceRoom liveInfo:${Gson().toJson(liveInfo)}")
-        reportEventData(LIVEKIT_METRICS_METHOD_CALL_SEAT_GRID_VIEW_START_ROOM)
-        init(liveInfo.roomId)
-        liveInfo.keepOwnerOnSeat = true
-        liveListStore.createLive(
-            liveInfoFromEngineLiveInfo(liveInfo),
-            object : LiveInfoCompletionHandler {
-                override fun onSuccess(liveInfo: LiveInfo) {
-                    this@SeatGridView.liveInfo = liveInfo
-                    seatLayoutConfigManager.initSeatList(liveInfo.maxSeatCount)
-                    initSeatGridLayout(liveInfo.maxSeatCount)
-                    callback?.onSuccess(liveInfoToEngineLiveInfo(liveInfo))
-                }
-
-                override fun onFailure(code: Int, desc: String) {
-                    callback?.onError(TUICommonDefine.Error.fromInt(code), desc)
-                }
-            })
-    }
-
-    @Deprecated("")
-    fun stopVoiceRoom(callback: TUILiveListManager.StopLiveCallback?) {
-        LOGGER.info("API stopVoiceRoom")
-        reportEventData(LIVEKIT_METRICS_METHOD_CALL_SEAT_GRID_VIEW_STOP_ROOM)
-        unInit()
-        liveListStore.endLive(object : StopLiveCompletionHandler {
-            override fun onSuccess(statisticsData: TUILiveListManager.LiveStatisticsData) {
-                callback?.onSuccess(statisticsData)
-            }
-
-            override fun onFailure(code: Int, desc: String) {
-                callback?.onError(TUICommonDefine.Error.fromInt(code), desc)
-            }
-        })
-        liveInfo = null
-    }
-
-    @Deprecated("")
-    fun joinVoiceRoom(roomId: String, callback: TUILiveListManager.LiveInfoCallback?) {
-        reportEventData(LIVEKIT_METRICS_METHOD_CALL_SEAT_GRID_VIEW_JOIN_ROOM)
-        init(roomId)
-        liveListStore.joinLive(roomId, object : LiveInfoCompletionHandler {
-            override fun onSuccess(liveInfo: LiveInfo) {
-                this@SeatGridView.liveInfo = liveInfo
-                seatLayoutConfigManager.initSeatList(liveInfo.maxSeatCount)
-                initSeatGridLayout(liveInfo.maxSeatCount)
-                callback?.onSuccess(liveInfoToEngineLiveInfo(liveInfo))
-            }
-
-            override fun onFailure(code: Int, desc: String) {
-                callback?.onError(TUICommonDefine.Error.fromInt(code), desc)
-            }
-        })
-    }
-
-    @Deprecated("")
-    fun leaveVoiceRoom(callback: TUIRoomDefine.ActionCallback?) {
-        LOGGER.info("API leaveVoiceRoom")
-        reportEventData(LIVEKIT_METRICS_METHOD_CALL_SEAT_GRID_VIEW_LEAVE_ROOM)
-        unInit()
-        liveListStore.leaveLive(ActionCallback(callback))
-        liveInfo = null
-    }
-
-    @Deprecated("")
-    fun updateRoomSeatMode(
-        seatMode: TUIRoomDefine.SeatMode,
-        callback: TUIRoomDefine.ActionCallback?,
-    ) {
-        LOGGER.info("API updateRoomSeatMode seatMode:$seatMode")
-        reportEventData(LIVEKIT_METRICS_METHOD_CALL_SEAT_GRID_VIEW_UPDATE_SEAT_MODE)
-        val liveId = liveInfo?.liveID
-        if (liveId.isNullOrEmpty()) {
-            callback?.onError(TUICommonDefine.Error.FAILED, "please enter room first")
-            LOGGER.error("not enter room")
-            return
-        }
-
-        val info = LiveInfo().apply {
-            this.seatMode = seatModeFromEngineSeatMode(seatMode)
-            this.liveID = liveId
-        }
-        val flagList = ArrayList<LiveInfo.ModifyFlag>()
-        flagList.add(LiveInfo.ModifyFlag.SEAT_MODE)
-        liveListStore.updateLiveInfo(info, flagList, ActionCallback(callback))
-    }
-
-    @Deprecated("")
-    fun responseRemoteRequest(
-        userId: String,
-        agree: Boolean,
-        callback: TUIRoomDefine.ActionCallback?,
-    ) {
-        LOGGER.info("API responseRemoteRequest userId:$userId agree:$agree")
-        reportEventData(LIVEKIT_METRICS_METHOD_CALL_SEAT_GRID_VIEW_RESPONSE_REQUEST)
-        if (agree) {
-            acceptRequest(userId, callback)
-        } else {
-            rejectRequest(userId, callback)
-        }
-    }
-
-    @Deprecated("")
-    fun cancelRequest(userId: String, callback: TUIRoomDefine.ActionCallback?) {
-        if (coGuestStore == null) {
-            LOGGER.info("user is not in room, operation not allowed")
-            callback?.onError(
-                TUICommonDefine.Error.FAILED,
-                "user is not in room, operation not allowed"
-            )
-            return
-        }
-        LOGGER.info("API cancelRequest userId:$userId")
-        reportEventData(LIVEKIT_METRICS_METHOD_CALL_SEAT_GRID_VIEW_CANCEL_REQUEST)
-        if (isOwner()) {
-            coGuestStore?.cancelInvitation(
-                userId, ActionCallback(
-                    callback = callback,
-                    success = {
-                        val userInfo = TUIRoomDefine.UserInfo().apply {
-                            this.userId = userId
-                        }
-                        inviteCallbackMap.get(userId)?.onCancelled(userInfo)
-                        inviteCallbackMap.remove(userId)
-                    }
-                ))
-        } else {
-            coGuestStore?.cancelApplication(
-                ActionCallback(
-                    callback = callback,
-                    success = {
-                        applicationCallback?.onCancelled(convertToUserInfo(TUIRoomEngine.getSelfInfo()))
-                        applicationCallback = null
-                    }
-                ))
-        }
-    }
-
-    @Deprecated("")
-    fun takeSeat(index: Int, timeout: Int, callback: VoiceRoomDefine.RequestCallback?) {
-        LOGGER.info("API takeSeat index:$index timeout:$timeout")
-        reportEventData(LIVEKIT_METRICS_METHOD_CALL_SEAT_GRID_VIEW_TAKE_SEAT)
-        val userInfo = convertToUserInfo(TUIRoomEngine.getSelfInfo())
-        if (seatStore == null || coGuestStore == null) {
-            LOGGER.info("user is not in room, operation not allowed")
-            callback?.onError(
-                userInfo,
-                TUICommonDefine.Error.FAILED,
-                "user is not in room, operation not allowed"
-            )
-            return
-        }
-        val liveInfo = liveListStore.liveState.currentLive.value
-        val isOwner = TUIRoomEngine.getSelfInfo().userId == liveInfo.liveOwner.userID
-        if (liveInfo.seatMode == TakeSeatMode.FREE || isOwner) {
-            seatStore?.takeSeat(index, object : CompletionHandler {
-                override fun onSuccess() {
-                    callback?.onAccepted(userInfo)
-                }
-
-                override fun onFailure(code: Int, desc: String) {
-                    callback?.onError(userInfo, TUICommonDefine.Error.fromInt(code), desc)
-                }
-            })
-            return
-        }
-
-        coGuestStore?.applyForSeat(index, timeout, null, object : CompletionHandler {
-            override fun onSuccess() {
-            }
-
-            override fun onFailure(code: Int, desc: String) {
-                callback?.onError(
-                    convertToUserInfo(liveInfo.liveOwner),
-                    TUICommonDefine.Error.fromInt(code),
-                    desc
-                )
-            }
-        })
-        applicationCallback = callback
-    }
-
-    @Deprecated("")
-    fun moveToSeat(index: Int, callback: TUIRoomDefine.ActionCallback?) {
-        LOGGER.info("API moveToSeat index:$index")
-        reportEventData(LIVEKIT_METRICS_METHOD_CALL_SEAT_GRID_VIEW_MOVE_TO_SEAT)
-        if (seatStore == null) {
-            LOGGER.info("user is not in room, operation not allowed")
-            callback?.onError(
-                TUICommonDefine.Error.FAILED,
-                "user is not in room, operation not allowed"
-            )
-            return
-        }
-        seatStore?.moveUserToSeat(
-            TUIRoomEngine.getSelfInfo().userId,
-            index,
-            MoveSeatPolicy.ABORT_WHEN_OCCUPIED,
-            ActionCallback(callback)
-        )
-    }
-
-    @Deprecated("")
-    fun leaveSeat(callback: TUIRoomDefine.ActionCallback?) {
-        LOGGER.info("API leaveSeat");
-        reportEventData(LIVEKIT_METRICS_METHOD_CALL_SEAT_GRID_VIEW_LEAVE_SEAT)
-        val liveInfo = liveListStore.liveState.currentLive.value
-        if (seatStore == null || coGuestStore == null) {
-            LOGGER.info("user is not in room, operation not allowed")
-            callback?.onError(
-                TUICommonDefine.Error.FAILED,
-                "user is not in room, operation not allowed"
-            )
-            return
-        }
-        if (liveInfo.seatMode == TakeSeatMode.FREE || isOwner()) {
-            seatStore?.leaveSeat(ActionCallback(callback))
-        } else {
-            coGuestStore?.disconnect(ActionCallback(callback))
-        }
-    }
-
-    @Deprecated("")
-    fun takeUserOnSeatByAdmin(
-        index: Int,
-        userId: String,
-        timeout: Int,
-        callback: VoiceRoomDefine.RequestCallback?,
-    ) {
-        LOGGER.info("API takeUserOnSeatByAdmin index:$index userId:$userId timeout:$timeout");
-        reportEventData(LIVEKIT_METRICS_METHOD_CALL_SEAT_GRID_VIEW_TAKE_USER_ON_SEAT)
-        val userInfo = TUIRoomDefine.UserInfo().apply {
-            this.userId = userId
-        }
-        if (coGuestStore == null) {
-            LOGGER.info("user is not in room, operation not allowed")
-            callback?.onError(
-                userInfo,
-                TUICommonDefine.Error.FAILED,
-                "user is not in room, operation not allowed"
-            )
-            return
-        }
-        coGuestStore?.inviteToSeat(userId, index, timeout, null, object : CompletionHandler {
-            override fun onSuccess() {
-            }
-
-            override fun onFailure(code: Int, desc: String) {
-                callback?.onError(
-                    userInfo,
-                    TUICommonDefine.Error.fromInt(code),
-                    desc
-                )
-            }
-        })
-        inviteCallbackMap.put(userId, callback)
-    }
-
-    @Deprecated("")
-    fun kickUserOffSeatByAdmin(userId: String, callback: TUIRoomDefine.ActionCallback?) {
-        LOGGER.info("API kickUserOffSeatByAdmin userId:$userId");
-        reportEventData(LIVEKIT_METRICS_METHOD_CALL_SEAT_GRID_VIEW_KICK_USER_OFF_SEAT)
-        if (seatStore == null) {
-            LOGGER.info("user is not in room, operation not allowed")
-            callback?.onError(
-                TUICommonDefine.Error.FAILED,
-                "user is not in room, operation not allowed"
-            )
-            return
-        }
-        seatStore?.kickUserOutOfSeat(userId, ActionCallback(callback))
-    }
-
-    fun lockSeat(
-        seatIndex: Int,
-        params: TUIRoomDefine.SeatLockParams,
-        callback: TUIRoomDefine.ActionCallback?,
-    ) {
-        LOGGER.info("API lockSeat seatIndex:$seatIndex  params: + ${Gson().toJson(params)}")
-        reportEventData(LIVEKIT_METRICS_METHOD_CALL_SEAT_GRID_VIEW_LOCK_SEAT)
-        TUIRoomEngine.sharedInstance()
-            .lockSeatByAdmin(seatIndex, params, object : TUIRoomDefine.ActionCallback {
-                override fun onSuccess() {
-                    callback?.onSuccess()
-                }
-
-                override fun onError(error: TUICommonDefine.Error, message: String) {
-                    callback?.onError(error, message)
-                }
-            })
-    }
-
-    @Deprecated("")
     fun setLayoutMode(
         layoutMode: VoiceRoomDefine.LayoutMode,
         layoutConfig: VoiceRoomDefine.SeatViewLayoutConfig?,
@@ -459,25 +112,15 @@ class SeatGridView @JvmOverloads constructor(
         }
     }
 
-    @Deprecated("")
-    fun setSeatViewAdapter(adapter: VoiceRoomDefine.SeatViewAdapter?) {
-        LOGGER.info("API setSeatViewAdapter adapter:$adapter")
-        reportEventData(
-            LIVEKIT_METRICS_METHOD_CALL_SEAT_GRID_VIEW_SET_SEAT_VIEW_ADAPTER
-        )
-        seatViewAdapter = adapter
-        initSeatGridLayout(seatLayoutConfigManager.seatList.size)
+    fun setCoHostViewAdapter(adapter: VoiceRoomDefine.CoHostViewAdapter?) {
+        coHostViewAdapter = adapter
     }
 
-    @Deprecated("")
     fun addObserver(observer: SeatGridViewObserver) {
-        LOGGER.info("API addObserver adapter:$observer");
         observerManager.addObserver(observer)
     }
 
-    @Deprecated("")
     fun removeObserver(observer: SeatGridViewObserver) {
-        LOGGER.info("API removeObserver adapter:$observer");
         observerManager.removeObserver(observer)
     }
 
@@ -485,11 +128,16 @@ class SeatGridView @JvmOverloads constructor(
         super.onAttachedToWindow()
         reportEventData(LIVEKIT_METRICS_PANEL_SHOW_SEAT_GRID_VIEW)
         addView(seatGridLayout)
+        val currentLive = liveListStore.liveState.currentLive.value
+        init(currentLive.liveID)
+        seatLayoutConfigManager.initSeatList(currentLive.maxSeatCount)
+        initSeatGridLayout(currentLive.maxSeatCount)
         lifecycleRegistry.currentState = Lifecycle.State.STARTED
     }
 
     override fun onDetachedFromWindow() {
         super.onDetachedFromWindow()
+        unInit()
         reportEventData(LIVEKIT_METRICS_PANEL_HIDE_SEAT_GRID_VIEW)
         lifecycleRegistry.currentState = Lifecycle.State.DESTROYED
     }
@@ -497,11 +145,17 @@ class SeatGridView @JvmOverloads constructor(
     private fun init(liveId: String) {
         coGuestStore = CoGuestStore.create(liveId)
         seatStore = LiveSeatStore.create(liveId)
+        coHostStore = CoHostStore.create(liveId)
+        battleStore = BattleStore.create(liveId)
+        liveAudienceStore = LiveAudienceStore.create(liveId)
         seatLayoutConfigManager.setOnItemUpdateListener(onItemUpdateListener)
-        coGuestStore?.addGuestListener(guestListener)
-        coGuestStore?.addHostListener(hostListener)
-        liveListStore.addLiveListListener(liveListEvent)
+        coHostStore?.addCoHostListener(mCoHostListener)
+        battleStore?.addBattleListener(mBattleListener)
+        coGuestStore?.addGuestListener(mGuestListener)
+        coGuestStore?.addHostListener(mHostListener)
         observeSeatList()
+        observeCoHostConnection()
+        observeFinalCoHostState()
         observeSpeakingUsers()
     }
 
@@ -509,9 +163,10 @@ class SeatGridView @JvmOverloads constructor(
         seatLayoutConfigManager.setOnItemUpdateListener(null)
         collectJobs.forEach { it.cancel() }
         collectJobs.clear()
-        coGuestStore?.removeGuestListener(guestListener)
-        coGuestStore?.removeHostListener(hostListener)
-        liveListStore.removeLiveListListener(liveListEvent)
+        coHostStore?.removeCoHostListener(mCoHostListener);
+        battleStore?.removeBattleListener(mBattleListener);
+        coHostStore = null
+        battleStore = null
         coGuestStore = null
         seatStore = null
     }
@@ -520,9 +175,225 @@ class SeatGridView @JvmOverloads constructor(
         val job = lifecycleScope.launch {
             seatStore?.liveSeatState?.seatList?.collect { seatList ->
                 seatLayoutConfigManager.updateSeatList(seatList)
+                if (isCoHostingState.value) {
+                    createCoHostView(seatList)
+                }
             }
         }
         collectJobs.add(job)
+    }
+
+    private fun observeCoHostConnection() {
+        val job = lifecycleScope.launch {
+            coHostStore?.coHostState?.connected?.collect { connectedRoomList ->
+                val currentLiveId = liveListStore.liveState.currentLive.value.liveID
+                if (currentLiveId.isEmpty()) return@collect
+                val isConnected = connectedRoomList.any { it.liveID == currentLiveId }
+                isCoHostingState.value = isConnected
+            }
+        }
+        collectJobs.add(job)
+    }
+
+    private fun observeFinalCoHostState() {
+        val job = lifecycleScope.launch {
+            isCoHostingState.collect { isInCoHost ->
+                if (isInCoHost) {
+                    val currentSeatList = seatStore?.liveSeatState?.seatList?.value ?: emptyList()
+                    if (isRoomOwner()) kickUsersFromSeatsAfterLimit()
+                    createCoHostView(currentSeatList)
+                    seatGridLayout.visibility = GONE
+                    coHostContainerView?.visibility = VISIBLE
+                } else {
+                    coHostContainerView?.let {
+                        removeView(it)
+                        coHostContainerView = null
+                    }
+                    seatGridLayout.visibility = VISIBLE
+                    coHostContainerView?.visibility = GONE
+                }
+            }
+        }
+        collectJobs.add(job)
+    }
+
+    private fun isRoomOwner(): Boolean {
+        return LiveListStore.shared().liveState.currentLive.value.liveOwner.userID == TUIRoomEngine.getSelfInfo().userId
+    }
+
+    private fun kickUsersFromSeatsAfterLimit() {
+        val seatList = seatStore?.liveSeatState?.seatList?.value
+        if (seatList.isNullOrEmpty() || seatList.size != 20) {
+            return
+        }
+        val currentRoomId = liveListStore.liveState.currentLive.value.liveID
+
+        val myRoomSeats = if (seatList.subList(0, 10)
+                .any { it.userInfo.liveID == currentRoomId && it.userInfo.userID.isNotEmpty() }
+        ) {
+            seatList.subList(0, 10)
+        } else {
+            seatList.subList(10, 20)
+        }
+
+        val targetSeats = myRoomSeats.takeLast(4)
+        val usersToKick = targetSeats.filter { it.userInfo.userID.isNotEmpty() }
+
+        if (usersToKick.isNotEmpty()) {
+            usersToKick.forEach { seatInfo ->
+                seatStore?.kickUserOutOfSeat(seatInfo.userInfo.userID, object : CompletionHandler {
+                    override fun onSuccess() {
+                    }
+
+                    override fun onFailure(code: Int, desc: String) {
+                        ErrorLocalized.onError(code)
+                    }
+
+                })
+            }
+            StandardToast.toastLongMessage(context.getString(R.string.common_host_kick_user_after_connect))
+        }
+    }
+
+    @SuppressLint("ResourceType")
+    private fun createCoHostView(seatList: List<SeatInfo>) {
+        cleanupOldView()
+        Log.d("seren","seatList: $seatList")
+        val layoutConfig = calculateLayoutConfig()
+        val seatData = prepareSeatData(seatList) ?: return
+        val (container, columns) = createContainerAndColumns(layoutConfig.columnCount)
+
+        populateMyRoomSeats(seatData.myRoomSeats, columns, layoutConfig)
+        populateOtherRoomSeats(seatData.otherRoomSeats, columns, layoutConfig)
+
+        applyConstraints(container, columns, layoutConfig)
+
+        battleInfoView?.bringToFront()
+    }
+
+    private fun cleanupOldView() {
+        coHostContainerView?.let { removeView(it) }
+        coHostContainerView = null
+    }
+
+    private data class LayoutConfig(
+        val columnCount: Int,
+        val seatSideLength: Int,
+        val rowSpacing: Int,
+    )
+
+    private fun calculateLayoutConfig(): LayoutConfig {
+        val columnCount = 4
+        val screenWidth = Resources.getSystem().displayMetrics.widthPixels
+        val seatSideLength = screenWidth / columnCount
+        val rowSpacing = 0
+        return LayoutConfig(columnCount, seatSideLength, rowSpacing)
+    }
+
+    private data class SeatData(
+        val myRoomSeats: List<SeatInfo>,
+        val otherRoomSeats: List<SeatInfo>,
+    )
+
+    private fun prepareSeatData(seatList: List<SeatInfo>): SeatData? {
+        val myLiveId = liveListStore.liveState.currentLive.value.liveID
+        if (myLiveId.isEmpty()) {
+            return null
+        }
+        val (myRoomSeats, otherRoomSeats) = seatList.partition { it.userInfo.liveID == myLiveId }
+        return SeatData(myRoomSeats.take(connectionUserCountPreRoom), otherRoomSeats.take(connectionUserCountPreRoom))
+    }
+
+    private fun createContainerAndColumns(columnCount: Int): Pair<ConstraintLayout, List<LinearLayout>> {
+        val container = ConstraintLayout(context).apply {
+            id = generateViewId()
+        }
+        coHostContainerView = container
+        addView(container, LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT))
+
+        val columns = List(columnCount) {
+            LinearLayout(context).apply {
+                id = generateViewId()
+                orientation = LinearLayout.VERTICAL
+            }
+        }
+        columns.forEach { container.addView(it) }
+        return Pair(container, columns)
+    }
+
+    private fun populateMyRoomSeats(
+        seats: List<SeatInfo>,
+        columns: List<LinearLayout>,
+        config: LayoutConfig,
+    ) {
+        seats.forEachIndexed { index, seatInfo ->
+            val view = if (seatInfo.userInfo.userID.isNullOrEmpty()) {
+                coHostViewAdapter?.createAvailableSeatView(seatInfo)
+            } else {
+                coHostViewAdapter?.createOccupiedSeatView(seatInfo, true)
+            }
+            view?.let {
+                val columnIndex = index % 2
+                addSeatViewToColumn(it, columns[columnIndex], config)
+            }
+        }
+    }
+
+    private fun populateOtherRoomSeats(
+        seats: List<SeatInfo>,
+        columns: List<LinearLayout>,
+        config: LayoutConfig,
+    ) {
+        seats.forEachIndexed { index, seatInfo ->
+            val view = if (seatInfo.userInfo.userID.isNullOrEmpty()) {
+                coHostViewAdapter?.createRemoteSeatPlaceholderView(seatInfo)
+            } else {
+                coHostViewAdapter?.createOccupiedSeatView(seatInfo, false)
+            }
+            view?.let {
+                val columnIndex = 2 + (index % 2)
+                addSeatViewToColumn(it, columns[columnIndex], config)
+            }
+        }
+    }
+
+    private fun addSeatViewToColumn(view: View, column: LinearLayout, config: LayoutConfig) {
+        val params = LinearLayout.LayoutParams(config.seatSideLength, config.seatSideLength).apply {
+            if (column.childCount > 0) {
+                topMargin = config.rowSpacing
+            }
+        }
+        column.addView(view, params)
+    }
+
+    private fun applyConstraints(
+        container: ConstraintLayout,
+        columns: List<LinearLayout>,
+        config: LayoutConfig,
+    ) {
+        val constraintSet = ConstraintSet()
+        constraintSet.clone(container)
+
+        val columnIds = columns.map { it.id }.toIntArray()
+        constraintSet.createHorizontalChain(
+            ConstraintSet.PARENT_ID, ConstraintSet.LEFT,
+            ConstraintSet.PARENT_ID, ConstraintSet.RIGHT,
+            columnIds,
+            null,
+            ConstraintSet.CHAIN_SPREAD_INSIDE
+        )
+
+        columns.forEach {
+            constraintSet.connect(
+                it.id,
+                ConstraintSet.TOP,
+                ConstraintSet.PARENT_ID,
+                ConstraintSet.TOP
+            )
+            constraintSet.constrainWidth(it.id, config.seatSideLength)
+            constraintSet.constrainHeight(it.id, ConstraintSet.WRAP_CONTENT)
+        }
+        constraintSet.applyTo(container)
     }
 
     private fun observeSpeakingUsers() {
@@ -555,46 +426,6 @@ class SeatGridView @JvmOverloads constructor(
         }
     }
 
-    private fun acceptRequest(userId: String, callback: TUIRoomDefine.ActionCallback?) {
-        if (coGuestStore == null) {
-            LOGGER.info("user is not in room, operation not allowed")
-            callback?.onError(
-                TUICommonDefine.Error.FAILED,
-                "user is not in room, operation not allowed"
-            )
-            return
-        }
-        if (isOwner()) {
-            coGuestStore?.acceptApplication(userId, ActionCallback(callback))
-        } else {
-            coGuestStore?.acceptInvitation(userId, ActionCallback(callback))
-        }
-    }
-
-    private fun rejectRequest(userId: String, callback: TUIRoomDefine.ActionCallback?) {
-        if (coGuestStore == null) {
-            LOGGER.info("user is not in room, operation not allowed")
-            callback?.onError(
-                TUICommonDefine.Error.FAILED,
-                "user is not in room, operation not allowed"
-            )
-            return
-        }
-        if (isOwner()) {
-            coGuestStore?.rejectApplication(userId, ActionCallback(callback))
-        } else {
-            coGuestStore?.rejectInvitation(userId, ActionCallback(callback))
-        }
-    }
-
-    private fun isOwner(): Boolean {
-        val liveInfo = liveListStore.liveState.currentLive.value
-        if (liveInfo.liveOwner.userID.isEmpty()) {
-            return false
-        }
-        return TUIRoomEngine.getSelfInfo().userId == liveInfo.liveOwner.userID
-    }
-
     private val seatGridLayoutAdapter = object : SeatGridLayout.Adapter {
         override fun createView(index: Int): View {
             val seatInfo = seatLayoutConfigManager.seatList[index].seatInfo
@@ -621,120 +452,310 @@ class SeatGridView @JvmOverloads constructor(
         }
     }
 
-    private val liveListEvent = object : LiveListListener() {
-        override fun onLiveEnded(liveId: String, reason: LiveEndedReason, message: String) {
-            observerManager.onRoomDismissed(liveId)
+    private val mCoHostListener: CoHostListener = object : CoHostListener() {
+        override fun onCoHostRequestReceived(inviter: SeatUserInfo, extensionInfo: String) {
+            if (TextUtils.equals(extensionInfo, this@SeatGridView.extensionInfo)) {
+                val content = getContext().getString(
+                    R.string.common_battle_inviting,
+                    inviter.userName
+                )
+                showBattleInviteDialog(content, inviter, extensionInfo)
+            } else {
+                val content = getContext().getString(
+                    R.string.common_connect_inviting_append,
+                    inviter.userName
+                )
+                showConnectionInviteDialog(content, inviter, extensionInfo)
+            }
         }
 
-        override fun onKickedOutOfLive(
-            liveId: String,
-            reason: LiveKickedOutReason,
-            message: String,
+        override fun onCoHostRequestCancelled(
+            inviter: SeatUserInfo,
+            invitee: SeatUserInfo?,
         ) {
-            observerManager.onKickedOutOfRoom(liveId, convertToKickedOutReason(reason), message)
+            connectionInvitationDialog?.dismiss()
+            battleInvitationDialog?.dismiss()
+            val content = getContext().getString(
+                R.string.live_cancel_request,
+                inviter.userName
+            )
+            StandardToast.toastShortMessage(content)
+        }
+
+        override fun onCoHostRequestAccepted(invitee: SeatUserInfo) {
+
+        }
+
+        override fun onCoHostRequestRejected(invitee: SeatUserInfo) {
+            var content = getContext().getString(
+                R.string.common_request_rejected,
+                invitee.userName
+            )
+            StandardToast.toastShortMessage(content)
+        }
+
+        override fun onCoHostRequestTimeout(inviter: SeatUserInfo, invitee: SeatUserInfo) {
+            connectionInvitationDialog?.dismiss()
+            battleInvitationDialog?.dismiss()
+            if (TextUtils.equals(inviter.userID, TUIRoomEngine.getSelfInfo().userId)) {
+                StandardToast.toastShortMessage(
+                    context.getString(R.string.common_connect_invitation_timeout)
+                )
+            }
+        }
+
+        override fun onCoHostUserJoined(userInfo: SeatUserInfo) {
+
+        }
+
+        override fun onCoHostUserLeft(userInfo: SeatUserInfo) {
         }
     }
 
-    private val hostListener = object : HostListener() {
-        override fun onGuestApplicationReceived(guestUser: LiveUserInfo) {
-            observerManager.onSeatRequestReceived(
-                VoiceRoomDefine.RequestType.APPLY_TO_TAKE_SEAT,
-                convertToUserInfo(guestUser)
-            )
-        }
-
-        override fun onGuestApplicationCancelled(guestUser: LiveUserInfo) {
-            observerManager.onSeatRequestCancelled(
-                VoiceRoomDefine.RequestType.APPLY_TO_TAKE_SEAT,
-                convertToUserInfo(guestUser)
-            )
-        }
-
-        override fun onGuestApplicationProcessedByOtherHost(
-            guestUser: LiveUserInfo,
-            hostUser: LiveUserInfo,
-        ) {
-            observerManager.onSeatRequestCancelled(
-                VoiceRoomDefine.RequestType.APPLY_TO_TAKE_SEAT,
-                convertToUserInfo(guestUser)
-            )
-            inviteCallbackMap.remove(guestUser.userID)
-        }
-
+    private val mHostListener: HostListener = object : HostListener() {
         override fun onHostInvitationResponded(isAccept: Boolean, guestUser: LiveUserInfo) {
-            if (isAccept) {
-                inviteCallbackMap.get(guestUser.userID)?.onAccepted(convertToUserInfo(guestUser))
-            } else {
-                inviteCallbackMap.get(guestUser.userID)?.onRejected(convertToUserInfo(guestUser))
+            if (!isAccept) {
+                val userName =
+                    liveAudienceStore?.liveAudienceState?.audienceList?.value?.find { it.userID == guestUser.userID }?.userName
+                val content = context.getString(
+                    R.string.common_request_rejected,
+                    if (userName.isNullOrEmpty()) guestUser.userID else userName
+                )
+                StandardToast.toastShortMessage(content)
             }
-            inviteCallbackMap.remove(guestUser.userID)
         }
 
-        override fun onHostInvitationNoResponse(guestUser: LiveUserInfo, reason: NoResponseReason) {
-            when (reason) {
-                NoResponseReason.TIMEOUT -> inviteCallbackMap.get(guestUser.userID)
-                    ?.onTimeout(convertToUserInfo(guestUser))
-
-                NoResponseReason.ALREADY_SEATED -> inviteCallbackMap.get(guestUser.userID)
-                    ?.onAccepted(
-                        convertToUserInfo(guestUser)
-                    )
+        override fun onHostInvitationNoResponse(
+            guestUser: LiveUserInfo,
+            reason: NoResponseReason,
+        ) {
+            if (liveListStore.liveState.currentLive.value.liveOwner.userID == TUIRoomEngine.getSelfInfo().userId) {
+                StandardToast.toastShortMessage(
+                    context.getString(R.string.common_connect_invitation_timeout)
+                )
             }
         }
     }
 
-    private val guestListener = object : GuestListener() {
-        override fun onHostInvitationReceived(hostUser: LiveUserInfo) {
-            observerManager.onSeatRequestReceived(
-                VoiceRoomDefine.RequestType.INVITE_TO_TAKE_SEAT,
-                convertToUserInfo(hostUser)
-            )
-        }
-
+    private val mGuestListener: GuestListener = object : GuestListener() {
         override fun onHostInvitationCancelled(hostUser: LiveUserInfo) {
-            observerManager.onSeatRequestCancelled(
-                VoiceRoomDefine.RequestType.INVITE_TO_TAKE_SEAT,
-                convertToUserInfo(hostUser)
+            val content = getContext().getString(
+                R.string.live_cancel_request,
+                liveListStore.liveState.currentLive.value.liveOwner.userName
             )
-        }
-
-        override fun onGuestApplicationResponded(isAccept: Boolean, hostUser: LiveUserInfo) {
-            if (isAccept) {
-                applicationCallback?.onAccepted(convertToUserInfo(hostUser))
-            } else {
-                applicationCallback?.onRejected(convertToUserInfo(hostUser))
-            }
-            applicationCallback = null
-        }
-
-        override fun onGuestApplicationNoResponse(reason: NoResponseReason) {
-            when (reason) {
-                NoResponseReason.TIMEOUT -> applicationCallback?.onTimeout(
-                    convertToUserInfo(
-                        TUIRoomEngine.getSelfInfo()
-                    )
-                )
-
-                NoResponseReason.ALREADY_SEATED -> applicationCallback?.onAccepted(
-                    convertToUserInfo(TUIRoomEngine.getSelfInfo())
-                )
-            }
-            applicationCallback = null
+            StandardToast.toastShortMessage(content)
         }
     }
 
-    private class ActionCallback(
-        private val callback: TUIRoomDefine.ActionCallback?, private val success: () -> Unit = {},
-        private val error: (Int, String) -> Unit = { _, _ -> },
-    ) : CompletionHandler {
-        override fun onSuccess() {
-            success()
-            callback?.onSuccess()
+    private val mBattleListener: BattleListener = object : BattleListener() {
+        override fun onBattleStarted(
+            battleInfo: BattleInfo,
+            inviter: SeatUserInfo,
+            invitees: List<SeatUserInfo>,
+        ) {
+            if (battleInfoView != null) {
+                return
+            }
+            battleInfoView = BattleInfoView(context).apply {
+                init(liveId = liveListStore.liveState.currentLive.value.liveID)
+                setBattleEndListener { view ->
+                    this@SeatGridView.removeView(view)
+                    if (battleInfoView == view) {
+                        battleInfoView = null
+                    }
+                }
+            }
+            val layoutParams = LayoutParams(
+                LayoutParams.WRAP_CONTENT,
+                LayoutParams.WRAP_CONTENT
+            ).apply {
+                gravity = android.view.Gravity.CENTER_HORIZONTAL or android.view.Gravity.TOP
+            }
+            this@SeatGridView.addView(battleInfoView, layoutParams)
         }
 
-        override fun onFailure(code: Int, desc: String) {
-            error(code, desc)
-            callback?.onError(TUICommonDefine.Error.fromInt(code), desc)
+        override fun onBattleRequestReceived(
+            battleId: String,
+            inviter: SeatUserInfo,
+            invitee: SeatUserInfo,
+        ) {
+            val content = context.getString(
+                R.string.common_battle_inviting,
+                inviter.userName
+            )
+            showDirectPKDialog(content, inviter.avatarURL, battleId)
         }
+
+        override fun onBattleRequestCancelled(
+            battleId: String,
+            inviter: SeatUserInfo,
+            invitee: SeatUserInfo,
+        ) {
+            battleInvitationDialog?.dismiss()
+            val content = context.getString(
+                R.string.common_battle_inviter_cancel,
+                inviter.userName
+            )
+            StandardToast.toastShortMessage(content)
+        }
+
+        override fun onBattleRequestTimeout(
+            battleId: String,
+            inviter: SeatUserInfo,
+            invitee: SeatUserInfo,
+        ) {
+            if (TextUtils.equals(inviter.userID, TUIRoomEngine.getSelfInfo().userId)) {
+                StandardToast.toastShortMessage(context.getString(R.string.common_connect_invitation_timeout))
+            }
+        }
+
+        override fun onBattleRequestReject(
+            battleId: String,
+            inviter: SeatUserInfo,
+            invitee: SeatUserInfo,
+        ) {
+            val content = context.getString(
+                R.string.common_battle_invitee_reject,
+                invitee.userName
+            )
+            StandardToast.toastShortMessage(content)
+        }
+    }
+
+    private fun showBattleInviteDialog(
+        content: String?,
+        inviter: SeatUserInfo,
+        extensionInfo: String,
+    ) {
+        val dialog = connectionInvitationDialog ?: StandardDialog(context).also {
+            connectionInvitationDialog = it
+        }
+        dialog.setContent(content)
+        dialog.setAvatar(inviter.avatarURL)
+
+        val rejectText: String = context.getString(R.string.common_reject)
+        dialog.setNegativeTextWithCountdown(rejectText, 10000L) {
+            coHostStore?.rejectHostConnection(inviter.liveID, object : CompletionHandler {
+                override fun onSuccess() {
+                }
+
+                override fun onFailure(code: Int, desc: String) {
+                    ErrorLocalized.onError(code)
+                }
+            })
+        }
+
+        val receiveText: String? = context.getString(R.string.common_receive)
+        dialog.setPositiveText(receiveText) {
+            coHostStore?.acceptHostConnection(inviter.liveID, object : CompletionHandler {
+                override fun onSuccess() {
+                    if (TextUtils.equals(extensionInfo, this@SeatGridView.extensionInfo)) {
+                        val needResponse = false
+                        val extensionInfo = this@SeatGridView.extensionInfo
+                        val config = BattleConfig(BATTLE_DURATION, needResponse, extensionInfo)
+
+                        val list = mutableListOf<String>()
+                        list.add(inviter.userID)
+                        battleStore?.requestBattle(
+                            config,
+                            list,
+                            0,
+                            object : BattleRequestCallback {
+                                override fun onSuccess(
+                                    battleInfo: BattleInfo,
+                                    resultMap: Map<String, Int>,
+                                ) {
+
+                                }
+
+                                override fun onError(code: Int, desc: String) {
+                                    ErrorLocalized.onError(code)
+                                }
+                            }
+                        )
+                    } else {
+
+                    }
+                }
+
+                override fun onFailure(code: Int, desc: String) {
+                    ErrorLocalized.onError(code)
+                }
+            })
+        }
+        dialog.show()
+    }
+
+    private fun showConnectionInviteDialog(
+        content: String?,
+        inviter: SeatUserInfo,
+        extensionInfo: String,
+    ) {
+        val dialog = connectionInvitationDialog ?: StandardDialog(context).also {
+            connectionInvitationDialog = it
+        }
+        dialog.setContent(content)
+        dialog.setAvatar(inviter.avatarURL)
+
+        val rejectText: String = context.getString(R.string.common_reject)
+        dialog.setNegativeTextWithCountdown(rejectText, 10000L) {
+            coHostStore?.rejectHostConnection(inviter.liveID, object : CompletionHandler {
+                override fun onSuccess() {
+                }
+
+                override fun onFailure(code: Int, desc: String) {
+                    ErrorLocalized.onError(code)
+                }
+            })
+        }
+
+        val receiveText: String? = context.getString(R.string.common_receive)
+        dialog.setPositiveText(receiveText) {
+            coHostStore?.acceptHostConnection(inviter.liveID, object : CompletionHandler {
+                override fun onSuccess() {
+                }
+
+                override fun onFailure(code: Int, desc: String) {
+                    ErrorLocalized.onError(code)
+                }
+            })
+        }
+        dialog.show()
+    }
+
+    private fun showDirectPKDialog(content: String?, avatarUrl: String?, battleId: String?) {
+        val dialog = battleInvitationDialog ?: StandardDialog(context).also {
+            battleInvitationDialog = it
+        }
+        dialog.setContent(content)
+        dialog.setAvatar(avatarUrl)
+        val rejectText: String = context.getString(R.string.common_reject)
+        dialog.setNegativeTextWithCountdown(rejectText, 10000L) {
+            battleStore?.rejectBattle(battleId, object : CompletionHandler {
+                override fun onSuccess() {
+                }
+
+                override fun onFailure(code: Int, desc: String) {
+                    ErrorLocalized.onError(code)
+                }
+            })
+        }
+
+        val receiveText: String? = context.getString(R.string.common_receive)
+        dialog.setPositiveText(receiveText) {
+            battleStore?.acceptBattle(battleId, object : CompletionHandler {
+                override fun onSuccess() {
+                }
+
+                override fun onFailure(code: Int, desc: String) {
+                    ErrorLocalized.onError(code)
+                }
+            })
+        }
+        dialog.show()
+    }
+
+    companion object {
+        private val LOGGER = LiveKitLogger.Companion.getComponentLogger("SeatGridView")
     }
 }

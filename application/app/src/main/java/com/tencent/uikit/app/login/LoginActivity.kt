@@ -5,16 +5,17 @@ import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.widget.EditText
-import android.widget.ImageView
+import androidx.appcompat.widget.SwitchCompat
 import com.tencent.imsdk.v2.V2TIMManager
 import com.tencent.imsdk.v2.V2TIMUserFullInfo
 import com.tencent.imsdk.v2.V2TIMValueCallback
+import com.tencent.qcloud.tuicore.TUICore
 import com.tencent.qcloud.tuicore.TUILogin
 import com.tencent.qcloud.tuicore.interfaces.TUICallback
+import com.tencent.qcloud.tuicore.interfaces.TUIServiceCallback
 import com.tencent.qcloud.tuicore.util.SPUtils
 import com.tencent.qcloud.tuicore.util.ToastUtil
 import com.tencent.qcloud.tuikit.debug.GenerateTestUserSig
-import com.tencent.qcloud.tuikit.debug.GenerateTestUserSig.TENCENT_EFFECT_LICENSE_URL
 import com.tencent.qcloud.tuikit.tuicallkit.TUICallKit.Companion.createInstance
 import com.tencent.uikit.app.R
 import com.tencent.uikit.app.main.BaseActivity
@@ -26,15 +27,17 @@ class LoginActivity : BaseActivity() {
         private const val TAG = "LoginActivity"
     }
 
-    private var isTestEnv = false
     private lateinit var editUserId: EditText
-
+    private lateinit var scEnableTestEnv: SwitchCompat
+    private lateinit var scDisableFeature: SwitchCompat
+    private lateinit var scEnableHighPerformance: SwitchCompat
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         if (!isTaskRoot
             && intent.hasCategory(Intent.CATEGORY_LAUNCHER)
             && intent.action != null
-            && intent.action.equals(Intent.ACTION_MAIN)) {
+            && intent.action.equals(Intent.ACTION_MAIN)
+        ) {
             finish();
             return;
         }
@@ -44,16 +47,39 @@ class LoginActivity : BaseActivity() {
 
     private fun initView() {
         editUserId = findViewById(R.id.et_userId)
-        editUserId.setText(SPUtils.getInstance("livekit").getString("userId"))
+        scEnableTestEnv = findViewById(R.id.sc_enable_test_env)
+        scDisableFeature = findViewById(R.id.sc_disable_feature)
+        scEnableHighPerformance = findViewById<SwitchCompat>(R.id.sc_enable_high_performance)
+        editUserId.setText(SPUtils.getInstance("app_uikit").getString("userId"))
         findViewById<View>(R.id.btn_login).setOnClickListener {
             val userId = editUserId.text.toString().trim()
             SPUtils.getInstance("app_uikit").put("userId", userId)
             login(userId)
         }
-        findViewById<ImageView>(R.id.iv_login_logo).setOnLongClickListener {
-            isTestEnv = !isTestEnv
-            switchTestEnv(isTestEnv)
-            true
+        scEnableTestEnv.setOnCheckedChangeListener { buttonView, isChecked ->
+            switchTestEnv(isChecked)
+        }
+        scDisableFeature.setOnCheckedChangeListener { buttonView, isChecked ->
+            val params = mapOf(
+                "isEnableHighPerformance" to scEnableHighPerformance.isChecked,
+                "isEnableHighPerformanceFeature" to isChecked,
+            )
+            TUICore.callService("TEBeautyExtension", "enableHighPerformance", params, object : TUIServiceCallback() {
+                override fun onServiceCallback(errorCode: Int, errorMessage: String?, bundle: Bundle?) {
+                }
+            })
+
+        }
+
+        scEnableHighPerformance.setOnCheckedChangeListener { buttonView, isChecked ->
+            val params = mapOf(
+                "isEnableHighPerformance" to isChecked,
+                "isEnableHighPerformanceFeature" to scDisableFeature.isChecked,
+            )
+            TUICore.callService("TEBeautyExtension", "enableHighPerformance", params, object : TUIServiceCallback() {
+                override fun onServiceCallback(errorCode: Int, errorMessage: String?, bundle: Bundle?) {
+                }
+            })
         }
     }
 
@@ -119,10 +145,5 @@ class LoginActivity : BaseActivity() {
                     Log.i(TAG, "V2TIMManager setNetEnv fail. enableTestEnv：$enableTestEnv")
                 }
             })
-        if (enableTestEnv) {
-            ToastUtil.toastShortMessage("Test Env")
-        } else {
-            ToastUtil.toastShortMessage("Online Env")
-        }
     }
 }

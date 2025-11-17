@@ -7,11 +7,11 @@ import android.view.View
 import android.widget.ImageView
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.trtc.tuikit.common.ui.PopupDialog
 import com.trtc.uikit.livekit.R
+import com.trtc.uikit.livekit.common.ui.PopupDialog
 import com.trtc.uikit.livekit.component.audiencelist.AudienceListView
 import com.trtc.uikit.livekit.component.audiencelist.view.adapter.AudienceListPanelAdapter
-import io.trtc.tuikit.atomicxcore.api.LiveAudienceState
+import io.trtc.tuikit.atomicxcore.api.live.LiveAudienceState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job

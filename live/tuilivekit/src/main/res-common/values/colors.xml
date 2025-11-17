@@ -114,5 +114,8 @@
     <color name="common_text_color_abnormal">#E6594C</color>
     <color name="common_stroke_color_module">#48494F</color>
     <color name="common_network_bad_tips_dialog_bg">#8C000000</color>
-
+    <color name="common_color_white_e5">#E5FFFFFF</color>
+    <color name="common_color_white_33">#33FFFFFF</color>
+    <color name="common_text_color_grey">#4DFFFFFF</color>
+    <color name="common_stroke_color_primary">#3A3C42</color>
 </resources>

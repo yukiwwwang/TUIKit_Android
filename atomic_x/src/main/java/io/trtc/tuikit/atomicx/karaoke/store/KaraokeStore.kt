@@ -106,7 +106,7 @@ class KaraokeStore private constructor(private val context: Context) {
         _isRoomOwner.value = isOwner
         setupChorusPlayer(roomId)
         copyAllAssetsToStorage()
-        loadLocalSongCatalog()
+//        loadLocalSongCatalog()
         fetchRoomMetadata()
         if (isOwner) {
             initializeAudioSettings()
@@ -650,19 +650,11 @@ class KaraokeStore private constructor(private val context: Context) {
             ContextCompat.getExternalFilesDirs(context, null)[0].absolutePath + "/"
 
         val songData = listOf(
-            Triple("${KEY_LOCAL_DEMO}1001", "后来", "刘若英"),
-            Triple("${KEY_LOCAL_DEMO}1002", "情非得已", "庾澄庆"),
-            Triple("${KEY_LOCAL_DEMO}1003", "星晴", "周杰伦"),
-            Triple("${KEY_LOCAL_DEMO}1004", "暖暖", "梁静茹"),
-            Triple("${KEY_LOCAL_DEMO}1005", "简单爱", "周杰伦")
+            Triple("${KEY_LOCAL_DEMO}1004", "暖暖", "梁静茹")
         )
 
         val songInfoMap = mapOf(
-            "后来" to Triple(R.drawable.karaoke_song_cover, 5 * 60 + 41, "houlai"),
-            "情非得已" to Triple(R.drawable.karaoke_song_cover, 4 * 60 + 33, "qfdy"),
-            "星晴" to Triple(R.drawable.karaoke_song_cover, 4 * 60 + 19, "xq"),
-            "暖暖" to Triple(R.drawable.karaoke_song_cover, 4 * 60 + 3, "nuannuan"),
-            "简单爱" to Triple(R.drawable.karaoke_song_cover, 4 * 60 + 30, "jda")
+            "暖暖" to Triple(R.drawable.karaoke_song_cover, 4 * 60 + 3, "nuannuan")
         )
 
         val musicList = songData.mapNotNull { (id, name, artist) ->
@@ -682,13 +674,10 @@ class KaraokeStore private constructor(private val context: Context) {
         _songCatalog.value = musicList
     }
 
+
     private fun copyAllAssetsToStorage() {
         val assetFiles = listOf(
-            "houlai_bz.mp3", "houlai_yc.mp3", "houlai_lrc.vtt",
-            "qfdy_bz.mp3", "qfdy_yc.mp3", "qfdy_lrc.vtt",
-            "xq_bz.mp3", "xq_yc.mp3", "xq_lrc.vtt",
-            "nuannuan_bz.mp3", "nuannuan_yc.mp3", "nuannuan_lrc.vtt",
-            "jda_bz.mp3", "jda_yc.mp3", "jda_lrc.vtt"
+            "nuannuan_bz.mp3", "nuannuan_yc.mp3", "nuannuan_lrc.vtt"
         )
         assetFiles.forEach { copyAssetToFile(it) }
     }

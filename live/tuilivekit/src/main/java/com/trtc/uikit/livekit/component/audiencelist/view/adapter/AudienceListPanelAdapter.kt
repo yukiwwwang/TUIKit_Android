@@ -15,9 +15,9 @@ import com.trtc.tuikit.common.imageloader.ImageLoader
 import com.trtc.uikit.livekit.R
 import com.trtc.uikit.livekit.common.convertToUserInfo
 import com.trtc.uikit.livekit.component.audiencelist.AudienceListView
-import io.trtc.tuikit.atomicxcore.api.LiveAudienceState
-import io.trtc.tuikit.atomicxcore.api.LiveListStore
-import io.trtc.tuikit.atomicxcore.api.LiveUserInfo
+import io.trtc.tuikit.atomicxcore.api.live.LiveAudienceState
+import io.trtc.tuikit.atomicxcore.api.live.LiveListStore
+import io.trtc.tuikit.atomicxcore.api.live.LiveUserInfo
 import java.util.concurrent.CopyOnWriteArrayList
 
 class AudienceListPanelAdapter(

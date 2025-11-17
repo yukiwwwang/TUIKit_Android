@@ -5,7 +5,7 @@ import android.os.Bundle
 import com.tencent.qcloud.tuicore.interfaces.TUIServiceCallback
 import com.tencent.qcloud.tuicore.util.ToastUtil
 import com.trtc.uikit.livekit.component.beauty.tebeauty.TEBeautyManager
-import io.trtc.tuikit.atomicxcore.api.BaseBeautyStore
+import io.trtc.tuikit.atomicxcore.api.device.BaseBeautyStore
 import java.lang.ref.WeakReference
 
 object BeautyUtils {

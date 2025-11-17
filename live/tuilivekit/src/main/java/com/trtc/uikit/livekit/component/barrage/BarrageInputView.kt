@@ -8,10 +8,10 @@ import android.view.View
 import com.trtc.uikit.livekit.R
 import com.trtc.uikit.livekit.common.ui.BasicView
 import com.trtc.uikit.livekit.component.barrage.view.BarrageSendView
-import io.trtc.tuikit.atomicxcore.api.BarrageStore
-import io.trtc.tuikit.atomicxcore.api.LiveEndedReason
-import io.trtc.tuikit.atomicxcore.api.LiveListListener
-import io.trtc.tuikit.atomicxcore.api.LiveListStore
+import io.trtc.tuikit.atomicxcore.api.barrage.BarrageStore
+import io.trtc.tuikit.atomicxcore.api.live.LiveEndedReason
+import io.trtc.tuikit.atomicxcore.api.live.LiveListListener
+import io.trtc.tuikit.atomicxcore.api.live.LiveListStore
 
 @SuppressLint("ViewConstructor")
 class BarrageInputView @JvmOverloads constructor(

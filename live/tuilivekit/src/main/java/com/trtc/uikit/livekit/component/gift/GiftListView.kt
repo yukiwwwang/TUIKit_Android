@@ -3,14 +3,11 @@ package com.trtc.uikit.livekit.component.gift
 import android.content.Context
 import android.text.TextUtils
 import android.util.AttributeSet
-import android.util.Log
-import android.view.View
 import android.widget.LinearLayout
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LifecycleRegistry
 import androidx.lifecycle.lifecycleScope
-import androidx.viewpager.widget.ViewPager
 import com.trtc.uikit.livekit.common.LiveKitLogger
 import com.trtc.uikit.livekit.common.LiveKitLogger.Companion.getComponentLogger
 import com.trtc.uikit.livekit.common.reportEventData
@@ -18,21 +15,19 @@ import com.trtc.uikit.livekit.component.gift.service.GiftConstants
 import com.trtc.uikit.livekit.component.gift.service.GiftConstants.LANGUAGE_EN
 import com.trtc.uikit.livekit.component.gift.service.GiftConstants.LANGUAGE_ZH_HANS
 import com.trtc.uikit.livekit.component.gift.service.GiftConstants.LANGUAGE_ZH_HANT
-import com.trtc.uikit.livekit.component.gift.view.GiftViewPagerManager
-import com.trtc.uikit.livekit.component.gift.view.GiftViewPagerManager.GiftClickListener
-import com.trtc.uikit.livekit.component.gift.view.adapter.GiftViewPagerAdapter
-import io.trtc.tuikit.atomicxcore.api.Gift
-import io.trtc.tuikit.atomicxcore.api.GiftCategory
-import io.trtc.tuikit.atomicxcore.api.GiftStore
+import com.trtc.uikit.livekit.component.gift.view.GiftCategoryViewPagerManager
+import com.trtc.uikit.livekit.component.gift.view.GiftTabLayoutManager
+import io.trtc.tuikit.atomicxcore.api.gift.Gift
+import io.trtc.tuikit.atomicxcore.api.gift.GiftCategory
+import io.trtc.tuikit.atomicxcore.api.gift.GiftStore
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import java.util.Locale
 
-class GiftListView : ViewPager, LifecycleOwner {
+class GiftListView : LinearLayout, LifecycleOwner {
     private val logger: LiveKitLogger = getComponentLogger("GiftListPanel")
-    private var giftViewManager: GiftViewPagerManager? = null
-    private var giftViewList: MutableList<View> = ArrayList()
+    private var giftTabLayoutManager: GiftTabLayoutManager? = null
     private var roomId: String = ""
     private var onSendGiftListener: OnSendGiftListener? = null
     private var giftStore: GiftStore? = null
@@ -42,7 +37,9 @@ class GiftListView : ViewPager, LifecycleOwner {
 
     constructor(context: Context) : this(context, null)
 
-    constructor(context: Context, attrs: AttributeSet?) : super(context, attrs)
+    constructor(context: Context, attrs: AttributeSet?) : super(context, attrs) {
+        orientation = VERTICAL
+    }
 
     fun init(roomId: String) {
         if (roomId.isEmpty()) {
@@ -109,33 +106,26 @@ class GiftListView : ViewPager, LifecycleOwner {
 
     override val lifecycle: Lifecycle get() = lifecycleRegistry
 
-    private fun setGiftList(giftList: MutableList<Gift>?) {
-        if (giftList == null || giftList.isEmpty()) {
-            Log.w(TAG, "giftList empty!")
+    private fun setGiftCategoryList(categoryList: List<GiftCategory>) {
+        if (categoryList.isEmpty()) {
+            logger.error("setGiftCategoryList categoryList is empty")
             return
         }
-        if (giftViewManager == null) {
-            giftViewManager = GiftViewPagerManager()
-            giftViewManager?.setGiftClickListener(object : GiftClickListener {
+
+        removeAllViews()
+
+        if (giftTabLayoutManager == null) {
+            giftTabLayoutManager = GiftTabLayoutManager(context)
+            giftTabLayoutManager?.setGiftClickListener(object :
+                GiftCategoryViewPagerManager.GiftClickListener {
                 override fun onClick(position: Int, gift: Gift) {
                     onSendGiftListener?.onSendGift(this@GiftListView, gift, 1)
                 }
             })
         }
-        if (!giftViewList.isEmpty()) {
-            giftViewList.clear()
-        }
-        giftViewManager?.let {
-            val pageSize = it.getPagerCount(giftList.size, COLUMNS, ROWS)
-            for (i in 0 until pageSize) {
-                giftViewList.add(it.viewPagerItem(context, i, giftList, COLUMNS, ROWS))
-                val params = LinearLayout.LayoutParams(16, 16)
-                params.setMargins(10, 0, 10, 0)
-            }
-        }
-        val mGiftViewPagerAdapter = GiftViewPagerAdapter(giftViewList)
-        this.setAdapter(mGiftViewPagerAdapter)
-        this.setCurrentItem(0)
+
+        val tabLayout = giftTabLayoutManager!!.createLayout(categoryList, COLUMNS, ROWS)
+        addView(tabLayout, LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT))
     }
 
     private fun setupLifecycleIfNeeded() {
@@ -168,11 +158,7 @@ class GiftListView : ViewPager, LifecycleOwner {
 
     private fun onGiftListChange(list: List<GiftCategory>) {
         if (!TextUtils.isEmpty(roomId)) {
-            val giftList = mutableListOf<Gift>()
-            list.forEach {
-                giftList.addAll(it.giftList)
-            }
-            setGiftList(giftList)
+            setGiftCategoryList(list)
         }
     }
 
@@ -201,7 +187,6 @@ class GiftListView : ViewPager, LifecycleOwner {
     }
 
     companion object {
-        private const val TAG = "GiftListPanelView"
         private const val COLUMNS = 4
         private const val ROWS = 2
     }

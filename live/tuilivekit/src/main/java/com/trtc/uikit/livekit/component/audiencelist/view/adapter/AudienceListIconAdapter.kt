@@ -11,8 +11,8 @@ import androidx.constraintlayout.utils.widget.ImageFilterView
 import androidx.recyclerview.widget.RecyclerView
 import com.trtc.tuikit.common.imageloader.ImageLoader
 import com.trtc.uikit.livekit.R
-import io.trtc.tuikit.atomicxcore.api.LiveAudienceState
-import io.trtc.tuikit.atomicxcore.api.LiveUserInfo
+import io.trtc.tuikit.atomicxcore.api.live.LiveAudienceState
+import io.trtc.tuikit.atomicxcore.api.live.LiveUserInfo
 
 class AudienceListIconAdapter(
     private val context: Context,

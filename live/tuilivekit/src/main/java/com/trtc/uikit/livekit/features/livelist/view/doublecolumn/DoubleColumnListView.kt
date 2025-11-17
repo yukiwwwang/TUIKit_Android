@@ -13,14 +13,15 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-import com.tencent.cloud.tuikit.engine.extension.TUILiveListManager
 import com.trtc.uikit.livekit.R
 import com.trtc.uikit.livekit.common.LiveKitLogger
 import com.trtc.uikit.livekit.component.pictureinpicture.PictureInPictureStore
-import com.trtc.uikit.livekit.features.livelist.LiveListCallback
 import com.trtc.uikit.livekit.features.livelist.LiveListViewAdapter
 import com.trtc.uikit.livekit.features.livelist.OnItemClickListener
 import com.trtc.uikit.livekit.features.livelist.manager.LiveInfoListService
+import io.trtc.tuikit.atomicxcore.api.CompletionHandler
+import io.trtc.tuikit.atomicxcore.api.live.LiveInfo
+import io.trtc.tuikit.atomicxcore.api.live.LiveListStore
 
 class DoubleColumnListView @JvmOverloads constructor(
     context: Context,
@@ -102,7 +103,7 @@ class DoubleColumnListView @JvmOverloads constructor(
         adapter.setOnItemClickListener(this::onLiveInfoViewClick)
     }
 
-    private fun onLiveInfoViewClick(view: View, liveInfo: TUILiveListManager.LiveInfo) {
+    private fun onLiveInfoViewClick(view: View, liveInfo: LiveInfo) {
         willEnterRoomView = view as DoubleColumnItemView
         onItemClickListener?.onItemClick(view, liveInfo)
     }
@@ -110,14 +111,14 @@ class DoubleColumnListView @JvmOverloads constructor(
     override fun onAttachedToWindow() {
         super.onAttachedToWindow()
         fragmentActivity.lifecycle.addObserver(lifecycleObserver)
-        PictureInPictureStore.sharedInstance().getState().roomId.observeForever(pictureInPictureRoomIdObserver)
+        PictureInPictureStore.sharedInstance().state.roomId.observeForever(pictureInPictureRoomIdObserver)
     }
 
     override fun onDetachedFromWindow() {
         super.onDetachedFromWindow()
         fragmentActivity.lifecycle.removeObserver(lifecycleObserver)
         stopAllPreviewLiveStream()
-        PictureInPictureStore.sharedInstance().getState().roomId.removeObserver(pictureInPictureRoomIdObserver)
+        PictureInPictureStore.sharedInstance().state.roomId.removeObserver(pictureInPictureRoomIdObserver)
     }
 
     @SuppressLint("NotifyDataSetChanged")
@@ -191,10 +192,10 @@ class DoubleColumnListView @JvmOverloads constructor(
 
         loadingTime = System.currentTimeMillis()
         isLoading = true
-        liveInfoListService.refreshLiveList(object : LiveListCallback {
+        liveInfoListService.refreshLiveList(object : CompletionHandler {
             @SuppressLint("NotifyDataSetChanged")
-            override fun onSuccess(cursor: String, liveInfoList: List<TUILiveListManager.LiveInfo>) {
-                adapter.setData(liveInfoList)
+            override fun onSuccess() {
+                adapter.setData(LiveListStore.shared().liveState.liveList.value)
                 adapter.notifyDataSetChanged()
                 swipeRefreshLayout.isRefreshing = false
                 post {
@@ -205,8 +206,8 @@ class DoubleColumnListView @JvmOverloads constructor(
                 }
             }
 
-            override fun onError(code: Int, message: String) {
-                LOGGER.error("refreshData failed:error,errorCode:$code,message:$message")
+            override fun onFailure(code: Int, desc: String) {
+                LOGGER.error("refreshData failed:error,errorCode:$code,desc:$desc")
                 post {
                     isLoading = false
                     swipeRefreshLayout.isRefreshing = false
@@ -220,8 +221,11 @@ class DoubleColumnListView @JvmOverloads constructor(
         adapter.setLoadState(LOADING)
         isLoading = true
 
-        liveInfoListService.fetchLiveList(object : LiveListCallback {
-            override fun onSuccess(cursor: String, liveInfoList: List<TUILiveListManager.LiveInfo>) {
+        liveInfoListService.fetchLiveList(object : CompletionHandler {
+
+            override fun onSuccess() {
+                val liveState = LiveListStore.shared().liveState
+                val liveInfoList = liveState.liveList.value
                 if (liveInfoList.isEmpty()) {
                     post {
                         adapter.setLoadState(LOADING_COMPLETE)
@@ -232,18 +236,18 @@ class DoubleColumnListView @JvmOverloads constructor(
 
                 post {
                     val itemCount = adapter.itemCount
-                    adapter.addData(liveInfoList)
+                    adapter.setData(liveInfoList)
                     adapter.notifyItemRangeInserted(itemCount, liveInfoList.size)
                     isLoading = false
                     adapter.setLoadState(
-                        if (cursor.isNotEmpty()) LOADING_COMPLETE
+                        if (liveState.liveListCursor.value.isNotEmpty()) LOADING_COMPLETE
                         else LOADING_END
                     )
                 }
             }
 
-            override fun onError(code: Int, message: String) {
-                LOGGER.error("loadMoreData failed, errorCode:$code,message:$message")
+            override fun onFailure(code: Int, desc: String) {
+                LOGGER.error("loadMoreData failed, errorCode:$code,desc:$desc")
                 post {
                     adapter.setLoadState(LOADING_COMPLETE)
                     isLoading = false

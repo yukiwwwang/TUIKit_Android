@@ -16,7 +16,7 @@ import com.trtc.uikit.livekit.R
 import com.trtc.uikit.livekit.component.beauty.BeautyUtils.resetBeauty
 import com.trtc.uikit.livekit.component.beauty.basicbeauty.view.BeautyListAdapter
 import com.trtc.uikit.livekit.component.beauty.basicbeauty.view.BeautyListAdapter.BeautyType
-import io.trtc.tuikit.atomicxcore.api.BaseBeautyStore
+import io.trtc.tuikit.atomicxcore.api.device.BaseBeautyStore
 
 @SuppressLint("ViewConstructor")
 class BeautyListPanel @JvmOverloads constructor(

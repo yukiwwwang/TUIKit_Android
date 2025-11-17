@@ -5,7 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import com.tencent.cloud.tuikit.engine.extension.TUILiveListManager.LiveInfo
+import io.trtc.tuikit.atomicxcore.api.live.LiveInfo
 
 class LiveListFragment(
     private var liveInfo: LiveInfo,

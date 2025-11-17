@@ -7,10 +7,11 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import androidx.fragment.app.FragmentManager
 import androidx.viewpager2.adapter.FragmentStateAdapter
-import com.tencent.cloud.tuikit.engine.extension.TUILiveListManager.LiveInfo
 import com.trtc.uikit.livekit.common.LiveKitLogger
-import com.trtc.uikit.livekit.features.livelist.LiveListCallback
 import com.trtc.uikit.livekit.features.livelist.manager.LiveInfoListService
+import io.trtc.tuikit.atomicxcore.api.CompletionHandler
+import io.trtc.tuikit.atomicxcore.api.live.LiveInfo
+import io.trtc.tuikit.atomicxcore.api.live.LiveListStore
 
 abstract class LiveListViewPagerAdapter(
     fragmentActivity: FragmentActivity,
@@ -52,17 +53,18 @@ abstract class LiveListViewPagerAdapter(
             return
         }
         isLoading = true
-        liveInfoListService.fetchLiveList(object : LiveListCallback {
-            override fun onSuccess(cursor: String, liveInfoList: List<LiveInfo>) {
+        liveInfoListService.fetchLiveList(object : CompletionHandler {
+            override fun onSuccess() {
                 val startPosition = this@LiveListViewPagerAdapter.liveInfoList.size
-                this@LiveListViewPagerAdapter.liveInfoList.addAll(liveInfoList)
+                this@LiveListViewPagerAdapter.liveInfoList.clear()
+                this@LiveListViewPagerAdapter.liveInfoList.addAll(LiveListStore.shared().liveState.liveList.value)
                 notifyItemRangeInserted(startPosition, liveInfoList.size)
                 isDataLoaded = true
                 isLoading = false
             }
 
-            override fun onError(code: Int, message: String) {
-                LOGGER.error("fetchLiveList failed,errorCode:$code,message:$message")
+            override fun onFailure(code: Int, desc: String) {
+                LOGGER.error("fetchLiveList failed,errorCode:$code,desc:$desc")
                 isLoading = false
             }
         })
@@ -71,21 +73,18 @@ abstract class LiveListViewPagerAdapter(
     fun refreshData(callback: ActionCallback?) {
         LOGGER.info("refreshData enableSliding:")
         isLoading = true
-        liveInfoListService.refreshLiveList(object : LiveListCallback {
-            @SuppressLint("NotifyDataSetChanged")
-            override fun onSuccess(cursor: String, liveInfoList: List<LiveInfo>) {
+        liveInfoListService.refreshLiveList(object : CompletionHandler {
+            override fun onSuccess() {
                 this@LiveListViewPagerAdapter.liveInfoList.clear()
-                this@LiveListViewPagerAdapter.liveInfoList.addAll(liveInfoList)
+                this@LiveListViewPagerAdapter.liveInfoList.addAll(LiveListStore.shared().liveState.liveList.value)
                 updateLiveList(liveInfoList)
                 callback?.onComplete()
                 isDataLoaded = true
                 isLoading = false
             }
 
-            override fun onError(code: Int, message: String) {
-                LOGGER.error("refreshData failed,errorCode:$code,message:$message")
-                callback?.onComplete()
-                isLoading = false
+            override fun onFailure(code: Int, desc: String) {
+                TODO("Not yet implemented")
             }
         })
     }

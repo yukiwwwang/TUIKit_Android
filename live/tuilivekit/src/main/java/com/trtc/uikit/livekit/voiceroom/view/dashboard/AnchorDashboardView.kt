@@ -6,10 +6,9 @@ import android.util.AttributeSet
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.TextView
-import androidx.annotation.NonNull
 import com.trtc.uikit.livekit.R
 import com.trtc.uikit.livekit.voiceroom.manager.VoiceRoomManager
-import com.trtc.uikit.livekit.voiceroom.view.BasicView
+import com.trtc.uikit.livekit.voiceroom.view.basic.BasicView
 import java.util.Locale
 
 class AnchorDashboardView @JvmOverloads constructor(
@@ -18,18 +17,17 @@ class AnchorDashboardView @JvmOverloads constructor(
     defStyleAttr: Int = 0
 ) : BasicView(context, attrs, defStyleAttr) {
 
-    override fun initView() {
+    init {
         LayoutInflater.from(context).inflate(R.layout.livekit_anchor_dashboard_view, this, true)
     }
 
-    override fun init(@NonNull voiceRoomManager: VoiceRoomManager) {
-        super.init(voiceRoomManager)
-        
+    override fun init(liveID: String, voiceRoomManager: VoiceRoomManager) {
+        super.init(liveID, voiceRoomManager)
         findViewById<TextView>(R.id.tv_duration).text = formatSecondsTo00(
-            ((System.currentTimeMillis() - voiceRoomManager.roomState.createTime) / 1000).toInt()
+            ((System.currentTimeMillis() - voiceRoomManager.prepareStore.prepareState.liveInfo.value.createTime) / 1000).toInt()
         )
 
-        with(voiceRoomManager.roomState.liveExtraInfo) {
+        with(voiceRoomManager.prepareStore.prepareState.liveExtraInfo.value) {
             findViewById<TextView>(R.id.tv_viewers).text = maxAudienceCount.toString()
             findViewById<TextView>(R.id.tv_message).text = messageCount.toString()
             findViewById<TextView>(R.id.tv_gift_income).text = giftIncome.toString()
@@ -46,9 +44,10 @@ class AnchorDashboardView @JvmOverloads constructor(
 
     override fun removeObserver() = Unit
 
+    override fun initStore() = Unit
+
     private fun formatSecondsTo00(timeSeconds: Int): String {
         if (timeSeconds <= 0) return "-- --"
-        
         val hour = timeSeconds / 3600
         val min = timeSeconds % 3600 / 60
         val sec = timeSeconds % 60

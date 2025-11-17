@@ -6,23 +6,23 @@ import com.tencent.cloud.tuikit.engine.extension.TUILiveConnectionManager.Connec
 import com.tencent.cloud.tuikit.engine.extension.TUILiveListManager
 import com.tencent.cloud.tuikit.engine.extension.TUIRoomDeviceManager
 import com.tencent.cloud.tuikit.engine.room.TUIRoomDefine
-import io.trtc.tuikit.atomicxcore.api.AudioRoute
-import io.trtc.tuikit.atomicxcore.api.BattleConfig
-import io.trtc.tuikit.atomicxcore.api.BattleInfo
-import io.trtc.tuikit.atomicxcore.api.DeviceError
-import io.trtc.tuikit.atomicxcore.api.DeviceStatus
-import io.trtc.tuikit.atomicxcore.api.LiveEndedReason
-import io.trtc.tuikit.atomicxcore.api.LiveInfo
-import io.trtc.tuikit.atomicxcore.api.LiveKickedOutReason
-import io.trtc.tuikit.atomicxcore.api.LiveUserInfo
-import io.trtc.tuikit.atomicxcore.api.NetworkInfo
-import io.trtc.tuikit.atomicxcore.api.NetworkQuality
-import io.trtc.tuikit.atomicxcore.api.RegionInfo
-import io.trtc.tuikit.atomicxcore.api.Role
-import io.trtc.tuikit.atomicxcore.api.SeatInfo
-import io.trtc.tuikit.atomicxcore.api.SeatUserInfo
-import io.trtc.tuikit.atomicxcore.api.TakeSeatMode
-import io.trtc.tuikit.atomicxcore.api.VideoQuality
+import io.trtc.tuikit.atomicxcore.api.device.AudioRoute
+import io.trtc.tuikit.atomicxcore.api.device.DeviceError
+import io.trtc.tuikit.atomicxcore.api.device.DeviceStatus
+import io.trtc.tuikit.atomicxcore.api.device.NetworkInfo
+import io.trtc.tuikit.atomicxcore.api.device.NetworkQuality
+import io.trtc.tuikit.atomicxcore.api.device.VideoQuality
+import io.trtc.tuikit.atomicxcore.api.live.BattleConfig
+import io.trtc.tuikit.atomicxcore.api.live.BattleInfo
+import io.trtc.tuikit.atomicxcore.api.live.LiveEndedReason
+import io.trtc.tuikit.atomicxcore.api.live.LiveInfo
+import io.trtc.tuikit.atomicxcore.api.live.LiveKickedOutReason
+import io.trtc.tuikit.atomicxcore.api.live.LiveUserInfo
+import io.trtc.tuikit.atomicxcore.api.live.RegionInfo
+import io.trtc.tuikit.atomicxcore.api.live.Role
+import io.trtc.tuikit.atomicxcore.api.live.SeatInfo
+import io.trtc.tuikit.atomicxcore.api.live.SeatUserInfo
+import io.trtc.tuikit.atomicxcore.api.live.TakeSeatMode
 import java.util.Collections
 
 fun liveInfoFromEngineLiveInfo(liveInfo: TUILiveListManager.LiveInfo): LiveInfo {
@@ -90,6 +90,7 @@ fun liveInfoToEngineLiveInfo(liveInfo: LiveInfo): TUILiveListManager.LiveInfo {
         ownerId = liveInfo.liveOwner.userID
         ownerName = liveInfo.liveOwner.userName
         ownerAvatarUrl = liveInfo.liveOwner.avatarURL
+        createTime = liveInfo.createTime
         roomInfo = TUIRoomDefine.RoomInfo().apply {
             roomId = liveInfo.liveID
             ownerId = liveInfo.liveOwner.userID

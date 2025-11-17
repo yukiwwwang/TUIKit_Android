@@ -2,8 +2,8 @@ package com.trtc.uikit.livekit.common
 
 import com.tencent.cloud.tuikit.engine.common.TUICommonDefine
 import com.tencent.qcloud.tuicore.TUIConfig
-import com.tencent.qcloud.tuicore.util.ToastUtil
 import com.trtc.uikit.livekit.R
+import com.trtc.uikit.livekit.common.ui.StandardToast
 
 class ErrorLocalized {
     companion object {
@@ -102,23 +102,57 @@ class ErrorLocalized {
         const val LIVE_SERVER_ERROR_METADATA_NO_VALID_KEYS = 100503
         const val LIVE_SERVER_ERROR_METADATA_THE_SIZE_OF_KEY_EXCEEDS_THE_MAXIMUM_BYTE_LIMIT = 100504
 
+        const val LIVE_CONNECTION_ERROR_ROOM_NOT_EXISTS = 1
+        const val LIVE_CONNECTION_ERROR_CONNECTING = 2
+        const val LIVE_CONNECTION_ERROR_CONNECTING_OTHER_ROOM = 3
+        const val LIVE_CONNECTION_ERROR_CONNECTION_FULL = 4
+        const val LIVE_CONNECTION_ERROR_RETRY = 5
+
+        const val LIVE_IM_ERROR_FREQ_LIMIT = 7008
+        const val LIVE_IM_ERROR_GROUP_SHUTUP_DENY = 10017
+        const val LIVE_IM_ERROR_SENSITIVE_WORD = 7015
+        const val LIVE_IM_ERROR_PKG_SIZE_LIMIT = 9522
+        const val LIVE_IM_ERROR_NET_DISCONNECT = 9508
+        const val LIVE_IM_ERROR_NET_WAIT_ACK_TIMEOUT = 9520
+        const val LIVE_IM_ERROR_NET_ALLREADY_CONN = 9509
+        const val LIVE_IM_ERROR_NET_CONN_TIMEOUT = 9510
+        const val LIVE_IM_ERROR_NET_CONN_REFUSE = 9511
+        const val LIVE_IM_ERROR_NET_NET_UNREACH = 9512
+        const val LIVE_IM_ERROR_NET_WAIT_INQUEUE_TIMEOUT = 9518
+        const val LIVE_IM_ERROR_NET_WAIT_SEND_TIMEOUT = 9519
+        const val LIVE_IM_ERROR_NET_WAIT_SEND_REMAINING_TIMEOUT = 9521
+        const val LIVE_IM_ERROR_NET_WAIT_SEND_TIMEOUT_NO_NETWORK = 9523
+        const val LIVE_IM_ERROR_NET_WAIT_ACK_TIMEOUT_NO_NETWORK = 9524
+        const val LIVE_IM_ERROR_NET_SEND_REMAINING_TIMEOUT_NO_NETWORK = 9525
+
         private val INTERCEPT_TOAST_ONLY_PRINT_LOG = setOf(LIVE_CLIENT_ERROR_ROOM_MISMATCH)
         private val LOGGER = LiveKitLogger.getCommonLogger("ErrorLocalized")
 
         @JvmStatic
         fun onError(error: TUICommonDefine.Error) {
             if (error == TUICommonDefine.Error.SUCCESS) return
-            convertToErrorMessage(error).also { message ->
+            convertToErrorMessage(error.value).also { message ->
                 LOGGER.info("[error:$error,value:${error.value},message:$message]")
                 if (!INTERCEPT_TOAST_ONLY_PRINT_LOG.contains(error.value)) {
-                    ToastUtil.toastShortMessage(message)
+                    StandardToast.toastShortMessage(message)
                 }
             }
         }
 
-        private fun convertToErrorMessage(error: TUICommonDefine.Error): String {
+        @JvmStatic
+        fun onError(error: Int) {
+            if (error == 0) return
+            convertToErrorMessage(error).also { message ->
+                LOGGER.info("[error:$error,value:${error},message:$message]")
+                if (!INTERCEPT_TOAST_ONLY_PRINT_LOG.contains(error)) {
+                    StandardToast.toastShortMessage(message)
+                }
+            }
+        }
+
+        private fun convertToErrorMessage(error: Int): String {
             val context = TUIConfig.getAppContext() ?: return ""
-            return when (error.value) {
+            return when (error) {
                 LIVE_CLIENT_ERROR_SUCCESS ->
                     context.getString(R.string.common_client_error_success)
 
@@ -395,8 +429,50 @@ class ErrorLocalized {
                 LIVE_SERVER_ERROR_METADATA_THE_SIZE_OF_KEY_EXCEEDS_THE_MAXIMUM_BYTE_LIMIT ->
                     context.getString(R.string.common_server_error_metadata_the_size_of_key_exceeds_the_maximum_byte_limit)
 
+                LIVE_CONNECTION_ERROR_ROOM_NOT_EXISTS ->
+                    context.getString(R.string.live_error_connection_notexit)
+
+                LIVE_CONNECTION_ERROR_CONNECTING ->
+                    context.getString(R.string.common_client_error_connection_connecting)
+
+                LIVE_CONNECTION_ERROR_CONNECTING_OTHER_ROOM ->
+                    context.getString(R.string.common_connect_conflict)
+
+                LIVE_CONNECTION_ERROR_CONNECTION_FULL ->
+                    context.getString(R.string.common_connection_room_full)
+
+                LIVE_CONNECTION_ERROR_RETRY ->
+                    context.getString(R.string.live_error_connection_retry)
+
+                LIVE_IM_ERROR_FREQ_LIMIT ->
+                    context.getString(R.string.live_barrage_error_freq_limit)
+
+                LIVE_IM_ERROR_GROUP_SHUTUP_DENY ->
+                    context.getString(R.string.live_barrage_error_disable_message_by_admin)
+
+                LIVE_IM_ERROR_SENSITIVE_WORD ->
+                    context.getString(R.string.live_barrage_error_sensitive_word)
+
+                LIVE_IM_ERROR_PKG_SIZE_LIMIT ->
+                    context.getString(R.string.live_barrage_error_content_is_long)
+
+                LIVE_IM_ERROR_NET_DISCONNECT,
+                LIVE_IM_ERROR_NET_WAIT_ACK_TIMEOUT,
+                LIVE_IM_ERROR_NET_ALLREADY_CONN,
+                LIVE_IM_ERROR_NET_CONN_TIMEOUT,
+                LIVE_IM_ERROR_NET_CONN_REFUSE,
+                LIVE_IM_ERROR_NET_NET_UNREACH,
+                LIVE_IM_ERROR_NET_WAIT_INQUEUE_TIMEOUT,
+                LIVE_IM_ERROR_NET_WAIT_SEND_TIMEOUT,
+                LIVE_IM_ERROR_NET_WAIT_SEND_REMAINING_TIMEOUT,
+                LIVE_IM_ERROR_NET_WAIT_SEND_TIMEOUT_NO_NETWORK,
+                LIVE_IM_ERROR_NET_WAIT_ACK_TIMEOUT_NO_NETWORK,
+                LIVE_IM_ERROR_NET_SEND_REMAINING_TIMEOUT_NO_NETWORK,
+                    ->
+                    context.getString(R.string.live_barrage_error_network)
+
                 else ->
-                    context.getString(R.string.common_client_error_failed) + error.value
+                    context.getString(R.string.common_client_error_failed) + error
             }
         }
     }

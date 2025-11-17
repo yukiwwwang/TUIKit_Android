@@ -14,7 +14,6 @@ import android.widget.ImageView
 import androidx.activity.addCallback
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.constraintlayout.widget.ConstraintSet
-import com.tencent.cloud.tuikit.engine.extension.TUILiveListManager
 import com.tencent.qcloud.tuicore.TUIConstants
 import com.tencent.qcloud.tuicore.TUICore
 import com.tencent.qcloud.tuicore.TUILogin
@@ -29,7 +28,9 @@ import com.trtc.uikit.livekit.common.LiveKitLogger
 import com.trtc.uikit.livekit.component.pictureinpicture.PictureInPictureStore
 import com.trtc.uikit.livekit.features.livelist.LiveListView
 import com.trtc.uikit.livekit.features.livelist.Style
+import com.trtc.uikit.livekit.livestream.impl.LiveInfoUtils.asEngineLiveInfo
 import com.trtc.uikit.livekit.voiceroom.VoiceRoomKit
+import io.trtc.tuikit.atomicxcore.api.live.LiveInfo
 
 class VideoLiveListActivity : FullScreenActivity() {
 
@@ -199,14 +200,14 @@ class VideoLiveListActivity : FullScreenActivity() {
         TUICore.notifyEvent(EVENT_ADVANCE_SETTING_EXTENSION, EVENT_SUB_KEY_HIDE_ADVANCE_SETTING_VIEW, null)
     }
 
-    private fun enterRoom(info: TUILiveListManager.LiveInfo) {
+    private fun enterRoom(info: LiveInfo) {
         if (PictureInPictureStore.sharedInstance().state.isAnchorStreaming) {
             ToastUtil.toastShortMessage(getString(R.string.common_exit_float_window_tip))
             return
         }
         TUICore.notifyEvent(EVENT_KEY_LIVE_KIT, EVENT_SUB_KEY_DESTROY_LIVE_VIEW, null)
-        if (info.roomInfo.roomId.startsWith("voice_")) {
-            VoiceRoomKit.createInstance(this).enterRoom(info)
+        if (info.liveID.startsWith("voice_")) {
+            VoiceRoomKit.createInstance(this).enterRoom(info.asEngineLiveInfo())
         } else {
             VideoLiveKit.createInstance(this).joinLive(info)
         }

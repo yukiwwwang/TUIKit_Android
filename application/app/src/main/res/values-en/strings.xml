@@ -42,6 +42,8 @@
     <string name="app_main_item_call_sub">Ringtone/Floating window/Less stutter</string>
     <string name="app_main_item_category_kit">UIKit</string>
     <string name="app_main_item_category_hot">Hot</string>
+    <string name="app_main_item_meeting">Conference</string>
+    <string name="app_main_item_meeting_sub">Quick meeting/Invite/Manage participants/Share screen</string>
     <string name="app_main_tag">Attention: This is a DEMO APP. Do not trust anyone asking you to transfer money. Report scam></string>
     <string name="app_title_share_log">Share Logs</string>
     <string name="app_group_call">group call</string>

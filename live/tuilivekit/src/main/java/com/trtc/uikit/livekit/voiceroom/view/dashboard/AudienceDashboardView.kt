@@ -10,7 +10,7 @@ import androidx.constraintlayout.utils.widget.ImageFilterView
 import com.trtc.tuikit.common.imageloader.ImageLoader
 import com.trtc.uikit.livekit.R
 import com.trtc.uikit.livekit.voiceroom.manager.VoiceRoomManager
-import com.trtc.uikit.livekit.voiceroom.view.BasicView
+import com.trtc.uikit.livekit.voiceroom.view.basic.BasicView
 
 class AudienceDashboardView @JvmOverloads constructor(
     context: Context,
@@ -18,33 +18,36 @@ class AudienceDashboardView @JvmOverloads constructor(
     defStyleAttr: Int = 0
 ) : BasicView(context, attrs, defStyleAttr) {
 
-    private lateinit var textName: TextView
-    private lateinit var imageHead: ImageFilterView
+    private var textName: TextView
+    private var imageHead: ImageFilterView
 
-    override fun initView() {
+    init {
         LayoutInflater.from(context).inflate(R.layout.livekit_audience_dashboard_view, this, true)
         textName = findViewById(R.id.tv_name)
         imageHead = findViewById(R.id.iv_head)
 
         findViewById<View>(R.id.iv_back).setOnClickListener {
-            mVoiceRoomManager.roomManager.clearLiveState()
+            voiceRoomManager?.prepareStore?.destroy()
             (context as? Activity)?.finish()
         }
     }
 
-    override fun init(voiceRoomManager: VoiceRoomManager) {
-        super.init(voiceRoomManager)
-        val ownerInfo = mRoomState.ownerInfo
-        textName.text = ownerInfo.userName.ifEmpty { ownerInfo.userId }
+    override fun init(liveID: String, voiceRoomManager: VoiceRoomManager) {
+        super.init(liveID,voiceRoomManager)
+        val ownerInfo =
+            voiceRoomManager.prepareStore.prepareState.liveInfo.value.liveOwner
+        textName.text = ownerInfo.userName.ifEmpty { ownerInfo.userID }
 
-        if (ownerInfo.avatarUrl.isEmpty()) {
+        if (ownerInfo.avatarURL.isEmpty()) {
             imageHead.setImageResource(R.drawable.livekit_ic_avatar)
         } else {
-            ImageLoader.load(context, imageHead, ownerInfo.avatarUrl, R.drawable.livekit_ic_avatar)
+            ImageLoader.load(context, imageHead, ownerInfo.avatarURL, R.drawable.livekit_ic_avatar)
         }
     }
 
     override fun addObserver() = Unit
 
     override fun removeObserver() = Unit
+
+    override fun initStore() = Unit
 }

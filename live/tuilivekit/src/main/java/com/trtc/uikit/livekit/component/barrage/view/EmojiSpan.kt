@@ -5,6 +5,7 @@ import android.graphics.Paint
 import android.graphics.drawable.Drawable
 import android.text.style.ImageSpan
 import androidx.core.graphics.withSave
+import com.trtc.tuikit.common.util.ScreenUtil
 
 class EmojiSpan @JvmOverloads constructor(
     drawable: Drawable,
@@ -20,7 +21,7 @@ class EmojiSpan @JvmOverloads constructor(
     ) = drawable.bounds.right.also {
         fm?.run {
             val fontHeight = paint.fontMetricsInt.run { bottom - top }
-            val drHeight = drawable.bounds.bottom
+            val drHeight = drawable.bounds.bottom + ScreenUtil.dip2px(6f)
             val centerY = drHeight / 2 - fontHeight / 4
             ascent = -centerY
             top = -centerY

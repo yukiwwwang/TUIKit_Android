@@ -10,10 +10,10 @@ import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.tencent.cloud.tuikit.engine.extension.TUILiveListManager.LiveInfo
 import com.trtc.uikit.livekit.R
 import com.trtc.uikit.livekit.features.livelist.LiveListViewAdapter
 import com.trtc.uikit.livekit.features.livelist.OnItemClickListener
+import io.trtc.tuikit.atomicxcore.api.live.LiveInfo
 
 const val TYPE_ITEM = 1
 const val TYPE_FOOTER = 2
@@ -29,10 +29,6 @@ class DoubleColumnAdapter(
     private var loadState = LOADING_COMPLETE
     private val liveInfoList = mutableListOf<LiveInfo>()
     private var onItemClickListener: OnItemClickListener? = null
-
-    fun addData(newLiveInfoList: List<LiveInfo>) {
-        liveInfoList.addAll(newLiveInfoList)
-    }
 
     fun setData(newLiveInfoList: List<LiveInfo>) {
         liveInfoList.clear()

@@ -24,6 +24,13 @@ import io.trtc.tuikit.atomicx.karaoke.view.KaraokeSettingPanel
 import io.trtc.tuikit.atomicx.karaoke.view.LyricView
 import io.trtc.tuikit.atomicx.karaoke.view.PitchView
 import io.trtc.tuikit.atomicx.karaoke.view.SongRequestPanel
+import io.trtc.tuikit.atomicxcore.api.live.CoHostStore
+import io.trtc.tuikit.atomicxcore.api.live.CoHostStore.Companion.create
+import io.trtc.tuikit.atomicxcore.api.live.SeatUserInfo
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import kotlin.math.abs
 
 class KaraokeFloatingView @JvmOverloads constructor(
@@ -31,6 +38,9 @@ class KaraokeFloatingView @JvmOverloads constructor(
 ) : ConstraintLayout(context, attrs, defStyleAttr) {
     enum class FloatingMode { RIGHT_HALF_MOVE, CENTER_FIXED }
     private lateinit var mStore: KaraokeStore
+    private lateinit var mLiveID: String
+    private var mCoHostStore: CoHostStore? = null
+    protected var subscribeStateJob: Job? = null
     private lateinit var mImagePause: ImageView
     private lateinit var mImageNext: ImageView
     private lateinit var mImageRequestMusic: ImageView
@@ -64,6 +74,8 @@ class KaraokeFloatingView @JvmOverloads constructor(
 
     fun init(roomId: String, isOwner: Boolean) {
         mStore = KaraokeStore.getInstance(context)
+        mLiveID = roomId
+        mCoHostStore = create(roomId)
         mStore.init(roomId, isOwner)
         mSongRequestPanel = SongRequestPanel(context, mStore, isOwner)
         setupDynamicViews()
@@ -180,6 +192,7 @@ class KaraokeFloatingView @JvmOverloads constructor(
         mStore.isDisplayFloatView.observeForever(isDisplayFloatViewObserver)
         mStore.playbackState.observeForever(playbackStateObserver)
         mStore.currentTrack.observeForever(currentTrackObserver)
+        addConnectionObserver()
     }
 
     private fun removeObservers() {
@@ -188,6 +201,24 @@ class KaraokeFloatingView @JvmOverloads constructor(
         mStore.isDisplayFloatView.removeObserver(isDisplayFloatViewObserver)
         mStore.playbackState.removeObserver(playbackStateObserver)
         mStore.currentTrack.removeObserver(currentTrackObserver)
+        subscribeStateJob?.cancel()
+    }
+
+    fun addConnectionObserver() {
+        subscribeStateJob = CoroutineScope(Dispatchers.Main).launch {
+            mCoHostStore?.coHostState?.connected?.collect {
+                onConnectedListChanged(it)
+            }
+        }
+    }
+
+    fun onConnectedListChanged(connectedRoomList: List<SeatUserInfo>) {
+        val isConnected = connectedRoomList.any { it.liveID == mLiveID }
+        if (isConnected) {
+            mStore.enableRequestMusic(false)
+        } else {
+            mStore.enableRequestMusic(true)
+        }
     }
 
     private fun onProgressChanged(progress: Long) {

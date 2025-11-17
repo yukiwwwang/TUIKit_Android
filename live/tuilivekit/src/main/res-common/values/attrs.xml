@@ -4,4 +4,10 @@
         <attr name="color" format="color"/>
         <attr name="start_radius" format="dimension"/>
     </declare-styleable>
+
+    <declare-styleable name="DouyinRippleView">
+        <attr name="ripple_color" format="color" />
+        <attr name="ripple_inner_radius" format="dimension" />
+        <attr name="ripple_outer_radius" format="dimension" />
+    </declare-styleable>
 </resources>

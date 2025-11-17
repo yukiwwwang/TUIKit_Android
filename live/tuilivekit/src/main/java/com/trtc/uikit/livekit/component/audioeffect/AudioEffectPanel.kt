@@ -18,8 +18,8 @@ import com.trtc.uikit.livekit.component.audioeffect.view.ChangeVoiceAdapter
 import com.trtc.uikit.livekit.component.audioeffect.view.ReverbAdapter
 import com.trtc.uikit.livekit.component.audioeffect.viewmodel.AudioEffectConstants.LIVEKIT_METRICS_PANEL_SHOW_LIVE_ROOM_AUDIO_EFFECT
 import com.trtc.uikit.livekit.component.audioeffect.viewmodel.AudioEffectConstants.LIVEKIT_METRICS_PANEL_SHOW_VOICE_ROOM_AUDIO_EFFECT
-import io.trtc.tuikit.atomicxcore.api.AudioEffectStore
-import io.trtc.tuikit.atomicxcore.api.DeviceStore
+import io.trtc.tuikit.atomicxcore.api.device.AudioEffectStore
+import io.trtc.tuikit.atomicxcore.api.device.DeviceStore
 
 @SuppressLint("ViewConstructor")
 class AudioEffectPanel @JvmOverloads constructor(

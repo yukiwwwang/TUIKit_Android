@@ -7,10 +7,10 @@ import android.view.LayoutInflater
 import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.TextView
-import com.tencent.cloud.tuikit.engine.extension.TUILiveListManager
 import com.trtc.tuikit.common.imageloader.ImageLoader
 import com.trtc.tuikit.common.imageloader.ImageOptions
 import com.trtc.uikit.livekit.R
+import io.trtc.tuikit.atomicxcore.api.live.LiveInfo
 
 class SingleColumnWidgetView @JvmOverloads constructor(
     context: Context,
@@ -29,15 +29,16 @@ class SingleColumnWidgetView @JvmOverloads constructor(
         imageAvatar = findViewById(R.id.iv_avatar)
     }
 
-    fun init(liveInfo: TUILiveListManager.LiveInfo) {
+    fun init(liveInfo: LiveInfo) {
         updateLiveInfoView(liveInfo)
     }
 
-    fun updateLiveInfoView(liveInfo: TUILiveListManager.LiveInfo) {
-        val imageUrl = liveInfo.ownerAvatarUrl
+    fun updateLiveInfoView(liveInfo: LiveInfo) {
+        val imageUrl = liveInfo.liveOwner.avatarURL
         val builder = ImageOptions.Builder().setBlurEffect(80f)
         ImageLoader.load(context, imageAvatar, imageUrl, builder.build())
-        textRoomName.text = if (TextUtils.isEmpty(liveInfo.name)) liveInfo.roomId else liveInfo.name
-        textAnchorName.text = if (TextUtils.isEmpty(liveInfo.ownerName)) liveInfo.ownerId else liveInfo.ownerName
+        textRoomName.text = if (TextUtils.isEmpty(liveInfo.liveName)) liveInfo.liveID else liveInfo.liveName
+        textAnchorName.text =
+            if (TextUtils.isEmpty(liveInfo.liveOwner.userName)) liveInfo.liveOwner.userID else liveInfo.liveOwner.userName
     }
 }

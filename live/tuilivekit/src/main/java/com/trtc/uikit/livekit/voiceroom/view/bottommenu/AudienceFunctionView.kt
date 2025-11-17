@@ -8,42 +8,66 @@ import android.view.animation.AnimationUtils
 import android.view.animation.LinearInterpolator
 import android.widget.ImageView
 import android.widget.RelativeLayout
-import androidx.lifecycle.Observer
 import com.tencent.cloud.tuikit.engine.common.TUICommonDefine
-import com.tencent.cloud.tuikit.engine.room.TUIRoomDefine
+import com.tencent.cloud.tuikit.engine.room.TUIRoomEngine
 import com.tencent.qcloud.tuicore.util.ToastUtil
 import com.trtc.uikit.livekit.R
 import com.trtc.uikit.livekit.common.ErrorLocalized
-import com.trtc.uikit.livekit.common.LiveKitLogger
-import com.trtc.uikit.livekit.common.TUIActionCallback
+import com.trtc.uikit.livekit.common.PackageService
+import com.trtc.uikit.livekit.common.completionHandler
 import com.trtc.uikit.livekit.component.gift.LikeButton
 import com.trtc.uikit.livekit.component.giftaccess.GiftButton
 import com.trtc.uikit.livekit.voiceroom.manager.VoiceRoomManager
-import com.trtc.uikit.livekit.voiceroom.state.SeatState
-import com.trtc.uikit.livekit.voiceroom.view.BasicView
-import com.trtc.uikit.livekit.voiceroomcore.VoiceRoomDefine
+import com.trtc.uikit.livekit.voiceroom.view.basic.BasicView
 import io.trtc.tuikit.atomicx.karaoke.KaraokeControlView
+import io.trtc.tuikit.atomicxcore.api.live.CoGuestStore
+import io.trtc.tuikit.atomicxcore.api.live.CoHostStore
+import io.trtc.tuikit.atomicxcore.api.live.GuestListener
+import io.trtc.tuikit.atomicxcore.api.live.LiveListStore
+import io.trtc.tuikit.atomicxcore.api.live.LiveSeatStore
+import io.trtc.tuikit.atomicxcore.api.live.LiveUserInfo
+import io.trtc.tuikit.atomicxcore.api.live.NoResponseReason
+import io.trtc.tuikit.atomicxcore.api.live.SeatUserInfo
+import io.trtc.tuikit.atomicxcore.api.live.TakeSeatMode
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 class AudienceFunctionView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
-    defStyleAttr: Int = 0
+    defStyleAttr: Int = 0,
 ) : BasicView(context, attrs, defStyleAttr) {
 
-    private val logger = LiveKitLogger.getVoiceRoomLogger("AudienceFunctionView")
-
-    private lateinit var takeSeatButton: ImageView
+    private var takeSeatButton: ImageView
     private lateinit var imageKTV: ImageView
+    private var mCoHostStore: CoHostStore? = null
+    private lateinit var liveListStore: LiveListStore
+    private lateinit var coGuestStore: CoGuestStore
+    private lateinit var liveSeatStore: LiveSeatStore
 
-    private val linkStateObserver = Observer<SeatState.LinkStatus> { onLinkStateChanged(it) }
+    private val guestListener = object : GuestListener() {
+        override fun onGuestApplicationResponded(isAccept: Boolean, hostUser: LiveUserInfo) {
+            if (isAccept) return
+            voiceRoomManager?.viewStore?.updateTakeSeatState(false)
+            ToastUtil.toastShortMessage(context.getString(R.string.common_voiceroom_take_seat_rejected))
+        }
 
-    override fun initView() {
+        override fun onGuestApplicationNoResponse(reason: NoResponseReason) {
+            voiceRoomManager?.viewStore?.updateTakeSeatState(false)
+            if (reason != NoResponseReason.TIMEOUT) return
+            ToastUtil.toastShortMessage(context.getString(R.string.common_voiceroom_take_seat_timeout))
+        }
+    }
+
+    init {
         inflate(context, R.layout.livekit_voiceroom_audience_function, this)
         takeSeatButton = findViewById(R.id.iv_take_seat)
     }
 
-    override fun init(voiceRoomManager: VoiceRoomManager) {
-        super.init(voiceRoomManager)
+    override fun init(liveID: String, voiceRoomManager: VoiceRoomManager) {
+        super.init(liveID, voiceRoomManager)
+
         initTakeButton()
         initGiftButton()
         initLikeButton()
@@ -51,19 +75,58 @@ class AudienceFunctionView @JvmOverloads constructor(
     }
 
     override fun addObserver() {
-        mSeatState.linkStatus.observeForever(linkStateObserver)
+        subscribeStateJob = CoroutineScope(Dispatchers.Main).launch {
+            launch {
+                voiceRoomManager?.viewStore?.viewState?.isApplyingToTakeSeat?.collect {
+                    onLinkStateChanged()
+                }
+            }
+            launch {
+                liveSeatStore.liveSeatState.seatList.collect {
+                    onLinkStateChanged()
+                }
+            }
+            launch {
+                mCoHostStore?.coHostState?.connected?.collect {
+                    onConnectedListChanged(it)
+                }
+            }
+        }
+        coGuestStore.addGuestListener(guestListener)
+    }
+
+    fun onConnectedListChanged(connectedRoomList: List<SeatUserInfo>) {
+        val currentLiveId = liveID
+        if (currentLiveId.isEmpty()) return
+        val isConnected = connectedRoomList.any { it.liveID == currentLiveId }
+        if (!PackageService.isRTCubeOrTencentRTC) {
+            if (isConnected) {
+                imageKTV.visibility = GONE
+            } else {
+                imageKTV.visibility = VISIBLE
+            }
+        }
     }
 
     override fun removeObserver() {
-        mSeatState.linkStatus.removeObserver(linkStateObserver)
+        subscribeStateJob?.cancel()
+        coGuestStore.removeGuestListener(guestListener)
+    }
+
+    override fun initStore() {
+        liveListStore = LiveListStore.shared()
+        coGuestStore = CoGuestStore.create(liveID)
+        liveSeatStore = LiveSeatStore.create(liveID)
+        mCoHostStore = CoHostStore.create(liveID)
     }
 
     private fun initGiftButton() {
+        val ownerInfo = liveListStore.liveState.currentLive.value.liveOwner
         findViewById<RelativeLayout>(R.id.rl_gift).addView(
             GiftButton(context).apply {
                 init(
-                    mRoomState.roomId, mRoomState.ownerInfo.userId,
-                    mRoomState.ownerInfo.userName, mRoomState.ownerInfo.avatarUrl
+                    liveID, ownerInfo.userID,
+                    ownerInfo.userName, ownerInfo.avatarURL
                 )
                 layoutParams = RelativeLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT)
             }
@@ -73,7 +136,7 @@ class AudienceFunctionView @JvmOverloads constructor(
     private fun initLikeButton() {
         findViewById<RelativeLayout>(R.id.rl_like).addView(
             LikeButton(context).apply {
-                init(mVoiceRoomManager.roomState.roomId)
+                init(liveID)
                 layoutParams = RelativeLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT)
             }
         )
@@ -81,9 +144,13 @@ class AudienceFunctionView @JvmOverloads constructor(
 
     private fun initKTVView() {
         imageKTV = findViewById(R.id.iv_ktv)
+        imageKTV.setVisibility(if (PackageService.isRTCubeOrTencentRTC) GONE else VISIBLE)
         imageKTV.setOnClickListener {
             KaraokeControlView(context).apply {
-                init(mVoiceRoomManager.roomState.roomId, mVoiceRoomManager.roomManager.isOwner())
+                init(
+                    liveID,
+                    liveListStore.liveState.currentLive.value.liveOwner.userID == TUIRoomEngine.getSelfInfo().userId
+                )
                 showSongRequestPanel()
             }
         }
@@ -91,97 +158,104 @@ class AudienceFunctionView @JvmOverloads constructor(
 
     private fun initTakeButton() {
         takeSeatButton.setOnClickListener { view ->
-            when (mSeatState.linkStatus.value) {
-                SeatState.LinkStatus.LINKING -> leaveSeat()
-                SeatState.LinkStatus.APPLYING -> cancelSeatApplication(view)
-                else -> takeSeat()
+            if (!liveSeatStore.liveSeatState.seatList.value.none { it.userInfo.userID == TUIRoomEngine.getSelfInfo().userId }) {
+                leaveSeat()
+            } else if (voiceRoomManager?.viewStore?.viewState?.isApplyingToTakeSeat?.value == true) {
+                cancelSeatApplication(view)
+            } else {
+                takeSeat()
             }
         }
     }
 
+    private fun hasAvailableSeat(): Boolean {
+        val allSeats = liveSeatStore?.liveSeatState?.seatList?.value
+        if (allSeats.isNullOrEmpty()) {
+            return false
+        }
+        val currentLiveId = liveListStore.liveState.currentLive.value.liveID
+        if (currentLiveId.isEmpty()) {
+            return false
+        }
+
+        val currentRoomSeats = allSeats.filter { seat ->
+            seat.userInfo.liveID == currentLiveId
+        }
+
+        return currentRoomSeats.take(6).any { seat ->
+            val userId = seat.userInfo.userID
+            val isLocked = seat.isLocked
+            userId.isEmpty() && !isLocked
+        }
+    }
+
     private fun takeSeat() {
-        if (mSeatState.linkStatus.value == SeatState.LinkStatus.APPLYING) return
-
-        mSeatGridView.takeSeat(-1, 60, object : VoiceRoomDefine.RequestCallback {
-            override fun onAccepted(userInfo: TUIRoomDefine.UserInfo) {
-                mSeatManager.updateLinkState(SeatState.LinkStatus.LINKING)
+        if (voiceRoomManager?.viewStore?.viewState?.isApplyingToTakeSeat?.value == true) return
+        val currentLiveId = liveListStore.liveState.currentLive.value.liveID
+        if (currentLiveId.isEmpty()) return
+        val isConnected =
+            mCoHostStore?.coHostState?.connected?.value?.any { it.liveID == currentLiveId }
+        if (isConnected == true) {
+            if (!hasAvailableSeat()) {
+                ToastUtil.toastShortMessage(context.getString(R.string.common_server_error_the_seats_are_all_taken))
+                return
             }
+        }
 
-            override fun onRejected(userInfo: TUIRoomDefine.UserInfo) {
-                mSeatManager.updateLinkState(SeatState.LinkStatus.NONE)
-                ToastUtil.toastShortMessage(context.getString(R.string.common_voiceroom_take_seat_rejected))
-            }
-
-            override fun onCancelled(userInfo: TUIRoomDefine.UserInfo) {
-                mSeatManager.updateLinkState(SeatState.LinkStatus.NONE)
-            }
-
-            override fun onTimeout(userInfo: TUIRoomDefine.UserInfo) {
-                mSeatManager.updateLinkState(SeatState.LinkStatus.NONE)
-                ToastUtil.toastShortMessage(context.getString(R.string.common_voiceroom_take_seat_timeout))
-            }
-
-            override fun onError(userInfo: TUIRoomDefine.UserInfo, error: TUICommonDefine.Error, message: String) {
-                logger.error("takeSeat failed,error:$error,message:$message")
-                if (error != TUICommonDefine.Error.REQUEST_ID_REPEAT &&
-                    error.value != ErrorLocalized.LIVE_SERVER_ERROR_ALREADY_ON_THE_MIC_QUEUE
-                ) {
-                    mSeatManager.updateLinkState(SeatState.LinkStatus.NONE)
+        val liveInfo = liveListStore.liveState.currentLive.value
+        val isOwner = TUIRoomEngine.getSelfInfo().userId == liveInfo.liveOwner.userID
+        if (liveInfo.seatMode == TakeSeatMode.FREE || isOwner) {
+            liveSeatStore.takeSeat(-1, completionHandler {
+                onError { code, _ ->
+                    ErrorLocalized.onError(TUICommonDefine.Error.fromInt(code))
                 }
-                ErrorLocalized.onError(error)
+            })
+            return
+        }
+
+        voiceRoomManager?.viewStore?.updateTakeSeatState(true)
+        coGuestStore.applyForSeat(-1, 60, null, completionHandler {
+            onError { code, _ ->
+                voiceRoomManager?.viewStore?.updateTakeSeatState(false)
+                ErrorLocalized.onError(TUICommonDefine.Error.fromInt(code))
             }
         })
-        mSeatManager.updateLinkState(SeatState.LinkStatus.APPLYING)
     }
 
     private fun leaveSeat() {
-        mSeatGridView.leaveSeat(
-            TUIActionCallback(
-                success = {
-                    logger.error("leaveSeat failed, success")
-                },
-                error = { errorCode, message ->
-                    logger.error("startMicrophone failed, error: $errorCode, message: $message")
-                    if (errorCode != TUICommonDefine.Error.SUCCESS) {
-                        ErrorLocalized.onError(errorCode)
-                    }
-                }
-            ))
+        coGuestStore.disconnect(completionHandler {
+            onError { code, _ ->
+                ErrorLocalized.onError(TUICommonDefine.Error.fromInt(code))
+            }
+        })
     }
 
     private fun cancelSeatApplication(view: View) {
+        voiceRoomManager?.viewStore?.updateTakeSeatState(false)
         view.isEnabled = false
-        mSeatGridView.cancelRequest(
-            "", TUIActionCallback(
-                success = {
-                    mSeatManager.updateLinkState(SeatState.LinkStatus.NONE)
-                    view.isEnabled = true
-                },
-                error = { errorCode, message ->
-                    logger.error("cancelSeatApplication failed, error: $errorCode, message: $message")
-                    ErrorLocalized.onError(errorCode)
+        coGuestStore.cancelApplication(
+            completionHandler {
+                onSuccess { view.isEnabled = true }
+                onError { code, _ ->
+                    ErrorLocalized.onError(TUICommonDefine.Error.fromInt(code))
                     view.isEnabled = true
                 }
-            ))
+            })
     }
 
-    private fun onLinkStateChanged(linkStatus: SeatState.LinkStatus) {
+    private fun onLinkStateChanged() {
         takeSeatButton.clearAnimation()
-        when (linkStatus) {
-            SeatState.LinkStatus.LINKING ->
-                takeSeatButton.setImageResource(R.drawable.livekit_audience_linking_mic)
-
-            SeatState.LinkStatus.APPLYING -> {
-                takeSeatButton.setImageResource(R.drawable.livekit_audience_applying_link_mic)
-                AnimationUtils.loadAnimation(context, R.anim.rotate_animation).apply {
-                    interpolator = LinearInterpolator()
-                    takeSeatButton.startAnimation(this)
-                }
+        if (!liveSeatStore.liveSeatState.seatList.value.none { it.userInfo.userID == TUIRoomEngine.getSelfInfo().userId }) {
+            voiceRoomManager?.viewStore?.updateTakeSeatState(false)
+            takeSeatButton.setImageResource(R.drawable.livekit_audience_linking_mic)
+        } else if (voiceRoomManager?.viewStore?.viewState?.isApplyingToTakeSeat?.value == true) {
+            takeSeatButton.setImageResource(R.drawable.livekit_audience_applying_link_mic)
+            AnimationUtils.loadAnimation(context, R.anim.rotate_animation).apply {
+                interpolator = LinearInterpolator()
+                takeSeatButton.startAnimation(this)
             }
-
-            else -> {
-                takeSeatButton.setImageResource(R.drawable.livekit_ic_hand_up)
-            }
+        } else {
+            takeSeatButton.setImageResource(R.drawable.livekit_ic_hand_up)
         }
     }
 }

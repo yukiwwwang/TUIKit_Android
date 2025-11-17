@@ -10,7 +10,7 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.trtc.uikit.livekit.R
 import com.trtc.uikit.livekit.component.gift.view.ImageLoader.loadImage
-import io.trtc.tuikit.atomicxcore.api.Gift
+import io.trtc.tuikit.atomicxcore.api.gift.Gift
 
 class GiftPanelAdapter(
     private val mPageIndex: Int,

@@ -18,11 +18,11 @@ import com.trtc.uikit.livekit.component.barrage.view.adapter.BarrageItemDefaultA
 import com.trtc.uikit.livekit.component.barrage.view.adapter.BarrageItemTypeDelegate
 import com.trtc.uikit.livekit.component.barrage.view.adapter.BarrageMsgListAdapter
 import com.trtc.uikit.livekit.component.barrage.viewmodel.BarrageConstants
-import io.trtc.tuikit.atomicxcore.api.Barrage
-import io.trtc.tuikit.atomicxcore.api.BarrageStore
-import io.trtc.tuikit.atomicxcore.api.LiveAudienceListener
-import io.trtc.tuikit.atomicxcore.api.LiveAudienceStore
-import io.trtc.tuikit.atomicxcore.api.LiveUserInfo
+import io.trtc.tuikit.atomicxcore.api.barrage.Barrage
+import io.trtc.tuikit.atomicxcore.api.barrage.BarrageStore
+import io.trtc.tuikit.atomicxcore.api.live.LiveAudienceListener
+import io.trtc.tuikit.atomicxcore.api.live.LiveAudienceStore
+import io.trtc.tuikit.atomicxcore.api.live.LiveUserInfo
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch

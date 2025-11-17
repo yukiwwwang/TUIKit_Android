@@ -26,6 +26,8 @@ import com.trtc.uikit.livekit.component.pictureinpicture.PictureInPictureStore
 import com.trtc.uikit.livekit.features.livelist.LiveListView
 import com.trtc.uikit.livekit.features.livelist.Style
 import com.trtc.uikit.livekit.livestream.VideoLiveKit
+import com.trtc.uikit.livekit.livestream.impl.LiveInfoUtils.asEngineLiveInfo
+import com.trtc.uikit.livekit.livestream.impl.LiveInfoUtils.asStoreLiveInfo
 
 class VoiceRoomListActivity : FullScreenActivity() {
 
@@ -130,7 +132,7 @@ class VoiceRoomListActivity : FullScreenActivity() {
             if (!view.isEnabled) return@setOnItemClickListener
             view.isEnabled = false
             view.postDelayed({ view.isEnabled = true }, 1000)
-            enterRoom(liveInfo)
+            enterRoom(liveInfo.asEngineLiveInfo())
         }
     }
 
@@ -140,10 +142,10 @@ class VoiceRoomListActivity : FullScreenActivity() {
             return
         }
         TUICore.notifyEvent(EVENT_KEY_LIVE_KIT, EVENT_SUB_KEY_DESTROY_LIVE_VIEW, null)
-        if (info.roomInfo.roomId.startsWith("voice_")) {
+        if (info.roomId.startsWith("voice_")) {
             VoiceRoomKit.createInstance(this).enterRoom(info)
         } else {
-            VideoLiveKit.createInstance(this).joinLive(info)
+            VideoLiveKit.createInstance(this).joinLive(info.asStoreLiveInfo())
         }
     }
 }

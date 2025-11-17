@@ -13,9 +13,9 @@ import com.trtc.tuikit.common.imageloader.ImageLoader
 import com.trtc.uikit.livekit.R
 import com.trtc.uikit.livekit.common.convertToSeatInfo
 import com.trtc.uikit.livekit.voiceroomcore.impl.SeatGridViewObserverManager
-import io.trtc.tuikit.atomicxcore.api.DeviceStatus
-import io.trtc.tuikit.atomicxcore.api.Role
-import io.trtc.tuikit.atomicxcore.api.SeatInfo
+import io.trtc.tuikit.atomicxcore.api.device.DeviceStatus
+import io.trtc.tuikit.atomicxcore.api.live.Role
+import io.trtc.tuikit.atomicxcore.api.live.SeatInfo
 
 @SuppressLint("ViewConstructor")
 class SeatInfoView @JvmOverloads constructor(
@@ -36,7 +36,7 @@ class SeatInfoView @JvmOverloads constructor(
     private lateinit var textName: TextView
     private lateinit var ivMute: ImageView
     private lateinit var ivRoomOwner: ImageView
-    private lateinit var ivTalkBorder: RippleView
+    private lateinit var voiceWaveView: VoiceWaveView
     private var isShowTalkBorder = false
 
     init {
@@ -52,7 +52,7 @@ class SeatInfoView @JvmOverloads constructor(
         ivEmptyView = findViewById(R.id.iv_empty_seat)
         textName = findViewById(R.id.tv_name)
         ivMute = findViewById(R.id.iv_mute)
-        ivTalkBorder = findViewById(R.id.iv_talk_border)
+        voiceWaveView = findViewById(R.id.iv_talk_border)
         ivRoomOwner = findViewById(R.id.iv_room_owner)
     }
 
@@ -69,7 +69,7 @@ class SeatInfoView @JvmOverloads constructor(
                 return
             }
             if (userInfo.microphoneStatus == DeviceStatus.OFF) {
-                ivTalkBorder.visibility = GONE
+                voiceWaveView.visibility = GONE
                 ivMute.visibility = VISIBLE
                 return
             }
@@ -77,7 +77,7 @@ class SeatInfoView @JvmOverloads constructor(
             val shouldShowBorder = volume > VOLUME_CAN_HEARD_MIN_LIMIT
             if (shouldShowBorder == isShowTalkBorder) return
 
-            ivTalkBorder.visibility = if (shouldShowBorder) VISIBLE else GONE
+            voiceWaveView.visibility = if (shouldShowBorder) VISIBLE else GONE
             isShowTalkBorder = shouldShowBorder
         }
     }
@@ -94,7 +94,7 @@ class SeatInfoView @JvmOverloads constructor(
         ivEmptyView.setImageResource(if (seatInfo.isLocked) R.drawable.livekit_ic_lock else R.drawable.livekit_empty_seat)
         imgHead.visibility = GONE
         ivMute.visibility = GONE
-        ivTalkBorder.visibility = GONE
+        voiceWaveView.visibility = GONE
         isShowTalkBorder = false
         textName.visibility = VISIBLE
         textName.text = context.getString(R.string.common_seat_number, seatInfo.index + 1)
@@ -108,7 +108,7 @@ class SeatInfoView @JvmOverloads constructor(
         updateUserRole(seatInfo)
         if (!seatInfo.userInfo.allowOpenMicrophone || seatInfo.userInfo.microphoneStatus == DeviceStatus.OFF) {
             ivMute.visibility = VISIBLE
-            ivTalkBorder.visibility = GONE
+            voiceWaveView.visibility = GONE
             isShowTalkBorder = false
         } else {
             ivMute.visibility = GONE

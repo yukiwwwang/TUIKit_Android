@@ -10,13 +10,13 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import android.widget.ImageView
-import com.tencent.cloud.tuikit.engine.extension.TUILiveListManager
 import com.trtc.tuikit.common.imageloader.ImageLoader
 import com.trtc.uikit.livekit.R
 import com.trtc.uikit.livekit.common.LiveKitLogger
 import com.trtc.uikit.livekit.component.pictureinpicture.PictureInPictureStore
 import com.trtc.uikit.livekit.features.livelist.LiveListViewAdapter
-import io.trtc.tuikit.atomicxcore.api.LiveCoreView
+import io.trtc.tuikit.atomicxcore.api.live.LiveInfo
+import io.trtc.tuikit.atomicxcore.api.view.LiveCoreView
 
 class DoubleColumnItemView @JvmOverloads constructor(
     context: Context,
@@ -35,7 +35,7 @@ class DoubleColumnItemView @JvmOverloads constructor(
     private var liveCoreView: LiveCoreView
     private var ivCoverImage: ImageView
     private var widgetViewGroup: ViewGroup
-    private var liveInfo: TUILiveListManager.LiveInfo? = null
+    private var liveInfo: LiveInfo? = null
     private var liveListViewAdapter: LiveListViewAdapter? = null
     private lateinit var widgetView: View
     private var isPlaying = false
@@ -61,16 +61,16 @@ class DoubleColumnItemView @JvmOverloads constructor(
         }
     }
 
-    fun createLiveInfoView(adapter: LiveListViewAdapter, info: TUILiveListManager.LiveInfo) {
+    fun createLiveInfoView(adapter: LiveListViewAdapter, info: LiveInfo) {
         liveListViewAdapter = adapter
-        setLayoutBackground(info.coverUrl)
+        setLayoutBackground(info.coverURL)
         widgetView = adapter.createLiveInfoView(info)
         widgetViewGroup.addView(widgetView)
         liveInfo = info
     }
 
-    fun updateLiveInfoView(info: TUILiveListManager.LiveInfo) {
-        setLayoutBackground(info.coverUrl)
+    fun updateLiveInfoView(info: LiveInfo) {
+        setLayoutBackground(info.coverURL)
         stopPreviewLiveStream()
         liveListViewAdapter?.updateLiveInfoView(widgetView, info)
         liveInfo = info
@@ -86,7 +86,7 @@ class DoubleColumnItemView @JvmOverloads constructor(
     }
 
     fun startPreviewLiveStreamDelay() {
-        val roomId = liveInfo?.roomId ?: ""
+        val roomId = liveInfo?.liveID ?: ""
         if (roomId.isEmpty()) {
             return
         }
@@ -101,7 +101,7 @@ class DoubleColumnItemView @JvmOverloads constructor(
     }
 
     private fun startPreviewLiveStream(roomId: String) {
-        if (roomId != liveInfo?.roomId) return
+        if (roomId != liveInfo?.liveID) return
 
         if (roomId == getPictureInPictureRoomId()) {
             liveCoreView.visibility = GONE
@@ -115,7 +115,7 @@ class DoubleColumnItemView @JvmOverloads constructor(
     }
 
     fun stopPreviewLiveStream() {
-        liveInfo?.roomId?.let { roomId ->
+        liveInfo?.liveID?.let { roomId ->
             handler.removeMessages(START_PLAY_VIDEO_STREAM)
             if (roomId == getPictureInPictureRoomId()) {
                 liveCoreView.visibility = GONE
@@ -130,7 +130,7 @@ class DoubleColumnItemView @JvmOverloads constructor(
         }
     }
 
-    private fun getPictureInPictureRoomId() = PictureInPictureStore.sharedInstance().getState().roomId.value
+    private fun getPictureInPictureRoomId() = PictureInPictureStore.sharedInstance().state.roomId.value
 
     fun isPauseByPictureInPicture() = pauseByPictureInPicture
 }

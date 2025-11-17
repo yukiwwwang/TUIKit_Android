@@ -16,4 +16,14 @@
         <item name="android:windowBackground">@color/common_color_bg_dialog</item>
         <item name="android:windowSoftInputMode">adjustResize</item>
     </style>
+    <style name="BottomSheetTheme" parent="Theme.Material3.Light.BottomSheetDialog">
+        <item name="android:windowIsFloating">false</item>
+        <item name="android:windowLayoutInDisplayCutoutMode" tools:targetApi="27">shortEdges</item>
+        <item name="android:navigationBarColor" tools:targetApi="21">@android:color/transparent</item>
+    </style>
+
+    <style name="LiveKitBottomDialogAnim" parent="Theme.Design.BottomSheetDialog">
+        <item name="android:windowExitAnimation">@anim/tuicommon_popup_dialog_dismiss</item>
+        <item name="android:windowEnterAnimation">@anim/tuicommon_popup_dialog_show</item>
+    </style>
 </resources>

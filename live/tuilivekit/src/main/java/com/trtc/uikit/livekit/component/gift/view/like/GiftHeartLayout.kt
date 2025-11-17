@@ -8,9 +8,9 @@ import android.util.AttributeSet
 import android.view.LayoutInflater
 import android.widget.RelativeLayout
 import androidx.core.content.withStyledAttributes
+import androidx.core.view.size
 import com.trtc.uikit.livekit.R
 import java.security.SecureRandom
-import androidx.core.view.size
 
 class GiftHeartLayout(context: Context?, attrs: AttributeSet?) : RelativeLayout(context, attrs) {
     private var animator: GiftAbstractPathAnimator? = null

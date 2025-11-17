@@ -6,7 +6,7 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.tencent.cloud.tuikit.engine.room.TUIRoomDefine
 import com.trtc.uikit.livekit.component.barrage.BarrageStreamView.OnMessageClickListener
-import io.trtc.tuikit.atomicxcore.api.Barrage
+import io.trtc.tuikit.atomicxcore.api.barrage.Barrage
 
 class BarrageMsgListAdapter(
     private val msgList: List<Barrage>
