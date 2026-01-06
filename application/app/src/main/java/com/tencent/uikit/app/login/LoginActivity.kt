@@ -6,21 +6,22 @@ import android.util.Log
 import android.view.View
 import android.widget.EditText
 import androidx.appcompat.widget.SwitchCompat
+import androidx.lifecycle.lifecycleScope
 import com.tencent.imsdk.v2.V2TIMManager
-import com.tencent.imsdk.v2.V2TIMUserFullInfo
 import com.tencent.imsdk.v2.V2TIMValueCallback
 import com.tencent.qcloud.tuicore.TUICore
 import com.tencent.qcloud.tuicore.TUILogin
-import com.tencent.qcloud.tuicore.interfaces.TUICallback
 import com.tencent.qcloud.tuicore.interfaces.TUIServiceCallback
 import com.tencent.qcloud.tuicore.util.SPUtils
-import com.tencent.qcloud.tuicore.util.ToastUtil
 import com.tencent.qcloud.tuikit.debug.GenerateTestUserSig
 import com.tencent.qcloud.tuikit.tuicallkit.TUICallKit.Companion.createInstance
 import com.tencent.uikit.app.R
 import com.tencent.uikit.app.main.BaseActivity
 import com.tencent.uikit.app.main.MainActivity
-import com.tencent.uikit.app.mine.UserManager
+import io.trtc.tuikit.atomicx.widget.basicwidget.toast.AtomicToast
+import io.trtc.tuikit.atomicxcore.api.CompletionHandler
+import io.trtc.tuikit.atomicxcore.api.login.LoginStore
+import kotlinx.coroutines.launch
 
 class LoginActivity : BaseActivity() {
     companion object {
@@ -85,11 +86,15 @@ class LoginActivity : BaseActivity() {
 
     private fun login(userId: String) {
         if (userId.isEmpty()) {
-            ToastUtil.toastShortMessage(getString(R.string.app_user_id_is_empty))
+            AtomicToast.show(
+                this,
+                getString(R.string.app_user_id_is_empty),
+                AtomicToast.Style.ERROR
+            )
             return
         }
         val userSig = GenerateTestUserSig.genTestUserSig(userId)
-        TUILogin.login(this, GenerateTestUserSig.SDKAPPID, userId, userSig, object : TUICallback() {
+        LoginStore.shared.login(this, GenerateTestUserSig.SDKAPPID, userId, userSig, object : CompletionHandler {
             override fun onSuccess() {
                 Log.i(TAG, "login onSuccess")
                 val instance = createInstance(application)
@@ -99,39 +104,37 @@ class LoginActivity : BaseActivity() {
                 getUserInfo()
             }
 
-            override fun onError(errorCode: Int, errorMessage: String?) {
-                ToastUtil.toastShortMessage(
-                    getString(R.string.app_toast_login_fail, errorCode, errorMessage)
+            override fun onFailure(code: Int, desc: String) {
+                AtomicToast.show(
+                    this@LoginActivity,
+                    getString(R.string.app_toast_login_fail, code, desc),
+                    AtomicToast.Style.ERROR
                 )
-                Log.e(TAG, "login fail errorCode: $errorCode errorMessage:$errorMessage")
+                Log.e(TAG, "login fail errorCode: $code errorMessage:$desc")
             }
         })
+        TUILogin.login(this, GenerateTestUserSig.SDKAPPID, userId, userSig, null)
     }
 
     private fun getUserInfo() {
-        UserManager.getInstance().getSelfUserInfo(object : V2TIMValueCallback<V2TIMUserFullInfo> {
-            override fun onError(errorCode: Int, errorMsg: String?) {
-                Log.e(TAG, "getUserInfo failed, code:$errorCode msg: $errorMsg")
-            }
-
-            override fun onSuccess(timUserFullInfo: V2TIMUserFullInfo?) {
-                if (timUserFullInfo == null) {
-                    Log.e(TAG, "getUserInfo result is empty")
-                    return
-                }
-                val userName = timUserFullInfo.nickName
-                val userAvatar = timUserFullInfo.faceUrl
-                if (userName.isNullOrEmpty() || userAvatar.isNullOrEmpty()) {
-                    val intent = Intent(this@LoginActivity, RegisterActivity::class.java)
-                    startActivity(intent)
-                    finish()
-                } else {
-                    val intent = Intent(this@LoginActivity, MainActivity::class.java)
-                    startActivity(intent)
-                    finish()
+        lifecycleScope.launch {
+            LoginStore.shared.loginState.loginUserInfo.collect { loginUserInfo ->
+                loginUserInfo?.let {
+                    if (it.userID.isEmpty()) {
+                        return@collect
+                    }
+                    if (it.nickname.isNullOrEmpty() || it.avatarURL.isNullOrEmpty()) {
+                        val intent = Intent(this@LoginActivity, RegisterActivity::class.java)
+                        startActivity(intent)
+                        finish()
+                    } else {
+                        val intent = Intent(this@LoginActivity, MainActivity::class.java)
+                        startActivity(intent)
+                        finish()
+                    }
                 }
             }
-        })
+        }
     }
 
     private fun switchTestEnv(enableTestEnv: Boolean) {

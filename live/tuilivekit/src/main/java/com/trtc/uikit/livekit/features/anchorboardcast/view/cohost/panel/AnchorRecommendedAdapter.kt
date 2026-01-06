@@ -7,31 +7,32 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
-import androidx.constraintlayout.utils.widget.ImageFilterView
 import androidx.recyclerview.widget.RecyclerView
-import com.tencent.qcloud.tuicore.TUILogin
-import com.trtc.tuikit.common.imageloader.ImageLoader
 import com.trtc.uikit.livekit.R
 import com.trtc.uikit.livekit.common.ErrorLocalized
 import com.trtc.uikit.livekit.common.LiveKitLogger
-import com.trtc.uikit.livekit.features.anchorboardcast.manager.AnchorManager
-import com.trtc.uikit.livekit.features.anchorboardcast.state.CoHostState
-import com.trtc.uikit.livekit.features.anchorboardcast.state.CoHostState.ConnectionStatus.INVITING
-import com.trtc.uikit.livekit.features.anchorboardcast.state.CoHostState.ConnectionStatus.UNKNOWN
+import com.trtc.uikit.livekit.features.anchorboardcast.store.AnchorStore
+import com.trtc.uikit.livekit.features.anchorboardcast.store.CoHostAnchor
+import com.trtc.uikit.livekit.features.anchorboardcast.store.ConnectionStatus
+import io.trtc.tuikit.atomicx.widget.basicwidget.avatar.AtomicAvatar
+import io.trtc.tuikit.atomicx.widget.basicwidget.avatar.AtomicAvatar.AvatarContent
+import io.trtc.tuikit.atomicx.widget.basicwidget.button.AtomicButton
+import io.trtc.tuikit.atomicx.widget.basicwidget.button.ButtonColorType
+import io.trtc.tuikit.atomicx.widget.basicwidget.button.ButtonVariant
 import io.trtc.tuikit.atomicxcore.api.CompletionHandler
 import io.trtc.tuikit.atomicxcore.api.live.CoHostLayoutTemplate
 import io.trtc.tuikit.atomicxcore.api.live.CoHostStore
 import io.trtc.tuikit.atomicxcore.api.live.LiveListStore
-import kotlinx.coroutines.flow.update
+import io.trtc.tuikit.atomicxcore.api.login.LoginStore
 import java.util.concurrent.CopyOnWriteArrayList
 
 class AnchorRecommendedAdapter(
     private val context: Context,
-    private val anchorManager: AnchorManager
+    private val anchorStore: AnchorStore
 ) : RecyclerView.Adapter<AnchorRecommendedAdapter.RecommendViewHolder>() {
 
     private val logger = LiveKitLogger.getFeaturesLogger("AnchorRecommendedAdapter")
-    private val data = CopyOnWriteArrayList<CoHostState.ConnectionUser>()
+    private val data = CopyOnWriteArrayList<CoHostAnchor>()
 
     init {
         initData()
@@ -44,9 +45,9 @@ class AnchorRecommendedAdapter(
         return RecommendViewHolder(view)
     }
 
-    fun updateData(recommendList: List<CoHostState.ConnectionUser>) {
+    fun updateData(recommendList: List<CoHostAnchor>) {
         data.clear()
-        val selfUserId = TUILogin.getUserId()
+        val selfUserId = LoginStore.shared.loginState.loginUserInfo.value?.userID ?: ""
         for (recommendUser in recommendList) {
             if (!TextUtils.equals(recommendUser.userId, selfUserId)) {
                 data.add(recommendUser)
@@ -67,7 +68,7 @@ class AnchorRecommendedAdapter(
         return data.size
     }
 
-    private fun setUserName(holder: RecommendViewHolder, recommendUser: CoHostState.ConnectionUser) {
+    private fun setUserName(holder: RecommendViewHolder, recommendUser: CoHostAnchor) {
         holder.textName.text = if (TextUtils.isEmpty(recommendUser.userName)) {
             recommendUser.userId
         } else {
@@ -75,29 +76,32 @@ class AnchorRecommendedAdapter(
         }
     }
 
-    private fun setAvatar(holder: RecommendViewHolder, recommendUser: CoHostState.ConnectionUser) {
-        if (TextUtils.isEmpty(recommendUser.avatarUrl)) {
-            holder.imageHead.setImageResource(R.drawable.livekit_ic_avatar)
-        } else {
-            ImageLoader.load(context, holder.imageHead, recommendUser.avatarUrl, R.drawable.livekit_ic_avatar)
-        }
+    private fun setAvatar(holder: RecommendViewHolder, recommendUser: CoHostAnchor) {
+        holder.imageHead.setContent(
+            AvatarContent.URL(
+                recommendUser.avatarUrl,
+                R.drawable.livekit_ic_avatar
+            )
+        )
     }
 
-    private fun setConnectionStatus(holder: RecommendViewHolder, recommendUser: CoHostState.ConnectionUser) {
-        if (recommendUser.connectionStatus == INVITING) {
-            holder.textConnect.setText(R.string.common_connect_inviting)
-            holder.textConnect.alpha = 0.5f
+    private fun setConnectionStatus(holder: RecommendViewHolder, recommendUser: CoHostAnchor) {
+        if (recommendUser.connectionStatus == ConnectionStatus.INVITING) {
+            holder.buttonConnect.text = context.getString(R.string.common_connect_inviting)
+            holder.buttonConnect.colorType = ButtonColorType.SECONDARY
+            holder.buttonConnect.variant = ButtonVariant.OUTLINED
         } else {
-            holder.textConnect.setText(R.string.common_voiceroom_invite)
-            holder.textConnect.alpha = 1f
+            holder.buttonConnect.text = context.getString(R.string.common_voiceroom_invite)
+            holder.buttonConnect.colorType = ButtonColorType.PRIMARY
+            holder.buttonConnect.variant = ButtonVariant.FILLED
         }
     }
 
     @SuppressLint("NotifyDataSetChanged")
-    private fun setConnectionClickListener(holder: RecommendViewHolder, recommendUser: CoHostState.ConnectionUser) {
-        holder.textConnect.setOnClickListener {
-            if (recommendUser.connectionStatus == UNKNOWN) {
-                recommendUser.connectionStatus = INVITING
+    private fun setConnectionClickListener(holder: RecommendViewHolder, recommendUser: CoHostAnchor) {
+        holder.buttonConnect.setOnClickListener {
+            if (recommendUser.connectionStatus == ConnectionStatus.UNKNOWN) {
+                recommendUser.connectionStatus = ConnectionStatus.INVITING
                 notifyDataSetChanged()
                 val currentLiveId = LiveListStore.shared().liveState.currentLive.value.liveID
                 CoHostStore.create(currentLiveId).requestHostConnection(
@@ -109,17 +113,7 @@ class AnchorRecommendedAdapter(
 
                         override fun onFailure(code: Int, desc: String) {
                             logger.error("AnchorRecommendedAdapter requestHostConnection failed:code:$code,desc:$desc")
-                            anchorManager.getCoHostState().recommendUsers.update { list ->
-                                list.map { user ->
-                                    if (user.roomId == recommendUser.roomId) {
-                                        val newUser =
-                                            CoHostState.ConnectionUser(user, CoHostState.ConnectionStatus.UNKNOWN)
-                                        newUser
-                                    } else {
-                                        user
-                                    }
-                                }
-                            }
+                            anchorStore.getAnchorCoHostStore().restoreConnectionStatus(recommendUser.roomId, ConnectionStatus.UNKNOWN)
                             ErrorLocalized.onError(code)
                         }
                     })
@@ -128,9 +122,9 @@ class AnchorRecommendedAdapter(
     }
 
     private fun initData() {
-        anchorManager.getCoHostState().recommendUsers.value.let {
+        anchorStore.getCoHostState().recommendUsers.value.let {
             data.clear()
-            val selfUserId = TUILogin.getUserId()
+            val selfUserId = LoginStore.shared.loginState.loginUserInfo.value?.userID ?: ""
             for (recommendUser in it) {
                 if (!TextUtils.equals(recommendUser.userId, selfUserId)) {
                     data.add(recommendUser)
@@ -140,8 +134,8 @@ class AnchorRecommendedAdapter(
     }
 
     class RecommendViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        val imageHead: ImageFilterView = itemView.findViewById(R.id.iv_head)
+        val imageHead: AtomicAvatar = itemView.findViewById(R.id.iv_head)
         val textName: TextView = itemView.findViewById(R.id.tv_name)
-        val textConnect: TextView = itemView.findViewById(R.id.tv_connect)
+        val buttonConnect: AtomicButton = itemView.findViewById(R.id.atomic_btn_connect)
     }
 }

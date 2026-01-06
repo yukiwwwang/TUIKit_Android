@@ -5,7 +5,6 @@ import android.content.Context
 import android.content.res.Resources
 import android.text.TextUtils
 import android.util.AttributeSet
-import android.util.Log
 import android.view.View
 import android.widget.FrameLayout
 import android.widget.LinearLayout
@@ -19,21 +18,25 @@ import com.google.gson.Gson
 import com.tencent.cloud.tuikit.engine.room.TUIRoomDefine
 import com.tencent.cloud.tuikit.engine.room.TUIRoomEngine
 import com.trtc.uikit.livekit.R
+import com.trtc.uikit.livekit.common.ErrorLocalized
 import com.trtc.uikit.livekit.common.LIVEKIT_METRICS_METHOD_CALL_SEAT_GRID_VIEW_SET_LAYOUT_MODE
 import com.trtc.uikit.livekit.common.LIVEKIT_METRICS_PANEL_HIDE_SEAT_GRID_VIEW
 import com.trtc.uikit.livekit.common.LIVEKIT_METRICS_PANEL_SHOW_SEAT_GRID_VIEW
 import com.trtc.uikit.livekit.common.LiveKitLogger
 import com.trtc.uikit.livekit.common.convertToSeatInfo
 import com.trtc.uikit.livekit.common.reportEventData
-import com.trtc.uikit.livekit.common.ui.StandardDialog
-import com.trtc.uikit.livekit.common.ui.StandardToast
-import com.trtc.uikit.livekit.common.ErrorLocalized
 import com.trtc.uikit.livekit.voiceroom.interaction.battle.BattleInfoView
 import com.trtc.uikit.livekit.voiceroomcore.impl.SeatGridLayout
 import com.trtc.uikit.livekit.voiceroomcore.impl.SeatGridViewObserverManager
 import com.trtc.uikit.livekit.voiceroomcore.impl.SeatInfoWrapper
 import com.trtc.uikit.livekit.voiceroomcore.impl.SeatLayoutConfigManager
 import com.trtc.uikit.livekit.voiceroomcore.view.SeatInfoView
+import io.trtc.tuikit.atomicx.widget.basicwidget.alertdialog.AtomicAlertDialog
+import io.trtc.tuikit.atomicx.widget.basicwidget.alertdialog.cancelButton
+import io.trtc.tuikit.atomicx.widget.basicwidget.alertdialog.confirmButton
+import io.trtc.tuikit.atomicx.widget.basicwidget.alertdialog.init
+import io.trtc.tuikit.atomicx.widget.basicwidget.avatar.AtomicAvatar
+import io.trtc.tuikit.atomicx.widget.basicwidget.toast.AtomicToast
 import io.trtc.tuikit.atomicxcore.api.CompletionHandler
 import io.trtc.tuikit.atomicxcore.api.device.DeviceStore
 import io.trtc.tuikit.atomicxcore.api.live.BattleConfig
@@ -44,7 +47,6 @@ import io.trtc.tuikit.atomicxcore.api.live.BattleStore
 import io.trtc.tuikit.atomicxcore.api.live.CoGuestStore
 import io.trtc.tuikit.atomicxcore.api.live.CoHostListener
 import io.trtc.tuikit.atomicxcore.api.live.CoHostStore
-import io.trtc.tuikit.atomicxcore.api.live.GuestListener
 import io.trtc.tuikit.atomicxcore.api.live.HostListener
 import io.trtc.tuikit.atomicxcore.api.live.LiveAudienceStore
 import io.trtc.tuikit.atomicxcore.api.live.LiveListStore
@@ -77,8 +79,8 @@ class SeatGridView @JvmOverloads constructor(
     private var coHostStore: CoHostStore? = null
     private var battleStore: BattleStore? = null
     private var liveAudienceStore: LiveAudienceStore? = null
-    private var battleInvitationDialog: StandardDialog? = null
-    private var connectionInvitationDialog: StandardDialog? = null
+    private var battleInvitationDialog: AtomicAlertDialog? = null
+    private var connectionInvitationDialog: AtomicAlertDialog? = null
     private var coHostContainerView: ConstraintLayout? = null
     private var coHostViewAdapter: VoiceRoomDefine.CoHostViewAdapter? = null
     private val isCoHostingState = MutableStateFlow(false)
@@ -151,7 +153,6 @@ class SeatGridView @JvmOverloads constructor(
         seatLayoutConfigManager.setOnItemUpdateListener(onItemUpdateListener)
         coHostStore?.addCoHostListener(mCoHostListener)
         battleStore?.addBattleListener(mBattleListener)
-        coGuestStore?.addGuestListener(mGuestListener)
         coGuestStore?.addHostListener(mHostListener)
         observeSeatList()
         observeCoHostConnection()
@@ -165,6 +166,8 @@ class SeatGridView @JvmOverloads constructor(
         collectJobs.clear()
         coHostStore?.removeCoHostListener(mCoHostListener);
         battleStore?.removeBattleListener(mBattleListener);
+        connectionInvitationDialog?.dismiss()
+        battleInvitationDialog?.dismiss()
         coHostStore = null
         battleStore = null
         coGuestStore = null
@@ -251,14 +254,18 @@ class SeatGridView @JvmOverloads constructor(
 
                 })
             }
-            StandardToast.toastLongMessage(context.getString(R.string.common_host_kick_user_after_connect))
+            AtomicToast.show(
+                context,
+                context.getString(R.string.common_host_kick_user_after_connect),
+                duration = AtomicToast.Duration.LONG,
+                style = AtomicToast.Style.INFO
+            )
         }
     }
 
     @SuppressLint("ResourceType")
     private fun createCoHostView(seatList: List<SeatInfo>) {
         cleanupOldView()
-        Log.d("seren","seatList: $seatList")
         val layoutConfig = calculateLayoutConfig()
         val seatData = prepareSeatData(seatList) ?: return
         val (container, columns) = createContainerAndColumns(layoutConfig.columnCount)
@@ -301,7 +308,10 @@ class SeatGridView @JvmOverloads constructor(
             return null
         }
         val (myRoomSeats, otherRoomSeats) = seatList.partition { it.userInfo.liveID == myLiveId }
-        return SeatData(myRoomSeats.take(connectionUserCountPreRoom), otherRoomSeats.take(connectionUserCountPreRoom))
+        return SeatData(
+            myRoomSeats.take(connectionUserCountPreRoom),
+            otherRoomSeats.take(connectionUserCountPreRoom)
+        )
     }
 
     private fun createContainerAndColumns(columnCount: Int): Pair<ConstraintLayout, List<LinearLayout>> {
@@ -479,7 +489,7 @@ class SeatGridView @JvmOverloads constructor(
                 R.string.live_cancel_request,
                 inviter.userName
             )
-            StandardToast.toastShortMessage(content)
+            AtomicToast.show(context, content, AtomicToast.Style.INFO)
         }
 
         override fun onCoHostRequestAccepted(invitee: SeatUserInfo) {
@@ -491,15 +501,17 @@ class SeatGridView @JvmOverloads constructor(
                 R.string.common_request_rejected,
                 invitee.userName
             )
-            StandardToast.toastShortMessage(content)
+            AtomicToast.show(context, content, AtomicToast.Style.INFO)
         }
 
         override fun onCoHostRequestTimeout(inviter: SeatUserInfo, invitee: SeatUserInfo) {
             connectionInvitationDialog?.dismiss()
             battleInvitationDialog?.dismiss()
             if (TextUtils.equals(inviter.userID, TUIRoomEngine.getSelfInfo().userId)) {
-                StandardToast.toastShortMessage(
-                    context.getString(R.string.common_connect_invitation_timeout)
+                AtomicToast.show(
+                    context,
+                    context.getString(R.string.common_connect_invitation_timeout),
+                    AtomicToast.Style.INFO
                 )
             }
         }
@@ -521,7 +533,7 @@ class SeatGridView @JvmOverloads constructor(
                     R.string.common_request_rejected,
                     if (userName.isNullOrEmpty()) guestUser.userID else userName
                 )
-                StandardToast.toastShortMessage(content)
+                AtomicToast.show(context, content, AtomicToast.Style.INFO)
             }
         }
 
@@ -530,20 +542,12 @@ class SeatGridView @JvmOverloads constructor(
             reason: NoResponseReason,
         ) {
             if (liveListStore.liveState.currentLive.value.liveOwner.userID == TUIRoomEngine.getSelfInfo().userId) {
-                StandardToast.toastShortMessage(
-                    context.getString(R.string.common_connect_invitation_timeout)
+                AtomicToast.show(
+                    context,
+                    context.getString(R.string.common_connect_invitation_timeout),
+                    AtomicToast.Style.INFO
                 )
             }
-        }
-    }
-
-    private val mGuestListener: GuestListener = object : GuestListener() {
-        override fun onHostInvitationCancelled(hostUser: LiveUserInfo) {
-            val content = getContext().getString(
-                R.string.live_cancel_request,
-                liveListStore.liveState.currentLive.value.liveOwner.userName
-            )
-            StandardToast.toastShortMessage(content)
         }
     }
 
@@ -596,7 +600,7 @@ class SeatGridView @JvmOverloads constructor(
                 R.string.common_battle_inviter_cancel,
                 inviter.userName
             )
-            StandardToast.toastShortMessage(content)
+            AtomicToast.show(context, content, AtomicToast.Style.INFO)
         }
 
         override fun onBattleRequestTimeout(
@@ -605,7 +609,11 @@ class SeatGridView @JvmOverloads constructor(
             invitee: SeatUserInfo,
         ) {
             if (TextUtils.equals(inviter.userID, TUIRoomEngine.getSelfInfo().userId)) {
-                StandardToast.toastShortMessage(context.getString(R.string.common_connect_invitation_timeout))
+                AtomicToast.show(
+                    context,
+                    context.getString(R.string.common_connect_invitation_timeout),
+                    AtomicToast.Style.INFO
+                )
             }
         }
 
@@ -618,7 +626,7 @@ class SeatGridView @JvmOverloads constructor(
                 R.string.common_battle_invitee_reject,
                 invitee.userName
             )
-            StandardToast.toastShortMessage(content)
+            AtomicToast.show(context, content, AtomicToast.Style.INFO)
         }
     }
 
@@ -627,61 +635,90 @@ class SeatGridView @JvmOverloads constructor(
         inviter: SeatUserInfo,
         extensionInfo: String,
     ) {
-        val dialog = connectionInvitationDialog ?: StandardDialog(context).also {
+        val avatarView = AtomicAvatar(context).apply {
+            setContent(
+                AtomicAvatar.AvatarContent.URL(
+                    inviter.avatarURL ?: "",
+                    R.drawable.livekit_ic_avatar
+                )
+            )
+        }
+
+        connectionInvitationDialog?.dismiss()
+        val dialog = AtomicAlertDialog(context).also {
             connectionInvitationDialog = it
         }
-        dialog.setContent(content)
-        dialog.setAvatar(inviter.avatarURL)
 
-        val rejectText: String = context.getString(R.string.common_reject)
-        dialog.setNegativeTextWithCountdown(rejectText, 10000L) {
-            coHostStore?.rejectHostConnection(inviter.liveID, object : CompletionHandler {
-                override fun onSuccess() {
-                }
-
-                override fun onFailure(code: Int, desc: String) {
-                    ErrorLocalized.onError(code)
-                }
-            })
-        }
-
-        val receiveText: String? = context.getString(R.string.common_receive)
-        dialog.setPositiveText(receiveText) {
-            coHostStore?.acceptHostConnection(inviter.liveID, object : CompletionHandler {
-                override fun onSuccess() {
-                    if (TextUtils.equals(extensionInfo, this@SeatGridView.extensionInfo)) {
-                        val needResponse = false
-                        val extensionInfo = this@SeatGridView.extensionInfo
-                        val config = BattleConfig(BATTLE_DURATION, needResponse, extensionInfo)
-
-                        val list = mutableListOf<String>()
-                        list.add(inviter.userID)
-                        battleStore?.requestBattle(
-                            config,
-                            list,
-                            0,
-                            object : BattleRequestCallback {
-                                override fun onSuccess(
-                                    battleInfo: BattleInfo,
-                                    resultMap: Map<String, Int>,
-                                ) {
-
-                                }
-
-                                override fun onError(code: Int, desc: String) {
-                                    ErrorLocalized.onError(code)
-                                }
-                            }
-                        )
-                    } else {
-
+        dialog.init {
+            init(
+                title = content ?: "",
+                iconView = avatarView,
+            )
+            countdownDuration = 10
+            val rejectText: String = context.getString(R.string.common_reject)
+            cancelButton(rejectText, AtomicAlertDialog.TextColorPreset.GREY, isBold = false) {
+                coHostStore?.rejectHostConnection(inviter.liveID, object : CompletionHandler {
+                    override fun onSuccess() {
                     }
-                }
 
-                override fun onFailure(code: Int, desc: String) {
-                    ErrorLocalized.onError(code)
+                    override fun onFailure(code: Int, desc: String) {
+                        ErrorLocalized.onError(code)
+                    }
+                })
+            }
+
+            val receiveText: String? = context.getString(R.string.common_receive)
+            confirmButton(
+                receiveText ?: "",
+                AtomicAlertDialog.TextColorPreset.BLUE,
+                isBold = true
+            ) {
+                if (isBackSeatsOccupied()) {
+                    AtomicToast.show(context, context.getString(R.string.common_back_seats_occupied), AtomicToast.Style.WARNING)
+                    coHostStore?.rejectHostConnection(inviter.liveID, object : CompletionHandler {
+                        override fun onSuccess() {}
+                        override fun onFailure(code: Int, desc: String) {
+                            ErrorLocalized.onError(code)
+                        }
+                    })
+                    return@confirmButton
                 }
-            })
+                coHostStore?.acceptHostConnection(inviter.liveID, object : CompletionHandler {
+                    override fun onSuccess() {
+                        if (TextUtils.equals(extensionInfo, this@SeatGridView.extensionInfo)) {
+                            val needResponse = false
+                            val extensionInfo = this@SeatGridView.extensionInfo
+                            val config = BattleConfig(BATTLE_DURATION, needResponse, extensionInfo)
+
+                            val list = mutableListOf<String>()
+                            list.add(inviter.userID)
+                            battleStore?.requestBattle(
+                                config,
+                                list,
+                                0,
+                                object : BattleRequestCallback {
+                                    override fun onSuccess(
+                                        battleInfo: BattleInfo,
+                                        resultMap: Map<String, Int>,
+                                    ) {
+
+                                    }
+
+                                    override fun onError(code: Int, desc: String) {
+                                        ErrorLocalized.onError(code)
+                                    }
+                                }
+                            )
+                        } else {
+
+                        }
+                    }
+
+                    override fun onFailure(code: Int, desc: String) {
+                        ErrorLocalized.onError(code)
+                    }
+                })
+            }
         }
         dialog.show()
     }
@@ -691,66 +728,120 @@ class SeatGridView @JvmOverloads constructor(
         inviter: SeatUserInfo,
         extensionInfo: String,
     ) {
-        val dialog = connectionInvitationDialog ?: StandardDialog(context).also {
+        val avatarView = AtomicAvatar(context).apply {
+            setContent(
+                AtomicAvatar.AvatarContent.URL(
+                    inviter.avatarURL ?: "",
+                    R.drawable.livekit_ic_avatar
+                )
+            )
+        }
+
+        connectionInvitationDialog?.dismiss()
+        val dialog = AtomicAlertDialog(context).also {
             connectionInvitationDialog = it
         }
-        dialog.setContent(content)
-        dialog.setAvatar(inviter.avatarURL)
 
-        val rejectText: String = context.getString(R.string.common_reject)
-        dialog.setNegativeTextWithCountdown(rejectText, 10000L) {
-            coHostStore?.rejectHostConnection(inviter.liveID, object : CompletionHandler {
-                override fun onSuccess() {
-                }
+        dialog.init {
+            init(
+                title = content ?: "",
+                iconView = avatarView,
+            )
+            countdownDuration = 10
+            val rejectText: String = context.getString(R.string.common_reject)
+            cancelButton(rejectText, AtomicAlertDialog.TextColorPreset.GREY, isBold = false) {
+                coHostStore?.rejectHostConnection(inviter.liveID, object : CompletionHandler {
+                    override fun onSuccess() {
+                    }
 
-                override fun onFailure(code: Int, desc: String) {
-                    ErrorLocalized.onError(code)
-                }
-            })
-        }
+                    override fun onFailure(code: Int, desc: String) {
+                        ErrorLocalized.onError(code)
+                    }
+                })
+            }
 
-        val receiveText: String? = context.getString(R.string.common_receive)
-        dialog.setPositiveText(receiveText) {
-            coHostStore?.acceptHostConnection(inviter.liveID, object : CompletionHandler {
-                override fun onSuccess() {
+            val receiveText: String? = context.getString(R.string.common_receive)
+            confirmButton(
+                receiveText ?: "",
+                AtomicAlertDialog.TextColorPreset.BLUE,
+                isBold = true
+            ) {
+                if (isBackSeatsOccupied()) {
+                    AtomicToast.show(context, context.getString(R.string.common_back_seats_occupied), AtomicToast.Style.WARNING)
+                    coHostStore?.rejectHostConnection(inviter.liveID, object : CompletionHandler {
+                        override fun onSuccess() {}
+                        override fun onFailure(code: Int, desc: String) {
+                            ErrorLocalized.onError(code)
+                        }
+                    })
+                    return@confirmButton
                 }
+                coHostStore?.acceptHostConnection(inviter.liveID, object : CompletionHandler {
+                    override fun onSuccess() {
+                    }
 
-                override fun onFailure(code: Int, desc: String) {
-                    ErrorLocalized.onError(code)
-                }
-            })
+                    override fun onFailure(code: Int, desc: String) {
+                        ErrorLocalized.onError(code)
+                    }
+                })
+            }
         }
         dialog.show()
     }
 
+    private fun isBackSeatsOccupied(): Boolean {
+        val seatList = seatStore?.liveSeatState?.seatList?.value ?: return false
+        return seatList.any { it.index >= 6 && it.userInfo.userID.isNotEmpty() }
+    }
+
     private fun showDirectPKDialog(content: String?, avatarUrl: String?, battleId: String?) {
-        val dialog = battleInvitationDialog ?: StandardDialog(context).also {
+        val avatarView = AtomicAvatar(context).apply {
+            setContent(
+                AtomicAvatar.AvatarContent.URL(
+                    avatarUrl ?: "",
+                    R.drawable.livekit_ic_avatar
+                )
+            )
+        }
+
+        battleInvitationDialog?.dismiss()
+        val dialog = AtomicAlertDialog(context).also {
             battleInvitationDialog = it
         }
-        dialog.setContent(content)
-        dialog.setAvatar(avatarUrl)
-        val rejectText: String = context.getString(R.string.common_reject)
-        dialog.setNegativeTextWithCountdown(rejectText, 10000L) {
-            battleStore?.rejectBattle(battleId, object : CompletionHandler {
-                override fun onSuccess() {
-                }
 
-                override fun onFailure(code: Int, desc: String) {
-                    ErrorLocalized.onError(code)
-                }
-            })
-        }
+        dialog.init {
+            init(
+                title = content ?: "",
+                iconView = avatarView,
+            )
+            countdownDuration = 10
+            val rejectText: String = context.getString(R.string.common_reject)
+            cancelButton(rejectText, AtomicAlertDialog.TextColorPreset.GREY, isBold = false) {
+                battleStore?.rejectBattle(battleId, object : CompletionHandler {
+                    override fun onSuccess() {
+                    }
 
-        val receiveText: String? = context.getString(R.string.common_receive)
-        dialog.setPositiveText(receiveText) {
-            battleStore?.acceptBattle(battleId, object : CompletionHandler {
-                override fun onSuccess() {
-                }
+                    override fun onFailure(code: Int, desc: String) {
+                        ErrorLocalized.onError(code)
+                    }
+                })
+            }
 
-                override fun onFailure(code: Int, desc: String) {
-                    ErrorLocalized.onError(code)
-                }
-            })
+            val receiveText: String? = context.getString(R.string.common_receive)
+            confirmButton(
+                receiveText ?: "",
+                AtomicAlertDialog.TextColorPreset.BLUE,
+                isBold = true
+            ) {
+                battleStore?.acceptBattle(battleId, object : CompletionHandler {
+                    override fun onSuccess() {
+                    }
+
+                    override fun onFailure(code: Int, desc: String) {
+                        ErrorLocalized.onError(code)
+                    }
+                })
+            }
         }
         dialog.show()
     }

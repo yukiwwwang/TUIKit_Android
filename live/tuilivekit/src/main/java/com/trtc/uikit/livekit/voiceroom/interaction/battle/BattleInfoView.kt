@@ -32,7 +32,7 @@ class BattleInfoView @JvmOverloads constructor(
     private var battleStore: BattleStore? = null
     private var onBattleEndListener: OnBattleEndListener? = null
 
-    private lateinit var singleBattleScoreView: BattleScoreBarView
+    private lateinit var singleBattleScoreView: SingleBattleScoreView
     private lateinit var timeLabel: TextView
     private lateinit var battleStartView: ImageView
     private lateinit var battleResultView: ImageView

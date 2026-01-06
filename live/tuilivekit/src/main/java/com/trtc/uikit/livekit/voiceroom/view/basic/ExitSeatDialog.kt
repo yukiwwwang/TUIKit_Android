@@ -4,12 +4,12 @@ import android.content.Context
 import android.view.View
 import android.widget.TextView
 import com.trtc.uikit.livekit.R
-import com.trtc.uikit.livekit.common.ui.PopupDialog
+import io.trtc.tuikit.atomicx.widget.basicwidget.popover.AtomicPopover
 
 class ExitSeatDialog(
     context: Context,
     private val onConfirmListener: OnConfirmListener
-) : PopupDialog(context) {
+) : AtomicPopover(context) {
 
     init {
         initView()
@@ -17,7 +17,7 @@ class ExitSeatDialog(
 
     protected fun initView() {
         val view = View.inflate(context, R.layout.livekit_voiceroom_exit_seat_dialog, null)
-        setView(view)
+        setContent(view)
         val textCancel = view.findViewById<TextView>(R.id.tv_cancel)
         textCancel.setOnClickListener { dismiss() }
 

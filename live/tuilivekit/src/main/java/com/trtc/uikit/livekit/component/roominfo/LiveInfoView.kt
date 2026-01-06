@@ -5,70 +5,60 @@ import android.content.Context
 import android.text.TextUtils
 import android.util.AttributeSet
 import android.view.LayoutInflater
-import android.view.View
 import android.widget.FrameLayout
-import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
-import androidx.lifecycle.Observer
-import com.google.android.material.imageview.ShapeableImageView
-import com.tencent.cloud.tuikit.engine.extension.TUILiveListManager
-import com.tencent.cloud.tuikit.engine.room.TUIRoomDefine
-import com.tencent.cloud.tuikit.engine.room.TUIRoomEngine
-import com.tencent.cloud.tuikit.engine.room.TUIRoomObserver
-import com.trtc.tuikit.common.imageloader.ImageLoader
 import com.trtc.uikit.livekit.R
 import com.trtc.uikit.livekit.common.reportEventData
+import com.trtc.uikit.livekit.common.ui.setDebounceClickListener
 import com.trtc.uikit.livekit.component.roominfo.service.RoomInfoService
 import com.trtc.uikit.livekit.component.roominfo.store.RoomInfoState
-import com.trtc.uikit.livekit.component.roominfo.view.RoomInfoPopupDialog
+import com.trtc.uikit.livekit.component.roominfo.view.RoomInfoPanel
+import io.trtc.tuikit.atomicx.widget.basicwidget.avatar.AtomicAvatar
+import io.trtc.tuikit.atomicx.widget.basicwidget.avatar.AtomicAvatar.AvatarContent
+import io.trtc.tuikit.atomicx.widget.basicwidget.avatar.AtomicAvatar.AvatarShape
+import io.trtc.tuikit.atomicx.widget.basicwidget.button.AtomicButton
+import io.trtc.tuikit.atomicx.widget.basicwidget.button.ButtonColorType
+import io.trtc.tuikit.atomicx.widget.basicwidget.button.ButtonIconPosition
+import io.trtc.tuikit.atomicx.widget.basicwidget.button.ButtonVariant
+import io.trtc.tuikit.atomicxcore.api.live.LiveEndedReason
 import io.trtc.tuikit.atomicxcore.api.live.LiveInfo
+import io.trtc.tuikit.atomicxcore.api.live.LiveListListener
+import io.trtc.tuikit.atomicxcore.api.live.LiveListStore
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 
 @SuppressLint("ViewConstructor")
 class LiveInfoView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
-    defStyleAttr: Int = 0
+    defStyleAttr: Int = 0,
 ) : FrameLayout(context, attrs, defStyleAttr) {
 
     companion object {
         private const val LIVEKIT_METRICS_PANEL_SHOW_LIVE_ROOM_LIVE_INFO = 190009
         private const val LIVEKIT_METRICS_PANEL_SHOW_VOICE_ROOM_LIVE_INFO = 191008
     }
+
     private lateinit var textNickName: TextView
-    private lateinit var imageAvatar: ShapeableImageView
+    private lateinit var imageAvatar: AtomicAvatar
     private lateinit var layoutRoot: LinearLayout
-    private lateinit var textUnfollow: TextView
-    private lateinit var imageFollowIcon: ImageView
-    private lateinit var layoutFollowPanel: FrameLayout
-    private var roomInfoPopupDialog: RoomInfoPopupDialog? = null
+    private lateinit var followButton: AtomicButton
+    private var roomInfoPopupDialog: RoomInfoPanel? = null
     private val roomInfoService = RoomInfoService()
     private val roomInfoState: RoomInfoState = roomInfoService.roomInfoState
+    private var subscribeStateJob: Job? = null
 
-    private val hostIdObserver = Observer<String> { ownerId ->
-        onHostIdChange(ownerId)
-    }
-
-    private val hostNickNameObserver = Observer<String> { name ->
-        onHostNickNameChange(name)
-    }
-
-    private val hostAvatarObserver = Observer<String> { avatar ->
-        onHostAvatarChange(avatar)
-    }
-
-    private val followStatusObserver = Observer<Set<String>> { followUsers ->
-        onFollowStatusChange(followUsers)
-    }
-
-    private val roomObserver = object : TUIRoomObserver() {
-        override fun onRoomDismissed(roomId: String, reason: TUIRoomDefine.RoomDismissedReason) {
+    private val liveListListener = object : LiveListListener() {
+        override fun onLiveEnded(liveID: String, reason: LiveEndedReason, message: String) {
             roomInfoPopupDialog?.dismiss()
         }
     }
 
     init {
-        LayoutInflater.from(context).inflate(R.layout.room_info_view, this, true)
+        LayoutInflater.from(context).inflate(R.layout.live_info_view, this, true)
         bindViewId()
     }
 
@@ -91,16 +81,6 @@ class LiveInfoView @JvmOverloads constructor(
         layoutRoot.isEnabled = isPortrait
     }
 
-    private fun convertToLiveInfo(roomInfo: TUIRoomDefine.RoomInfo): TUILiveListManager.LiveInfo {
-        return TUILiveListManager.LiveInfo().apply {
-            roomId = roomInfo.roomId
-            name = roomInfo.name
-            ownerId = roomInfo.ownerId
-            ownerName = roomInfo.ownerName
-            ownerAvatarUrl = roomInfo.ownerAvatarUrl
-        }
-    }
-
     private fun initView() {
         initHostNameView()
         initHostAvatarView()
@@ -109,24 +89,39 @@ class LiveInfoView @JvmOverloads constructor(
 
     private fun refreshView() {
         if (!roomInfoState.enableFollow) {
-            layoutFollowPanel.visibility = GONE
+            followButton.visibility = GONE
         }
     }
 
     private fun addObserver() {
-        TUIRoomEngine.sharedInstance().addObserver(roomObserver)
-        roomInfoState.ownerId.observeForever(hostIdObserver)
-        roomInfoState.ownerName.observeForever(hostNickNameObserver)
-        roomInfoState.ownerAvatarUrl.observeForever(hostAvatarObserver)
-        roomInfoState.followingList.observeForever(followStatusObserver)
+        LiveListStore.shared().addLiveListListener(liveListListener)
+        subscribeStateJob = CoroutineScope(Dispatchers.Main).launch {
+            launch {
+                roomInfoState.ownerId.collect {
+                    onHostIdChange(it)
+                }
+            }
+            launch {
+                roomInfoState.ownerName.collect {
+                    onHostNickNameChange(it)
+                }
+            }
+            launch {
+                roomInfoState.ownerAvatarUrl.collect {
+                    onHostAvatarChange(it)
+                }
+            }
+            launch {
+                roomInfoState.followingList.collect {
+                    onFollowStatusChange(it)
+                }
+            }
+        }
     }
 
     private fun removeObserver() {
-        TUIRoomEngine.sharedInstance().removeObserver(roomObserver)
-        roomInfoState.ownerId.removeObserver(hostIdObserver)
-        roomInfoState.ownerName.removeObserver(hostNickNameObserver)
-        roomInfoState.ownerAvatarUrl.removeObserver(hostAvatarObserver)
-        roomInfoState.followingList.removeObserver(followStatusObserver)
+        LiveListStore.shared().removeLiveListListener(liveListListener)
+        subscribeStateJob?.cancel()
     }
 
     override fun onAttachedToWindow() {
@@ -144,9 +139,7 @@ class LiveInfoView @JvmOverloads constructor(
         layoutRoot = findViewById(R.id.ll_root)
         textNickName = findViewById(R.id.tv_name)
         imageAvatar = findViewById(R.id.iv_avatar)
-        textUnfollow = findViewById(R.id.tv_unfollow)
-        imageFollowIcon = findViewById(R.id.iv_follow)
-        layoutFollowPanel = findViewById(R.id.fl_follow_panel)
+        followButton = findViewById(R.id.atomic_btn_follow)
     }
 
     private fun initHostNameView() {
@@ -156,18 +149,21 @@ class LiveInfoView @JvmOverloads constructor(
     }
 
     private fun initHostAvatarView() {
-        ImageLoader.load(
-            context,
-            imageAvatar,
-            roomInfoState.ownerAvatarUrl.value,
-            R.drawable.room_info_default_avatar
-        )
+        imageAvatar.apply {
+            setShape(AvatarShape.Round)
+            setContent(
+                AvatarContent.URL(
+                    url = roomInfoState.ownerAvatarUrl.value,
+                    placeImage = R.drawable.room_info_default_avatar
+                )
+            )
+        }
     }
 
     private fun initRoomInfoPanelView() {
-        layoutRoot.setOnClickListener {
+        layoutRoot.setDebounceClickListener {
             if (roomInfoPopupDialog == null) {
-                roomInfoPopupDialog = RoomInfoPopupDialog(context, roomInfoService)
+                roomInfoPopupDialog = RoomInfoPanel(context, roomInfoService)
             }
             roomInfoPopupDialog?.show()
         }
@@ -177,12 +173,12 @@ class LiveInfoView @JvmOverloads constructor(
         if (!roomInfoState.enableFollow) {
             return
         }
-        
+
         if (!TextUtils.isEmpty(ownerId) && !TextUtils.equals(roomInfoState.selfUserId, ownerId)) {
-            layoutFollowPanel.visibility = View.VISIBLE
+            followButton.visibility = VISIBLE
             ownerId?.let { roomInfoService.checkFollowUser(it) }
             refreshFollowButton()
-            layoutFollowPanel.setOnClickListener { onFollowButtonClick() }
+            followButton.setDebounceClickListener { onFollowButtonClick() }
         }
     }
 
@@ -191,7 +187,12 @@ class LiveInfoView @JvmOverloads constructor(
     }
 
     private fun onHostAvatarChange(avatar: String?) {
-        ImageLoader.load(context, imageAvatar, avatar, R.drawable.room_info_default_avatar)
+        imageAvatar.setContent(
+            AvatarContent.URL(
+                url = avatar ?: "",
+                placeImage = R.drawable.room_info_default_avatar
+            )
+        )
     }
 
     private fun onFollowStatusChange(followUsers: Set<String>?) {
@@ -212,15 +213,29 @@ class LiveInfoView @JvmOverloads constructor(
     }
 
     private fun refreshFollowButton() {
-        val followingList = roomInfoState.followingList.value ?: emptySet()
+        val followingList = roomInfoState.followingList.value
         val ownerId = roomInfoState.ownerId.value
+        val isFollowed = followingList.contains(ownerId)
 
-        if (!followingList.contains(ownerId)) {
-            imageFollowIcon.visibility = GONE
-            textUnfollow.visibility = View.VISIBLE
+        if (!isFollowed) {
+            followButton.apply {
+                text = context.getString(R.string.common_follow_anchor)
+                iconDrawable = null
+                iconPosition = ButtonIconPosition.NONE
+
+                variant = ButtonVariant.FILLED
+                colorType = ButtonColorType.PRIMARY
+                isEnabled = true
+            }
         } else {
-            textUnfollow.visibility = View.GONE
-            imageFollowIcon.visibility = VISIBLE
+            followButton.apply {
+                text = ""
+                iconDrawable = context.getDrawable(R.drawable.room_info_followed_button_check)
+                iconPosition = ButtonIconPosition.START
+                variant = ButtonVariant.FILLED
+                colorType = ButtonColorType.SECONDARY
+                isEnabled = true
+            }
         }
     }
 

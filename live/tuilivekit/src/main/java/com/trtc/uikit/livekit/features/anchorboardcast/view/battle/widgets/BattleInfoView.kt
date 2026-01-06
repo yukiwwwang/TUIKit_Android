@@ -5,14 +5,13 @@ import android.content.Context
 import android.util.AttributeSet
 import android.widget.ImageView
 import android.widget.TextView
-import com.tencent.qcloud.tuicore.TUILogin
 import com.trtc.uikit.livekit.R
 import com.trtc.uikit.livekit.common.LiveKitLogger
-import com.trtc.uikit.livekit.features.anchorboardcast.state.BattleState
-import com.trtc.uikit.livekit.features.anchorboardcast.state.BattleState.BattleUser
+import com.trtc.uikit.livekit.features.anchorboardcast.store.BattleUser
 import com.trtc.uikit.livekit.features.anchorboardcast.view.BasicView
 import io.trtc.tuikit.atomicxcore.api.live.CoHostStore
 import io.trtc.tuikit.atomicxcore.api.live.LiveListStore
+import io.trtc.tuikit.atomicxcore.api.login.LoginStore
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -21,7 +20,7 @@ import kotlinx.coroutines.launch
 @SuppressLint("ViewConstructor")
 class BattleInfoView @JvmOverloads constructor(
     context: Context,
-    attrs: AttributeSet? = null
+    attrs: AttributeSet? = null,
 ) : BasicView(context, attrs) {
 
     private enum class BattleResultType {
@@ -77,13 +76,8 @@ class BattleInfoView @JvmOverloads constructor(
     private fun onBattleStart() {
         singleBattleScoreView.visibility = GONE
         visibility = VISIBLE
-        val selfUserId = TUILogin.getUserId()
-        val ownerUserId = LiveListStore.shared().liveState.currentLive.value.liveOwner.userID
-
-        if (selfUserId == ownerUserId && battleState?.isShowingStartView != true) {
-            battleStartView.visibility = VISIBLE
-            postDelayed({ battleStartView.visibility = GONE }, 1000)
-        }
+        battleStartView.visibility = VISIBLE
+        postDelayed({ battleStartView.visibility = GONE }, 1000)
     }
 
     private fun onBattleEnd() {
@@ -162,7 +156,7 @@ class BattleInfoView @JvmOverloads constructor(
                             for (battleUser in battledUsers) {
                                 if (battleUser.userId == ownerUserId) {
                                     val type = when {
-                                        battleManager?.isBattleDraw() == true -> BattleResultType.DRAW
+                                        anchorBattleStore?.isBattleDraw() == true -> BattleResultType.DRAW
                                         battleUser.ranking == 1 -> BattleResultType.VICTORY
                                         else -> BattleResultType.DEFEAT
                                     }
@@ -189,17 +183,24 @@ class BattleInfoView @JvmOverloads constructor(
     private suspend fun onConnectedListChange() {
         CoHostStore.create(LiveListStore.shared().liveState.currentLive.value.liveID).coHostState.connected.collect {
             onBattleScoreChanged(battleState?.battledUsers?.value ?: emptyList())
+            if (it.size <= 1) {
+                stopDisplayBattleResult()
+            } else if (it.size == 2 && battleState?.isBattleRunning?.value == true) {
+                singleBattleScoreView.visibility = VISIBLE
+            } else {
+                singleBattleScoreView.visibility = GONE
+            }
         }
     }
 
-    private fun onBattleScoreChanged(battleUsers: List<BattleState.BattleUser>) {
+    private fun onBattleScoreChanged(battleUsers: List<BattleUser>) {
         val connectedUsers =
             CoHostStore.create(LiveListStore.shared().liveState.currentLive.value.liveID).coHostState.connected.value
         if (battleUsers.isEmpty() || connectedUsers.isEmpty()) {
-            battleManager?.resetOnDisplayResult()
+            anchorBattleStore?.resetOnDisplayResult()
             return
         }
-        battleState?.battledUsers?.value = battleState?.battledUsers?.value ?: arrayListOf()
+        anchorBattleStore?.updateBattleUsers(battleState?.battledUsers?.value ?: arrayListOf())
     }
 
     private suspend fun onBattleStartChange() {

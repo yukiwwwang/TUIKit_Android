@@ -9,14 +9,14 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.tencent.qcloud.tuicore.util.ScreenUtil
 import com.trtc.uikit.livekit.R
-import com.trtc.uikit.livekit.common.ui.PopupDialog
-import com.trtc.uikit.livekit.features.audiencecontainer.manager.AudienceManager
+import io.trtc.tuikit.atomicx.widget.basicwidget.popover.AtomicPopover
+import com.trtc.uikit.livekit.features.audiencecontainer.store.AudienceStore
 
 @SuppressLint("ViewConstructor")
 class AudienceSettingsPanelDialog(
     context: Context,
-    private val audienceManager: AudienceManager
-) : PopupDialog(context), AudienceManager.AudienceViewListener {
+    private val audienceStore: AudienceStore
+) : AtomicPopover(context), AudienceStore.AudienceViewListener {
 
     init {
         initView()
@@ -25,7 +25,7 @@ class AudienceSettingsPanelDialog(
     private fun initView() {
         val view = LayoutInflater.from(context).inflate(R.layout.livekit_audience_settings_panel, null)
         initSettingsListView(view)
-        setView(view)
+        setContent(view)
     }
 
     private fun initSettingsListView(view: View) {
@@ -47,17 +47,17 @@ class AudienceSettingsPanelDialog(
                 outRect.left = (1 + position) * spanSpace1 - position * spanSpace0
             }
         })
-        val adapter = AudienceSettingsListAdapter(context, audienceManager, this)
+        val adapter = AudienceSettingsListAdapter(context, audienceStore, this)
         recycleSettingsList.adapter = adapter
     }
 
     override fun onAttachedToWindow() {
         super.onAttachedToWindow()
-        audienceManager.addAudienceViewListener(this)
+        audienceStore.addAudienceViewListener(this)
     }
 
     override fun onDetachedFromWindow() {
-        audienceManager.removeAudienceViewListener(this)
+        audienceStore.removeAudienceViewListener(this)
         super.onDetachedFromWindow()
     }
 

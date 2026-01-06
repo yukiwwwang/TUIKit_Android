@@ -16,14 +16,15 @@ import com.tencent.imsdk.v2.V2TIMCallback
 import com.tencent.imsdk.v2.V2TIMUserFullInfo
 import com.tencent.qcloud.tuicore.TUILogin
 import com.tencent.qcloud.tuicore.util.ErrorMessageConverter
-import com.tencent.qcloud.tuicore.util.ToastUtil
 import com.tencent.uikit.app.R
+import io.trtc.tuikit.atomicx.widget.basicwidget.toast.AtomicToast
 import com.tencent.uikit.app.common.widget.ImageSelectActivity
 import com.tencent.uikit.app.common.widget.PopupInputCard
 import com.tencent.uikit.app.main.BaseActivity
 import com.tencent.uikit.app.setting.LanguageSelectActivity
-import com.trtc.tuikit.common.imageloader.ImageLoader
 import com.trtc.tuikit.common.util.ScreenUtil
+import io.trtc.tuikit.atomicx.widget.basicwidget.avatar.AtomicAvatar
+import io.trtc.tuikit.atomicx.widget.basicwidget.avatar.AtomicAvatar.AvatarContent
 
 private data class SettingItem(val type: SettingType, val title: String)
 
@@ -56,7 +57,7 @@ private class SettingsVH(
 ) : RecyclerView.ViewHolder(itemView) {
     private val title: TextView = itemView.findViewById(R.id.tv_title)
     private val rightIcon: ImageView = itemView.findViewById(R.id.iv_right)
-    private val imageAvatarPreview: ImageView? = itemView.findViewById(R.id.iv_avatar_preview)
+    private val imageAvatarPreview: AtomicAvatar? = itemView.findViewById(R.id.iv_avatar_preview)
     private val valueText: TextView? = itemView.findViewById(R.id.tv_value)
     fun bind(item: SettingItem) {
         title.text = item.title
@@ -66,7 +67,7 @@ private class SettingsVH(
                 imageAvatarPreview?.visibility = View.VISIBLE
                 valueText?.visibility = View.GONE
                 rightIcon.visibility = View.VISIBLE
-                ImageLoader.load(itemView.context, imageAvatarPreview, getFaceUrl.invoke(), R.drawable.app_ic_avatar)
+                imageAvatarPreview?.setContent(AvatarContent.URL(getFaceUrl.invoke() ?: "", R.drawable.app_ic_avatar))
             }
 
             SettingType.NICKNAME -> {
@@ -188,9 +189,13 @@ class SettingsActivity : BaseActivity() {
                     "SettingsActivity", "modifySelfProfile err code = " + code + ", " +
                             "desc = " + ErrorMessageConverter.convertIMError(code, desc)
                 )
-                ToastUtil.toastShortMessage(
-                    "Error code = " + code + ", " +
-                            "desc = " + ErrorMessageConverter.convertIMError(code, desc)
+                AtomicToast.show(
+                    this@SettingsActivity,
+                    "Error code = $code, desc = " + ErrorMessageConverter.convertIMError(
+                        code,
+                        desc
+                    ),
+                    AtomicToast.Style.ERROR
                 )
             }
 

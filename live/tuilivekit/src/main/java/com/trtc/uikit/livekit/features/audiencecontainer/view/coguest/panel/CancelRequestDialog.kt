@@ -4,17 +4,16 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.view.LayoutInflater
 import android.widget.TextView
-import com.tencent.cloud.tuikit.engine.common.TUICommonDefine
 import com.trtc.uikit.livekit.R
 import com.trtc.uikit.livekit.common.ErrorLocalized
 import com.trtc.uikit.livekit.common.completionHandler
-import com.trtc.uikit.livekit.common.ui.PopupDialog
-import com.trtc.uikit.livekit.features.audiencecontainer.manager.AudienceManager
+import io.trtc.tuikit.atomicx.widget.basicwidget.popover.AtomicPopover
+import com.trtc.uikit.livekit.features.audiencecontainer.store.AudienceStore
 
 class CancelRequestDialog(
     context: Context,
-    private val audienceManager: AudienceManager
-) : PopupDialog(context), AudienceManager.AudienceViewListener {
+    private val audienceStore: AudienceStore
+) : AtomicPopover(context), AudienceStore.AudienceViewListener {
 
     init {
         initView()
@@ -31,12 +30,12 @@ class CancelRequestDialog(
                 return@setOnClickListener
             }
             v.isEnabled = false
-            audienceManager.getCoGuestStore().cancelApplication(completionHandler {
+            audienceStore.getCoGuestStore().cancelApplication(completionHandler {
                 onSuccess {
-                    audienceManager.getViewStore().updateTakeSeatState(false)
+                    audienceStore.getViewStore().updateTakeSeatState(false)
                 }
                 onError { code, _ ->
-                    ErrorLocalized.onError(TUICommonDefine.Error.fromInt(code))
+                    ErrorLocalized.onError(code)
                 }
             })
             dismiss()
@@ -46,17 +45,17 @@ class CancelRequestDialog(
             dismiss()
         }
 
-        setView(view)
+        setContent(view)
     }
 
     override fun onAttachedToWindow() {
         super.onAttachedToWindow()
-        audienceManager.addAudienceViewListener(this)
+        audienceStore.addAudienceViewListener(this)
     }
 
     override fun onDetachedFromWindow() {
         super.onDetachedFromWindow()
-        audienceManager.removeAudienceViewListener(this)
+        audienceStore.removeAudienceViewListener(this)
     }
 
     override fun onRoomDismissed(roomId: String) {

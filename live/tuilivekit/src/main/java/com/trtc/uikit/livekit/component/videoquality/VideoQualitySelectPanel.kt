@@ -7,24 +7,24 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.tencent.cloud.tuikit.engine.room.TUIRoomDefine
-import com.tencent.cloud.tuikit.engine.room.TUIRoomEngine
-import com.tencent.cloud.tuikit.engine.room.TUIRoomObserver
 import com.trtc.uikit.livekit.R
-import com.trtc.uikit.livekit.common.ui.PopupDialog
+import io.trtc.tuikit.atomicx.widget.basicwidget.popover.AtomicPopover
 import io.trtc.tuikit.atomicxcore.api.device.VideoQuality
+import io.trtc.tuikit.atomicxcore.api.live.LiveEndedReason
+import io.trtc.tuikit.atomicxcore.api.live.LiveListListener
+import io.trtc.tuikit.atomicxcore.api.live.LiveListStore
 
 class VideoQualitySelectPanel(
     context: Context,
-    private val videoQualityLists: List<VideoQuality>
-) : PopupDialog(context) {
+    private val videoQualityLists: List<VideoQuality>,
+) : AtomicPopover(context) {
 
     private lateinit var recyclerView: RecyclerView
     private lateinit var cancelButton: TextView
     private var listener: OnVideoQualitySelectedListener? = null
 
-    private val roomObserver = object : TUIRoomObserver() {
-        override fun onRoomDismissed(roomId: String, reason: TUIRoomDefine.RoomDismissedReason) {
+    private val liveListListener = object : LiveListListener() {
+        override fun onLiveEnded(liveID: String, reason: LiveEndedReason, message: String) {
             dismiss()
         }
     }
@@ -43,11 +43,11 @@ class VideoQualitySelectPanel(
 
     override fun onStart() {
         super.onStart()
-        TUIRoomEngine.sharedInstance().addObserver(roomObserver)
+        LiveListStore.shared().addLiveListListener(liveListListener)
     }
 
     override fun onStop() {
-        TUIRoomEngine.sharedInstance().removeObserver(roomObserver)
+        LiveListStore.shared().removeLiveListListener(liveListListener)
         super.onStop()
     }
 
@@ -59,7 +59,7 @@ class VideoQualitySelectPanel(
         setupRecyclerView()
         setupCancelButton()
 
-        setView(view)
+        setContent(view)
     }
 
     private fun setupRecyclerView() {
@@ -75,7 +75,7 @@ class VideoQualitySelectPanel(
     }
 
     private inner class ResolutionAdapter(
-        private val data: List<VideoQuality>
+        private val data: List<VideoQuality>,
     ) : RecyclerView.Adapter<ResolutionAdapter.ViewHolder>() {
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {

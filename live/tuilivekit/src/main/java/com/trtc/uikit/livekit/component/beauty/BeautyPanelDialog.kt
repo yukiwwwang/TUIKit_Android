@@ -3,14 +3,14 @@ package com.trtc.uikit.livekit.component.beauty
 import android.content.Context
 import android.os.Bundle
 import android.view.View
-import com.trtc.uikit.livekit.common.ui.PopupDialog
 import com.trtc.uikit.livekit.component.beauty.basicbeauty.BeautyListPanel
 import com.trtc.uikit.livekit.component.beauty.tebeauty.TEBeautyManager
 import com.trtc.uikit.livekit.component.beauty.tebeauty.TEBeautyView
+import io.trtc.tuikit.atomicx.widget.basicwidget.popover.AtomicPopover
 
 class BeautyPanelDialog(
     private val context: Context
-) : PopupDialog(context, com.trtc.tuikit.common.R.style.TUICommonBottomDialogTheme) {
+) : AtomicPopover(context) {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         val beautyView: View = if (TEBeautyManager.isSupportTEBeauty()) {
@@ -18,7 +18,7 @@ class BeautyPanelDialog(
         } else {
             BeautyListPanel(context)
         }
-        setView(beautyView)
+        setContent(beautyView)
         super.onCreate(savedInstanceState)
     }
 }

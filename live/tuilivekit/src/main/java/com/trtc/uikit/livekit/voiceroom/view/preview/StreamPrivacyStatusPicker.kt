@@ -5,14 +5,14 @@ import android.widget.ArrayAdapter
 import android.widget.ListView
 import androidx.core.content.res.ResourcesCompat
 import com.trtc.uikit.livekit.R
-import com.trtc.uikit.livekit.common.ui.PopupDialog
 import com.trtc.uikit.livekit.voiceroom.manager.VoiceRoomManager
 import com.trtc.uikit.livekit.voiceroom.store.LiveStreamPrivacyStatus
+import io.trtc.tuikit.atomicx.widget.basicwidget.popover.AtomicPopover
 
 class StreamPrivacyStatusPicker(
     context: Context,
     private val voiceRoomManager: VoiceRoomManager
-) : PopupDialog(context) {
+) : AtomicPopover(context) {
 
     private lateinit var listView: ListView
 
@@ -23,7 +23,6 @@ class StreamPrivacyStatusPicker(
 
     private fun initView(context: Context) {
         listView = ListView(context)
-        listView.setBackgroundResource(R.drawable.livekit_dialog_background)
 
         val dataList = getDataList(context)
         val adapter = ArrayAdapter(context, R.layout.livekit_layout_bottom_list_item, dataList)
@@ -34,13 +33,13 @@ class StreamPrivacyStatusPicker(
             null
         )
         listView.dividerHeight = 1
-        setView(listView)
+        setContent(listView)
     }
 
     private fun initListItemClickListener() {
         listView.setOnItemClickListener { _, _, position, _ ->
             voiceRoomManager.prepareStore
-                .updateLiveMode(LiveStreamPrivacyStatus.entries[position])
+                .updateLiveMode(LiveStreamPrivacyStatus.values()[position])
             dismiss()
         }
     }

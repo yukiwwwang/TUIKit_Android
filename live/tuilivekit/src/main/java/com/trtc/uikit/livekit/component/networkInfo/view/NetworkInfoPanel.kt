@@ -9,19 +9,22 @@ import android.widget.LinearLayout
 import android.widget.SeekBar
 import android.widget.TextView
 import androidx.core.content.ContextCompat
-import androidx.lifecycle.Observer
-import com.tencent.cloud.tuikit.engine.common.TUICommonDefine
 import com.tencent.cloud.tuikit.engine.room.TUIRoomDefine
 import com.trtc.uikit.livekit.R
-import com.trtc.uikit.livekit.common.ui.PopupDialog
-import com.trtc.uikit.livekit.component.networkInfo.service.NetworkInfoService
 import com.trtc.uikit.livekit.component.networkInfo.store.NetworkInfoState
+import com.trtc.uikit.livekit.component.networkInfo.store.NetworkInfoStore
+import io.trtc.tuikit.atomicx.widget.basicwidget.popover.AtomicPopover
+import io.trtc.tuikit.atomicxcore.api.device.NetworkQuality
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 
 class NetworkInfoPanel(
     private val context: Context,
-    private val service: NetworkInfoService,
+    private val service: NetworkInfoStore,
     private var isTakeSeat: Boolean
-) : PopupDialog(context) {
+) : AtomicPopover(context) {
 
     private val state: NetworkInfoState = service.networkInfoState
     private val colorNormal: Int = ContextCompat.getColor(context, R.color.common_text_color_normal)
@@ -45,46 +48,7 @@ class NetworkInfoPanel(
     private lateinit var seekVolume: SeekBar
     private lateinit var textVolume: TextView
     private lateinit var layoutAudioMode: LinearLayout
-
-    private val videoStatusObserver = Observer<NetworkInfoState.Status> { status ->
-        onVideoStatusChange(status)
-    }
-
-    private val resolutionObserver = Observer<String> { resolution ->
-        onVideoResolutionChange(resolution)
-    }
-
-    private val audioStatusObserver = Observer<NetworkInfoState.Status> { status ->
-        onAudioStatusChange(status)
-    }
-
-    private val audioModeObserver = Observer<TUIRoomDefine.AudioQuality> { audioQuality ->
-        onAudioQualityChange(audioQuality)
-    }
-
-    private val audioCaptureVolumeObserver = Observer<Int> { volume ->
-        onVolumeChange(volume)
-    }
-
-    private val netWorkStatusObserver = Observer<TUICommonDefine.NetworkQuality> { networkQuality ->
-        onNetWorkStatusChange(networkQuality)
-    }
-
-    private val rttObserver = Observer<Int> { rtt ->
-        onRTTChange(rtt)
-    }
-
-    private val upLossObserver = Observer<Int> { upLoss ->
-        onUpLossChange(upLoss)
-    }
-
-    private val downLossObserver = Observer<Int> { downLoss ->
-        onDownLossChange(downLoss)
-    }
-
-    private val takeSeatStatusObserver = Observer<Boolean> { isTakeSeat ->
-        onTakeSeatStatusChange(isTakeSeat)
-    }
+    private var subscribeStateJob: Job? = null
 
     init {
         initView()
@@ -94,7 +58,7 @@ class NetworkInfoPanel(
         val view = LayoutInflater.from(context).inflate(R.layout.network_info_panel, null)
         bindViewId(view)
         initVolumeView()
-        setView(view)
+        setContent(view)
     }
 
     private fun bindViewId(view: View) {
@@ -133,29 +97,71 @@ class NetworkInfoPanel(
     }
 
     private fun addObserver() {
-        state.videoStatus.observeForever(videoStatusObserver)
-        state.resolution.observeForever(resolutionObserver)
-        state.audioStatus.observeForever(audioStatusObserver)
-        state.audioMode.observeForever(audioModeObserver)
-        state.audioCaptureVolume.observeForever(audioCaptureVolumeObserver)
-        state.networkStatus.observeForever(netWorkStatusObserver)
-        state.rtt.observeForever(rttObserver)
-        state.upLoss.observeForever(upLossObserver)
-        state.downLoss.observeForever(downLossObserver)
-        state.isTakeInSeat.observeForever(takeSeatStatusObserver)
+        subscribeStateJob = CoroutineScope(Dispatchers.Main).launch {
+            launch {
+                state.videoStatus.collect {
+                    onVideoStatusChange(it)
+                }
+            }
+
+            launch {
+                state.resolution.collect {
+                    onVideoResolutionChange(it)
+                }
+            }
+
+            launch {
+                state.audioStatus.collect {
+                    onAudioStatusChange(it)
+                }
+            }
+
+            launch {
+                state.audioMode.collect {
+                    onAudioQualityChange(it)
+                }
+            }
+
+            launch {
+                state.audioCaptureVolume.collect {
+                    onVolumeChange(it)
+                }
+            }
+
+            launch {
+                state.networkStatus.collect {
+                    onNetWorkStatusChange(it)
+                }
+            }
+
+            launch {
+                state.rtt.collect {
+                    onRTTChange(it)
+                }
+            }
+
+            launch {
+                state.upLoss.collect {
+                    onUpLossChange(it)
+                }
+            }
+
+            launch {
+                state.downLoss.collect {
+                    onDownLossChange(it)
+                }
+            }
+
+            launch {
+                state.isTakeInSeat.collect {
+                    onTakeSeatStatusChange(it)
+                }
+            }
+        }
     }
 
     private fun removeObserver() {
-        state.videoStatus.removeObserver(videoStatusObserver)
-        state.resolution.removeObserver(resolutionObserver)
-        state.audioStatus.removeObserver(audioStatusObserver)
-        state.audioMode.removeObserver(audioModeObserver)
-        state.audioCaptureVolume.removeObserver(audioCaptureVolumeObserver)
-        state.networkStatus.removeObserver(netWorkStatusObserver)
-        state.rtt.removeObserver(rttObserver)
-        state.upLoss.removeObserver(upLossObserver)
-        state.downLoss.removeObserver(downLossObserver)
-        state.isTakeInSeat.removeObserver(takeSeatStatusObserver)
+        subscribeStateJob?.cancel()
     }
 
     private fun initVolumeView() {
@@ -229,11 +235,13 @@ class NetworkInfoPanel(
                 textVideoStatus.setText(R.string.common_normal)
                 textVideoDescription.setText(R.string.common_video_stream_smooth)
             }
+
             NetworkInfoState.Status.Abnormal -> {
                 imageVideoStatus.setImageResource(R.drawable.network_info_video_status_abnormal)
                 textVideoStatus.setText(R.string.common_exception)
                 textVideoDescription.setText(R.string.common_video_stream_freezing)
             }
+
             else -> {
                 imageVideoStatus.setImageResource(R.drawable.network_info_video_status_abnormal)
                 textVideoStatus.setText(R.string.common_close)
@@ -248,10 +256,12 @@ class NetworkInfoPanel(
                 imageAudioStatus.setImageResource(R.drawable.network_info_audio_status_normal)
                 textAudioStatus.setText(R.string.common_normal)
             }
+
             NetworkInfoState.Status.Abnormal -> {
                 imageAudioStatus.setImageResource(R.drawable.network_info_audio_status_abnormal)
                 textAudioStatus.setText(R.string.common_exception)
             }
+
             else -> {
                 imageAudioStatus.setImageResource(R.drawable.network_info_audio_status_abnormal)
                 textAudioStatus.setText(R.string.common_close)
@@ -275,21 +285,24 @@ class NetworkInfoPanel(
         }
     }
 
-    private fun onNetWorkStatusChange(networkQuality: TUICommonDefine.NetworkQuality?) {
+    private fun onNetWorkStatusChange(networkQuality: NetworkQuality?) {
         when (networkQuality) {
-            TUICommonDefine.NetworkQuality.POOR -> {
+            NetworkQuality.POOR -> {
                 imageNetworkStatus.setImageResource(R.drawable.network_info_network_status_poor)
                 textNetworkStatus.setText(R.string.common_exception)
             }
-            TUICommonDefine.NetworkQuality.BAD -> {
+
+            NetworkQuality.BAD -> {
                 imageNetworkStatus.setImageResource(R.drawable.network_info_network_status_very_bad)
                 textNetworkStatus.setText(R.string.common_exception)
             }
-            TUICommonDefine.NetworkQuality.VERY_BAD,
-            TUICommonDefine.NetworkQuality.DOWN -> {
+
+            NetworkQuality.VERY_BAD,
+            NetworkQuality.DOWN -> {
                 imageNetworkStatus.setImageResource(R.drawable.network_info_network_status_down)
                 textNetworkStatus.setText(R.string.common_exception)
             }
+
             else -> {
                 imageNetworkStatus.setImageResource(R.drawable.network_info_network_status_good)
                 textNetworkStatus.setText(R.string.common_normal)

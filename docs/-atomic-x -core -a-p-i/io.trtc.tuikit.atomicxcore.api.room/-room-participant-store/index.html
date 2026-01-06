@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" charset="UTF-8">
+    <title>RoomParticipantStore</title>
+    <link href="../../../images/logo-icon.svg" rel="icon" type="image/svg">
+    <script>var pathToRoot = "../../../";</script>
+    <script>const storage = localStorage.getItem("dokka-dark-mode")
+    if (storage == null) {
+        const osDarkSchemePreferred = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+        if (osDarkSchemePreferred === true) {
+            document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+    } else {
+        const savedDarkMode = JSON.parse(storage)
+        if(savedDarkMode === true) {
+            document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+    }
+    </script>
+<script type="text/javascript" src="../../../scripts/sourceset_dependencies.js" async="async"></script>
+<link href="../../../styles/style.css" rel="Stylesheet">
+<link href="../../../styles/jetbrains-mono.css" rel="Stylesheet">
+<link href="../../../styles/main.css" rel="Stylesheet">
+<link href="../../../styles/prism.css" rel="Stylesheet">
+<link href="../../../styles/logo-styles.css" rel="Stylesheet">
+<script type="text/javascript" src="../../../scripts/clipboard.js" async="async"></script>
+<script type="text/javascript" src="../../../scripts/navigation-loader.js" async="async"></script>
+<script type="text/javascript" src="../../../scripts/platform-content-handler.js" async="async"></script>
+<script type="text/javascript" src="../../../scripts/main.js" defer="defer"></script>
+<script type="text/javascript" src="../../../scripts/prism.js" async="async"></script>
+<script type="text/javascript" src="../../../scripts/symbol-parameters-wrapper_deferred.js" defer="defer"></script>
+</head>
+<body>
+<div class="navigation-wrapper" id="navigation-wrapper">
+    <div id="leftToggler"><span class="icon-toggler"></span></div>
+    <div class="library-name">
+            <a href="../../../index.html">
+                    <span>AtomicX Core API</span>
+            </a>
+    </div>
+    <div>
+    </div>
+    <div class="pull-right d-flex">
+        <div class="filter-section" id="filter-section">
+                <button class="platform-tag platform-selector jvm-like" data-active="" data-filter=":atomicxcore:dokkaHtml/release">androidJvm</button>
+        </div>
+        <button id="theme-toggle-button"><span id="theme-toggle"></span></button>
+        <div id="searchBar"></div>
+    </div>
+</div>
+<div id="container">
+    <div id="leftColumn">
+        <div id="sideMenu"></div>
+    </div>
+    <div id="main">
+<div class="main-content" data-page-type="classlike" id="content" pageIds="AtomicX Core API::io.trtc.tuikit.atomicxcore.api.room/RoomParticipantStore///PointingToDeclaration//-1933612244">
+  <div class="breadcrumbs"><a href="../../../index.html">AtomicX Core API</a><span class="delimiter">/</span><a href="../index.html">io.trtc.tuikit.atomicxcore.api.room</a><span class="delimiter">/</span><span class="current">RoomParticipantStore</span></div>
+  <div class="cover ">
+    <h1 class="cover"><span>Room</span><wbr></wbr><span>Participant</span><wbr></wbr><span><span>Store</span></span></h1>
+    <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":atomicxcore:dokkaHtml/release"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword">class </span><a href="index.html">RoomParticipantStore</a></div><p class="paragraph">Room participant management related interfaces, managing participant permissions, device control, message muting and other operations.</p><h2 class=""> Overview</h2><p class="paragraph"><code class="lang-kotlin">RoomParticipantStore</code> Manage participant permissions, device control, message muting and other operations in the room. Room participant management provides complete participant lifecycle management, including permission management, device control, message muting and other features. <code class="lang-kotlin">RoomParticipantStore</code> provides a comprehensive set of APIs to manage room participant related operations.</p><h3 class=""> Key Features</h3><ul><li><p class="paragraph"><strong>Permission Management</strong>：Supports transferring owner, setting/revoking admin, kicking users and other operations</p></li><li><p class="paragraph"><strong>Device Control</strong>：Supports closing participant devices, disabling all devices and other operations</p></li><li><p class="paragraph"><strong>Message Muting</strong>：Supports muting individual users or all users</p></li><li><p class="paragraph"><strong>Device Request/Invitation</strong>：Supports requesting to open device, inviting to open device and other bidirectional interactions</p></li></ul><blockquote class="quotation"><p class="paragraph"><strong>Tip</strong>: Participant status updates are delivered through <a href="state.html">state</a> publisher. Subscribe to it to receive real-time updates about participant list.</p></blockquote><h2 class=""> Topics</h2><h3 class=""> Creating Instance</h3><ul><li><p class="paragraph"><a href="-companion/create.html">RoomParticipantStore.create</a> - Create object instance</p></li></ul><h3 class=""> Observing State and Events</h3><ul><li><p class="paragraph"><a href="state.html">state</a> - Reactive state containing participant list and device request info</p></li><li><p class="paragraph"><a href="add-room-participant-listener.html">addRoomParticipantListener</a>/<a href="remove-room-participant-listener.html">removeRoomParticipantListener</a> - Participant event callback</p></li></ul><h3 class=""> Participant List</h3><ul><li><p class="paragraph"><a href="get-participant-list.html">getParticipantList</a> - Get participant list</p></li></ul><h3 class=""> Permission Management</h3><ul><li><p class="paragraph"><a href="transfer-owner.html">transferOwner</a> - Transfer owner</p></li><li><p class="paragraph"><a href="set-admin.html">setAdmin</a> - Set admin</p></li><li><p class="paragraph"><a href="revoke-admin.html">revokeAdmin</a> - Revoke admin</p></li><li><p class="paragraph"><a href="kick-user.html">kickUser</a> - Kick user</p></li><li><p class="paragraph"><a href="update-participant-name-card.html">updateParticipantNameCard</a> - Update participant name card</p></li><li><p class="paragraph"><a href="update-participant-meta-data.html">updateParticipantMetaData</a> - Update participant metadata</p></li></ul><h3 class=""> Local Microphone Control</h3><ul><li><p class="paragraph"><a href="mute-microphone.html">muteMicrophone</a> - Mute microphone</p></li><li><p class="paragraph"><a href="unmute-microphone.html">unmuteMicrophone</a> - Unmute microphone</p></li></ul><h3 class=""> Device Control</h3><ul><li><p class="paragraph"><a href="close-participant-device.html">closeParticipantDevice</a> - Close participant device</p></li><li><p class="paragraph"><a href="disable-user-message.html">disableUserMessage</a> - Mute user</p></li><li><p class="paragraph"><a href="disable-all-devices.html">disableAllDevices</a> - Disable all devices</p></li><li><p class="paragraph"><a href="disable-all-messages.html">disableAllMessages</a> - Mute all users</p></li></ul><h3 class=""> Device Request Operations</h3><ul><li><p class="paragraph"><a href="request-to-open-device.html">requestToOpenDevice</a> - Request to open device</p></li><li><p class="paragraph"><a href="cancel-open-device-request.html">cancelOpenDeviceRequest</a> - Cancel open device request</p></li><li><p class="paragraph"><a href="approve-open-device-request.html">approveOpenDeviceRequest</a> - Approve open device request</p></li><li><p class="paragraph"><a href="reject-open-device-request.html">rejectOpenDeviceRequest</a> - Reject open device request</p></li></ul><h3 class=""> Device Invitation Operations</h3><ul><li><p class="paragraph"><a href="invite-to-open-device.html">inviteToOpenDevice</a> - Invite to open device</p></li><li><p class="paragraph"><a href="cancel-open-device-invitation.html">cancelOpenDeviceInvitation</a> - Cancel open device invitation</p></li><li><p class="paragraph"><a href="accept-open-device-invitation.html">acceptOpenDeviceInvitation</a> - Accept open device invitation</p></li><li><p class="paragraph"><a href="decline-open-device-invitation.html">declineOpenDeviceInvitation</a> - Decline open device invitation</p></li></ul><h2 class=""> See Also</h2><ul><li><p class="paragraph"><a href="../-participant-role/index.html">ParticipantRole</a></p></li><li><p class="paragraph"><a href="../-room-participant/index.html">RoomParticipant</a></p></li><li><p class="paragraph"><a href="../-room-participant-listener/index.html">RoomParticipantListener</a></p></li><li><p class="paragraph"><a href="../-device-request-info/index.html">DeviceRequestInfo</a></p></li><li><p class="paragraph"><a href="../-kicked-out-of-room-reason/index.html">KickedOutOfRoomReason</a></p></li></ul></div></div>
+  </div>
+  <div class="tabbedcontent">
+    <div class="tabs-section" tabs-section="tabs-section"><button class="section-tab" data-active="" data-togglable="CONSTRUCTOR,TYPE,PROPERTY,FUNCTION">Members</button></div>
+    <div class="tabs-section-body">
+      <div data-togglable="CONSTRUCTOR">
+        <h2 class="">Constructors</h2>
+        <div class="table"><a data-name="-1927913019%2FConstructors%2F-1933612244" anchor-label="RoomParticipantStore" id="-1927913019%2FConstructors%2F-1933612244" data-filterable-set=":atomicxcore:dokkaHtml/release"></a>
+          <div class="table-row" data-togglable="CONSTRUCTOR" data-filterable-current=":atomicxcore:dokkaHtml/release" data-filterable-set=":atomicxcore:dokkaHtml/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-room-participant-store.html"><span>Room</span><wbr></wbr><span>Participant</span><wbr></wbr><span><span>Store</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1927913019%2FConstructors%2F-1933612244"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":atomicxcore:dokkaHtml/release"><div class="symbol monospace"><span class="token keyword">constructor</span><span class="token punctuation">(</span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div data-togglable="TYPE">
+        <h2 class="">Types</h2>
+        <div class="table"><a data-name="313314099%2FClasslikes%2F-1933612244" anchor-label="Companion" id="313314099%2FClasslikes%2F-1933612244" data-filterable-set=":atomicxcore:dokkaHtml/release"></a>
+          <div class="table-row" data-filterable-current=":atomicxcore:dokkaHtml/release" data-filterable-set=":atomicxcore:dokkaHtml/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-companion/index.html"><span><span>Companion</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="313314099%2FClasslikes%2F-1933612244"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":atomicxcore:dokkaHtml/release"><div class="symbol monospace"><span class="token keyword">object </span><a href="-companion/index.html">Companion</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div data-togglable="PROPERTY">
+        <h2 class="">Properties</h2>
+        <div class="table"><a data-name="-253085189%2FProperties%2F-1933612244" anchor-label="state" id="-253085189%2FProperties%2F-1933612244" data-filterable-set=":atomicxcore:dokkaHtml/release"></a>
+          <div class="table-row" data-filterable-current=":atomicxcore:dokkaHtml/release" data-filterable-set=":atomicxcore:dokkaHtml/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="state.html"><span><span>state</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-253085189%2FProperties%2F-1933612244"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":atomicxcore:dokkaHtml/release"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword"></span><span class="token keyword">val </span><a href="state.html">state</a><span class="token operator">: </span><a href="../-room-participant-state/index.html">RoomParticipantState</a></div><div class="brief "><p class="paragraph">Participant related state data provided by RoomParticipantStore</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div data-togglable="FUNCTION">
+        <h2 class="">Functions</h2>
+        <div class="table"><a data-name="2122402194%2FFunctions%2F-1933612244" anchor-label="acceptOpenDeviceInvitation" id="2122402194%2FFunctions%2F-1933612244" data-filterable-set=":atomicxcore:dokkaHtml/release"></a>
+          <div class="table-row" data-filterable-current=":atomicxcore:dokkaHtml/release" data-filterable-set=":atomicxcore:dokkaHtml/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="accept-open-device-invitation.html"><span>accept</span><wbr></wbr><span>Open</span><wbr></wbr><span>Device</span><wbr></wbr><span><span>Invitation</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="2122402194%2FFunctions%2F-1933612244"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":atomicxcore:dokkaHtml/release"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword"></span><span class="token keyword">fun </span><a href="accept-open-device-invitation.html"><span class="token function">acceptOpenDeviceInvitation</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">userID<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span></span><span class="parameter ">device<span class="token operator">: </span><a href="../../io.trtc.tuikit.atomicxcore.api.device/-device-type/index.html">DeviceType</a><span class="token punctuation">, </span></span><span class="parameter ">completion<span class="token operator">: </span><a href="../../io.trtc.tuikit.atomicxcore.api/-completion-handler/index.html">CompletionHandler</a><span class="token operator">?</span></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Accept open device invitation</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1309202810%2FFunctions%2F-1933612244" anchor-label="addRoomParticipantListener" id="1309202810%2FFunctions%2F-1933612244" data-filterable-set=":atomicxcore:dokkaHtml/release"></a>
+          <div class="table-row" data-filterable-current=":atomicxcore:dokkaHtml/release" data-filterable-set=":atomicxcore:dokkaHtml/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="add-room-participant-listener.html"><span>add</span><wbr></wbr><span>Room</span><wbr></wbr><span>Participant</span><wbr></wbr><span><span>Listener</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1309202810%2FFunctions%2F-1933612244"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":atomicxcore:dokkaHtml/release"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword"></span><span class="token keyword">fun </span><a href="add-room-participant-listener.html"><span class="token function">addRoomParticipantListener</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">listener<span class="token operator">: </span><a href="../-room-participant-listener/index.html">RoomParticipantListener</a><span class="token operator">?</span></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Add participant event callback listener</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="113189211%2FFunctions%2F-1933612244" anchor-label="approveOpenDeviceRequest" id="113189211%2FFunctions%2F-1933612244" data-filterable-set=":atomicxcore:dokkaHtml/release"></a>
+          <div class="table-row" data-filterable-current=":atomicxcore:dokkaHtml/release" data-filterable-set=":atomicxcore:dokkaHtml/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="approve-open-device-request.html"><span>approve</span><wbr></wbr><span>Open</span><wbr></wbr><span>Device</span><wbr></wbr><span><span>Request</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="113189211%2FFunctions%2F-1933612244"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":atomicxcore:dokkaHtml/release"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword"></span><span class="token keyword">fun </span><a href="approve-open-device-request.html"><span class="token function">approveOpenDeviceRequest</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">device<span class="token operator">: </span><a href="../../io.trtc.tuikit.atomicxcore.api.device/-device-type/index.html">DeviceType</a><span class="token punctuation">, </span></span><span class="parameter ">userID<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span></span><span class="parameter ">completion<span class="token operator">: </span><a href="../../io.trtc.tuikit.atomicxcore.api/-completion-handler/index.html">CompletionHandler</a><span class="token operator">?</span></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Approve open device request</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="635895136%2FFunctions%2F-1933612244" anchor-label="cancelOpenDeviceInvitation" id="635895136%2FFunctions%2F-1933612244" data-filterable-set=":atomicxcore:dokkaHtml/release"></a>
+          <div class="table-row" data-filterable-current=":atomicxcore:dokkaHtml/release" data-filterable-set=":atomicxcore:dokkaHtml/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="cancel-open-device-invitation.html"><span>cancel</span><wbr></wbr><span>Open</span><wbr></wbr><span>Device</span><wbr></wbr><span><span>Invitation</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="635895136%2FFunctions%2F-1933612244"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":atomicxcore:dokkaHtml/release"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword"></span><span class="token keyword">fun </span><a href="cancel-open-device-invitation.html"><span class="token function">cancelOpenDeviceInvitation</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">userID<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span></span><span class="parameter ">device<span class="token operator">: </span><a href="../../io.trtc.tuikit.atomicxcore.api.device/-device-type/index.html">DeviceType</a><span class="token punctuation">, </span></span><span class="parameter ">completion<span class="token operator">: </span><a href="../../io.trtc.tuikit.atomicxcore.api/-completion-handler/index.html">CompletionHandler</a><span class="token operator">?</span></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Cancel open device invitation</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1464032161%2FFunctions%2F-1933612244" anchor-label="cancelOpenDeviceRequest" id="1464032161%2FFunctions%2F-1933612244" data-filterable-set=":atomicxcore:dokkaHtml/release"></a>
+          <div class="table-row" data-filterable-current=":atomicxcore:dokkaHtml/release" data-filterable-set=":atomicxcore:dokkaHtml/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="cancel-open-device-request.html"><span>cancel</span><wbr></wbr><span>Open</span><wbr></wbr><span>Device</span><wbr></wbr><span><span>Request</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1464032161%2FFunctions%2F-1933612244"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":atomicxcore:dokkaHtml/release"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword"></span><span class="token keyword">fun </span><a href="cancel-open-device-request.html"><span class="token function">cancelOpenDeviceRequest</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">device<span class="token operator">: </span><a href="../../io.trtc.tuikit.atomicxcore.api.device/-device-type/index.html">DeviceType</a><span class="token punctuation">, </span></span><span class="parameter ">completion<span class="token operator">: </span><a href="../../io.trtc.tuikit.atomicxcore.api/-completion-handler/index.html">CompletionHandler</a><span class="token operator">?</span></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Cancel open device request</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="848351714%2FFunctions%2F-1933612244" anchor-label="closeParticipantDevice" id="848351714%2FFunctions%2F-1933612244" data-filterable-set=":atomicxcore:dokkaHtml/release"></a>
+          <div class="table-row" data-filterable-current=":atomicxcore:dokkaHtml/release" data-filterable-set=":atomicxcore:dokkaHtml/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="close-participant-device.html"><span>close</span><wbr></wbr><span>Participant</span><wbr></wbr><span><span>Device</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="848351714%2FFunctions%2F-1933612244"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":atomicxcore:dokkaHtml/release"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword"></span><span class="token keyword">fun </span><a href="close-participant-device.html"><span class="token function">closeParticipantDevice</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">userID<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span></span><span class="parameter ">device<span class="token operator">: </span><a href="../../io.trtc.tuikit.atomicxcore.api.device/-device-type/index.html">DeviceType</a><span class="token punctuation">, </span></span><span class="parameter ">completion<span class="token operator">: </span><a href="../../io.trtc.tuikit.atomicxcore.api/-completion-handler/index.html">CompletionHandler</a><span class="token operator">?</span></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Close participant device</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1608343842%2FFunctions%2F-1933612244" anchor-label="declineOpenDeviceInvitation" id="1608343842%2FFunctions%2F-1933612244" data-filterable-set=":atomicxcore:dokkaHtml/release"></a>
+          <div class="table-row" data-filterable-current=":atomicxcore:dokkaHtml/release" data-filterable-set=":atomicxcore:dokkaHtml/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="decline-open-device-invitation.html"><span>decline</span><wbr></wbr><span>Open</span><wbr></wbr><span>Device</span><wbr></wbr><span><span>Invitation</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1608343842%2FFunctions%2F-1933612244"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":atomicxcore:dokkaHtml/release"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword"></span><span class="token keyword">fun </span><a href="decline-open-device-invitation.html"><span class="token function">declineOpenDeviceInvitation</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">userID<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span></span><span class="parameter ">device<span class="token operator">: </span><a href="../../io.trtc.tuikit.atomicxcore.api.device/-device-type/index.html">DeviceType</a><span class="token punctuation">, </span></span><span class="parameter ">completion<span class="token operator">: </span><a href="../../io.trtc.tuikit.atomicxcore.api/-completion-handler/index.html">CompletionHandler</a><span class="token operator">?</span></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Decline open device invitation</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1992288132%2FFunctions%2F-1933612244" anchor-label="disableAllDevices" id="-1992288132%2FFunctions%2F-1933612244" data-filterable-set=":atomicxcore:dokkaHtml/release"></a>
+          <div class="table-row" data-filterable-current=":atomicxcore:dokkaHtml/release" data-filterable-set=":atomicxcore:dokkaHtml/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="disable-all-devices.html"><span>disable</span><wbr></wbr><span>All</span><wbr></wbr><span><span>Devices</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1992288132%2FFunctions%2F-1933612244"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":atomicxcore:dokkaHtml/release"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword"></span><span class="token keyword">fun </span><a href="disable-all-devices.html"><span class="token function">disableAllDevices</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">device<span class="token operator">: </span><a href="../../io.trtc.tuikit.atomicxcore.api.device/-device-type/index.html">DeviceType</a><span class="token punctuation">, </span></span><span class="parameter ">disable<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a><span class="token punctuation">, </span></span><span class="parameter ">completion<span class="token operator">: </span><a href="../../io.trtc.tuikit.atomicxcore.api/-completion-handler/index.html">CompletionHandler</a><span class="token operator">?</span></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Disable all devices</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-533598973%2FFunctions%2F-1933612244" anchor-label="disableAllMessages" id="-533598973%2FFunctions%2F-1933612244" data-filterable-set=":atomicxcore:dokkaHtml/release"></a>
+          <div class="table-row" data-filterable-current=":atomicxcore:dokkaHtml/release" data-filterable-set=":atomicxcore:dokkaHtml/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="disable-all-messages.html"><span>disable</span><wbr></wbr><span>All</span><wbr></wbr><span><span>Messages</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-533598973%2FFunctions%2F-1933612244"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":atomicxcore:dokkaHtml/release"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword"></span><span class="token keyword">fun </span><a href="disable-all-messages.html"><span class="token function">disableAllMessages</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">disable<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a><span class="token punctuation">, </span></span><span class="parameter ">completion<span class="token operator">: </span><a href="../../io.trtc.tuikit.atomicxcore.api/-completion-handler/index.html">CompletionHandler</a><span class="token operator">?</span></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Mute all users</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-938875729%2FFunctions%2F-1933612244" anchor-label="disableUserMessage" id="-938875729%2FFunctions%2F-1933612244" data-filterable-set=":atomicxcore:dokkaHtml/release"></a>
+          <div class="table-row" data-filterable-current=":atomicxcore:dokkaHtml/release" data-filterable-set=":atomicxcore:dokkaHtml/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="disable-user-message.html"><span>disable</span><wbr></wbr><span>User</span><wbr></wbr><span><span>Message</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-938875729%2FFunctions%2F-1933612244"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":atomicxcore:dokkaHtml/release"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword"></span><span class="token keyword">fun </span><a href="disable-user-message.html"><span class="token function">disableUserMessage</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">userID<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span></span><span class="parameter ">disable<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a><span class="token punctuation">, </span></span><span class="parameter ">completion<span class="token operator">: </span><a href="../../io.trtc.tuikit.atomicxcore.api/-completion-handler/index.html">CompletionHandler</a><span class="token operator">?</span></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Mute user</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-2611954%2FFunctions%2F-1933612244" anchor-label="getParticipantList" id="-2611954%2FFunctions%2F-1933612244" data-filterable-set=":atomicxcore:dokkaHtml/release"></a>
+          <div class="table-row" data-filterable-current=":atomicxcore:dokkaHtml/release" data-filterable-set=":atomicxcore:dokkaHtml/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="get-participant-list.html"><span>get</span><wbr></wbr><span>Participant</span><wbr></wbr><span><span>List</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-2611954%2FFunctions%2F-1933612244"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":atomicxcore:dokkaHtml/release"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword"></span><span class="token keyword">fun </span><a href="get-participant-list.html"><span class="token function">getParticipantList</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">cursor<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">?</span><span class="token punctuation">, </span></span><span class="parameter ">completion<span class="token operator">: </span><a href="../../io.trtc.tuikit.atomicxcore.api/-list-result-completion-handler/index.html">ListResultCompletionHandler</a><span class="token operator">&lt;</span><span class="token keyword"></span><a href="../-room-participant/index.html">RoomParticipant</a><span class="token operator">&gt;</span><span class="token operator">?</span></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Get participant list</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1730014856%2FFunctions%2F-1933612244" anchor-label="inviteToOpenDevice" id="-1730014856%2FFunctions%2F-1933612244" data-filterable-set=":atomicxcore:dokkaHtml/release"></a>
+          <div class="table-row" data-filterable-current=":atomicxcore:dokkaHtml/release" data-filterable-set=":atomicxcore:dokkaHtml/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="invite-to-open-device.html"><span>invite</span><wbr></wbr><span>To</span><wbr></wbr><span>Open</span><wbr></wbr><span><span>Device</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1730014856%2FFunctions%2F-1933612244"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":atomicxcore:dokkaHtml/release"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword"></span><span class="token keyword">fun </span><a href="invite-to-open-device.html"><span class="token function">inviteToOpenDevice</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">userID<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span></span><span class="parameter ">device<span class="token operator">: </span><a href="../../io.trtc.tuikit.atomicxcore.api.device/-device-type/index.html">DeviceType</a><span class="token punctuation">, </span></span><span class="parameter ">timeout<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token operator"> = </span><span class="token constant">0</span><span class="token punctuation">, </span></span><span class="parameter ">completion<span class="token operator">: </span><a href="../../io.trtc.tuikit.atomicxcore.api/-completion-handler/index.html">CompletionHandler</a><span class="token operator">?</span></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Invite to open device</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1432593340%2FFunctions%2F-1933612244" anchor-label="kickUser" id="1432593340%2FFunctions%2F-1933612244" data-filterable-set=":atomicxcore:dokkaHtml/release"></a>
+          <div class="table-row" data-filterable-current=":atomicxcore:dokkaHtml/release" data-filterable-set=":atomicxcore:dokkaHtml/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="kick-user.html"><span>kick</span><wbr></wbr><span><span>User</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1432593340%2FFunctions%2F-1933612244"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":atomicxcore:dokkaHtml/release"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword"></span><span class="token keyword">fun </span><a href="kick-user.html"><span class="token function">kickUser</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">userID<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span></span><span class="parameter ">completion<span class="token operator">: </span><a href="../../io.trtc.tuikit.atomicxcore.api/-completion-handler/index.html">CompletionHandler</a><span class="token operator">?</span></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Kick user</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-756550613%2FFunctions%2F-1933612244" anchor-label="muteMicrophone" id="-756550613%2FFunctions%2F-1933612244" data-filterable-set=":atomicxcore:dokkaHtml/release"></a>
+          <div class="table-row" data-filterable-current=":atomicxcore:dokkaHtml/release" data-filterable-set=":atomicxcore:dokkaHtml/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="mute-microphone.html"><span>mute</span><wbr></wbr><span><span>Microphone</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-756550613%2FFunctions%2F-1933612244"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":atomicxcore:dokkaHtml/release"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword"></span><span class="token keyword">fun </span><a href="mute-microphone.html"><span class="token function">muteMicrophone</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Mute microphone</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-355115733%2FFunctions%2F-1933612244" anchor-label="rejectOpenDeviceRequest" id="-355115733%2FFunctions%2F-1933612244" data-filterable-set=":atomicxcore:dokkaHtml/release"></a>
+          <div class="table-row" data-filterable-current=":atomicxcore:dokkaHtml/release" data-filterable-set=":atomicxcore:dokkaHtml/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="reject-open-device-request.html"><span>reject</span><wbr></wbr><span>Open</span><wbr></wbr><span>Device</span><wbr></wbr><span><span>Request</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-355115733%2FFunctions%2F-1933612244"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":atomicxcore:dokkaHtml/release"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword"></span><span class="token keyword">fun </span><a href="reject-open-device-request.html"><span class="token function">rejectOpenDeviceRequest</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">device<span class="token operator">: </span><a href="../../io.trtc.tuikit.atomicxcore.api.device/-device-type/index.html">DeviceType</a><span class="token punctuation">, </span></span><span class="parameter ">userID<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span></span><span class="parameter ">completion<span class="token operator">: </span><a href="../../io.trtc.tuikit.atomicxcore.api/-completion-handler/index.html">CompletionHandler</a><span class="token operator">?</span></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Reject open device request</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="635531995%2FFunctions%2F-1933612244" anchor-label="removeRoomParticipantListener" id="635531995%2FFunctions%2F-1933612244" data-filterable-set=":atomicxcore:dokkaHtml/release"></a>
+          <div class="table-row" data-filterable-current=":atomicxcore:dokkaHtml/release" data-filterable-set=":atomicxcore:dokkaHtml/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="remove-room-participant-listener.html"><span>remove</span><wbr></wbr><span>Room</span><wbr></wbr><span>Participant</span><wbr></wbr><span><span>Listener</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="635531995%2FFunctions%2F-1933612244"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":atomicxcore:dokkaHtml/release"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword"></span><span class="token keyword">fun </span><a href="remove-room-participant-listener.html"><span class="token function">removeRoomParticipantListener</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">listener<span class="token operator">: </span><a href="../-room-participant-listener/index.html">RoomParticipantListener</a><span class="token operator">?</span></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Remove participant event callback listener</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1225505765%2FFunctions%2F-1933612244" anchor-label="requestToOpenDevice" id="-1225505765%2FFunctions%2F-1933612244" data-filterable-set=":atomicxcore:dokkaHtml/release"></a>
+          <div class="table-row" data-filterable-current=":atomicxcore:dokkaHtml/release" data-filterable-set=":atomicxcore:dokkaHtml/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="request-to-open-device.html"><span>request</span><wbr></wbr><span>To</span><wbr></wbr><span>Open</span><wbr></wbr><span><span>Device</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1225505765%2FFunctions%2F-1933612244"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":atomicxcore:dokkaHtml/release"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword"></span><span class="token keyword">fun </span><a href="request-to-open-device.html"><span class="token function">requestToOpenDevice</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">device<span class="token operator">: </span><a href="../../io.trtc.tuikit.atomicxcore.api.device/-device-type/index.html">DeviceType</a><span class="token punctuation">, </span></span><span class="parameter ">timeout<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token operator"> = </span><span class="token constant">0</span><span class="token punctuation">, </span></span><span class="parameter ">completion<span class="token operator">: </span><a href="../../io.trtc.tuikit.atomicxcore.api/-completion-handler/index.html">CompletionHandler</a><span class="token operator">?</span></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Request to open device</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1934042806%2FFunctions%2F-1933612244" anchor-label="revokeAdmin" id="1934042806%2FFunctions%2F-1933612244" data-filterable-set=":atomicxcore:dokkaHtml/release"></a>
+          <div class="table-row" data-filterable-current=":atomicxcore:dokkaHtml/release" data-filterable-set=":atomicxcore:dokkaHtml/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="revoke-admin.html"><span>revoke</span><wbr></wbr><span><span>Admin</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1934042806%2FFunctions%2F-1933612244"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":atomicxcore:dokkaHtml/release"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword"></span><span class="token keyword">fun </span><a href="revoke-admin.html"><span class="token function">revokeAdmin</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">userID<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span></span><span class="parameter ">completion<span class="token operator">: </span><a href="../../io.trtc.tuikit.atomicxcore.api/-completion-handler/index.html">CompletionHandler</a><span class="token operator">?</span></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Revoke admin</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1608952984%2FFunctions%2F-1933612244" anchor-label="setAdmin" id="1608952984%2FFunctions%2F-1933612244" data-filterable-set=":atomicxcore:dokkaHtml/release"></a>
+          <div class="table-row" data-filterable-current=":atomicxcore:dokkaHtml/release" data-filterable-set=":atomicxcore:dokkaHtml/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="set-admin.html"><span>set</span><wbr></wbr><span><span>Admin</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1608952984%2FFunctions%2F-1933612244"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":atomicxcore:dokkaHtml/release"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword"></span><span class="token keyword">fun </span><a href="set-admin.html"><span class="token function">setAdmin</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">userID<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span></span><span class="parameter ">completion<span class="token operator">: </span><a href="../../io.trtc.tuikit.atomicxcore.api/-completion-handler/index.html">CompletionHandler</a><span class="token operator">?</span></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Set admin</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1292711573%2FFunctions%2F-1933612244" anchor-label="transferOwner" id="1292711573%2FFunctions%2F-1933612244" data-filterable-set=":atomicxcore:dokkaHtml/release"></a>
+          <div class="table-row" data-filterable-current=":atomicxcore:dokkaHtml/release" data-filterable-set=":atomicxcore:dokkaHtml/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="transfer-owner.html"><span>transfer</span><wbr></wbr><span><span>Owner</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1292711573%2FFunctions%2F-1933612244"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":atomicxcore:dokkaHtml/release"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword"></span><span class="token keyword">fun </span><a href="transfer-owner.html"><span class="token function">transferOwner</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">userID<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span></span><span class="parameter ">completion<span class="token operator">: </span><a href="../../io.trtc.tuikit.atomicxcore.api/-completion-handler/index.html">CompletionHandler</a><span class="token operator">?</span></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Transfer owner</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1131891550%2FFunctions%2F-1933612244" anchor-label="unmuteMicrophone" id="-1131891550%2FFunctions%2F-1933612244" data-filterable-set=":atomicxcore:dokkaHtml/release"></a>
+          <div class="table-row" data-filterable-current=":atomicxcore:dokkaHtml/release" data-filterable-set=":atomicxcore:dokkaHtml/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="unmute-microphone.html"><span>unmute</span><wbr></wbr><span><span>Microphone</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1131891550%2FFunctions%2F-1933612244"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":atomicxcore:dokkaHtml/release"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword"></span><span class="token keyword">fun </span><a href="unmute-microphone.html"><span class="token function">unmuteMicrophone</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">completion<span class="token operator">: </span><a href="../../io.trtc.tuikit.atomicxcore.api/-completion-handler/index.html">CompletionHandler</a><span class="token operator">?</span></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Unmute microphone</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-2056411701%2FFunctions%2F-1933612244" anchor-label="updateParticipantMetaData" id="-2056411701%2FFunctions%2F-1933612244" data-filterable-set=":atomicxcore:dokkaHtml/release"></a>
+          <div class="table-row" data-filterable-current=":atomicxcore:dokkaHtml/release" data-filterable-set=":atomicxcore:dokkaHtml/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="update-participant-meta-data.html"><span>update</span><wbr></wbr><span>Participant</span><wbr></wbr><span>Meta</span><wbr></wbr><span><span>Data</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-2056411701%2FFunctions%2F-1933612244"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":atomicxcore:dokkaHtml/release"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword"></span><span class="token keyword">fun </span><a href="update-participant-meta-data.html"><span class="token function">updateParticipantMetaData</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">userID<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span></span><span class="parameter ">metaData<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin.collections/-hash-map/index.html">HashMap</a><span class="token operator">&lt;</span><span class="token keyword"></span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span><span class="token keyword"></span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-byte-array/index.html">ByteArray</a><span class="token operator">&gt;</span><span class="token punctuation">, </span></span><span class="parameter ">completion<span class="token operator">: </span><a href="../../io.trtc.tuikit.atomicxcore.api/-completion-handler/index.html">CompletionHandler</a><span class="token operator">?</span></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Update participant metadata</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1857821577%2FFunctions%2F-1933612244" anchor-label="updateParticipantNameCard" id="-1857821577%2FFunctions%2F-1933612244" data-filterable-set=":atomicxcore:dokkaHtml/release"></a>
+          <div class="table-row" data-filterable-current=":atomicxcore:dokkaHtml/release" data-filterable-set=":atomicxcore:dokkaHtml/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="update-participant-name-card.html"><span>update</span><wbr></wbr><span>Participant</span><wbr></wbr><span>Name</span><wbr></wbr><span><span>Card</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1857821577%2FFunctions%2F-1933612244"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":atomicxcore:dokkaHtml/release"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword"></span><span class="token keyword">fun </span><a href="update-participant-name-card.html"><span class="token function">updateParticipantNameCard</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">userID<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span></span><span class="parameter ">nameCard<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span></span><span class="parameter ">completion<span class="token operator">: </span><a href="../../io.trtc.tuikit.atomicxcore.api/-completion-handler/index.html">CompletionHandler</a><span class="token operator">?</span></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Update participant name card</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      <div class="footer">
+        <span class="go-to-top-icon"><a href="#content" id="go-to-top-link"></a></span><span>© 2026 Copyright</span><span
+                class="pull-right"><span>Generated by </span><a
+                href="https://github.com/Kotlin/dokka"><span>dokka</span><span class="padded-icon"></span></a></span>
+      </div>
+    </div>
+</div>
+</body>
+</html>

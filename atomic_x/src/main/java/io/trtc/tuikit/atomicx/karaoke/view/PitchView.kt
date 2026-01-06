@@ -4,16 +4,13 @@ import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.Typeface
+import android.graphics.Typeface.BOLD
 import android.graphics.drawable.Drawable
-import android.os.Handler
-import android.os.Looper
 import android.util.TypedValue
 import android.view.View
 import androidx.core.content.ContextCompat
 import com.tencent.trtc.TXChorusMusicPlayer
 import io.trtc.tuikit.atomicx.R
-import io.trtc.tuikit.atomicx.karaoke.store.KaraokeStore
-import java.lang.ref.WeakReference
 import kotlin.math.abs
 import kotlin.math.cos
 import kotlin.math.sin
@@ -21,343 +18,313 @@ import kotlin.random.Random
 
 class PitchView(
     context: Context,
-    private val mStore: KaraokeStore,
 ) : View(context) {
-    private val mLineColor = ContextCompat.getColor(context, R.color.karaoke_pitch_line)
-    private val mDotColor = ContextCompat.getColor(context, R.color.karaoke_white)
-    private val mScoreLineColor = ContextCompat.getColor(context, R.color.karaoke_color_grey_8c)
-    private val mHighlightColor = ContextCompat.getColor(context, R.color.karaoke_pitch_score_text)
-    private val mScoreTextColor = ContextCompat.getColor(context, R.color.karaoke_pitch_score_text)
-    private val mPitchLineGapDp = 2f
-    private val mPitchLineHeightDp = 3f
-    private val mPitchDotRadiusDp = 4.5f
-    private val mLabelGapDp = 3f
-    private val mScoreTextSizeSp = 8f
-    private val mMinPitch = 2
-    private val mMaxPitch = 7
-    private val mBubbleHeightPx = dpToPx(12f)
-    private var mPitchList: List<TXChorusMusicPlayer.TXReferencePitch> = emptyList()
-    private var mPitchLineLengths: List<Float> = emptyList()
-    private var mRedEndPercent: FloatArray = FloatArray(0)
-    private var mScoreValue: Float = 0f
-    private var mIsAnimPaused: Boolean = false
-    private var mCurSegment: Int = 0
-    private var mPercentInSegment: Float = 0f
-    private var mAnimPitch: Float = 5f
-    private var mScrollOffset: Float = 0f
 
     private data class Butterfly(
-        val drawable: Drawable,
-        val x0: Float,
-        val y0: Float,
-        val angle: Float,
-        val scale: Float,
-        val baseRotation: Float,
-        val startTime: Long,
-        val lifeMs: Long,
+        val drawable: Drawable, val x0: Float, val y0: Float, val angle: Float,
+        val scale: Float, val baseRotation: Float, val startTime: Long, val lifeMs: Long
     )
 
-    private val mButterflies = mutableListOf<Butterfly>()
-    private val mButterflyDrawables: List<Drawable?> by lazy {
-        listOf(ContextCompat.getDrawable(context, R.drawable.karaoke_song_well_icon))
-    }
-    private val mButterflyFlyDistance = dpToPx(52f)
-    private val mButterflyLife = 1350L
-    private var mCurSegmentEmitTime = 0L
-    private var mLastSegmentForButterfly = -1
-    private val mPitchLineHeightPx = dpToPx(mPitchLineHeightDp)
-    private val mDrawTop: Float
-        get() {
-            return height / 8f + mPitchLineHeightPx / 2f
-        }
-    private val mDrawHeight: Float
-        get() {
-            return (height * 0.75f - mPitchLineHeightPx).coerceAtLeast(0f)
-        }
-    private val mAnimInterval = 16L
-    private val mAnimHandler = Handler(Looper.getMainLooper())
-
-    private class PitchViewAnimRunnable(view: PitchView) : Runnable {
-        private val viewRef: WeakReference<PitchView> = WeakReference(view)
-
-        override fun run() {
-            val view = viewRef.get()
-            if (view == null || !view.isAttachedToWindow) {
-                return
-            }
-
-            view.advanceAnim()
-            view.updateRedAndButterfly()
-            view.updateButterflies()
-            view.postInvalidateOnAnimation()
-            view.mAnimHandler.postDelayed(this, view.mAnimInterval)
-        }
-    }
-    private val mAnimRunnable = PitchViewAnimRunnable(this)
-
-    fun setPlayProgress(progressMs: Long) {
-    }
-
-    fun setPitchList(list: List<TXChorusMusicPlayer.TXReferencePitch>) {
-        mPitchList = list ?: emptyList()
-        recalculatePitchLineLengths()
-        mRedEndPercent = FloatArray(mPitchList.size) { 0f }
-        mCurSegment = 0
-        mPercentInSegment = 0f
-        mScoreValue = 0f
-        mCurDotY = null
-        mButterflies.clear()
-        invalidate()
-    }
-
-    override fun onAttachedToWindow() {
-        super.onAttachedToWindow()
-    }
-
-    override fun onDetachedFromWindow() {
-        super.onDetachedFromWindow()
-        mAnimHandler.removeCallbacks(mAnimRunnable)
-        mAnimHandler.removeCallbacksAndMessages(null)
-    }
-
-    fun randomTestData(totalPoints: Int = 400) {
-        val now = System.currentTimeMillis()
-        val durationMs = 1500L
-        val list = List(totalPoints) { idx ->
-            val obj = TXChorusMusicPlayer.TXReferencePitch()
-            obj.startTimeMs = now + idx * durationMs
-            obj.durationMs = durationMs
-            obj.referencePitch = Random.nextInt(3, 8)
-            obj
-        }
-        setPitchList(list)
-        mScoreValue = Random.nextInt(80, 100) / 10f
-        invalidate()
-    }
-
-    private fun recalculatePitchLineLengths() {
-        val n = mPitchList.size
-        if (n == 0) {
-            mPitchLineLengths = emptyList()
-            return
-        }
-        mPitchLineLengths = List(mPitchList.size) { dpToPx(20f) }
-    }
-
-    private var mLastAnimTime: Long = -1
-    private fun advanceAnim() {
-        if (mPitchList.isEmpty()) return
-        val now = System.currentTimeMillis()
-        if (mLastAnimTime < 0) mLastAnimTime = now
-        val dt = now - mLastAnimTime
-        mLastAnimTime = now
-        val durationMs = mPitchList.getOrNull(mCurSegment)?.durationMs ?: 500L
-        mPercentInSegment += dt.toFloat() / durationMs
-        if (mPercentInSegment > 1f) {
-            mCurSegment++
-            mPercentInSegment = 0f
-            mLastAnimTime = -1
-            if (mCurSegment >= mPitchList.size) {
-                mCurSegment = mPitchList.size - 1
-                mPercentInSegment = 1f
-                for (i in mRedEndPercent.indices) mRedEndPercent[i] = 1f
-                return
-            }
-            mCurSegmentEmitTime = 0L
-        }
-        mScrollOffset = 0f
-        for (i in 0 until mCurSegment) {
-            mScrollOffset += mPitchLineLengths[i] + dpToPx(mPitchLineGapDp)
-        }
-        mScrollOffset += mPitchLineLengths.getOrNull(mCurSegment)?.let { it * mPercentInSegment }
-            ?: 0f
-        mAnimPitch = mPitchList.getOrNull(mCurSegment)?.referencePitch?.toFloat() ?: 5f
-    }
-
-    private fun updateRedAndButterfly() {
-        if (mPitchList.isEmpty()) return
-        var totalProgress = mScrollOffset
-        for (i in mPitchList.indices) {
-            val lineLen = mPitchLineLengths[i]
-            if (totalProgress >= lineLen) {
-                mRedEndPercent[i] = 1f
-                totalProgress -= (lineLen + dpToPx(mPitchLineGapDp))
-            } else if (totalProgress > 0f && totalProgress < lineLen) {
-                mRedEndPercent[i] = (totalProgress / lineLen).coerceIn(0f, 1f)
-                totalProgress = 0f
-            } else {
-                mRedEndPercent[i] = 0f
-            }
-        }
-        if (mCurSegment < 0 || mCurSegment >= mPitchList.size) return
-        val lineLen = mPitchLineLengths[mCurSegment]
-        val lineLeftX = getSegmentX(mCurSegment)
-        val centerX = width / 2f
-        if (centerX in lineLeftX..(lineLeftX + lineLen)) {
-            val curPitch = mPitchList[mCurSegment].referencePitch.toFloat()
-            val shouldRed = abs(mAnimPitch - curPitch) < 0.35f
-            if (shouldRed) {
-                val now = System.currentTimeMillis()
-                if (mLastSegmentForButterfly != mCurSegment) {
-                    mLastSegmentForButterfly = mCurSegment
-                    mCurSegmentEmitTime = now
-                    emitButterfly(mCurSegment, centerX)
-                } else if (now - mCurSegmentEmitTime > 400) {
-                    emitButterfly(mCurSegment, centerX)
-                    mCurSegmentEmitTime = now
-                }
-            }
-        }
-    }
-
-    private fun getSegmentX(index: Int): Float {
-        var x = width / 2f
-        for (j in 0 until index) {
-            x += mPitchLineLengths[j] + dpToPx(mPitchLineGapDp)
-        }
-        return x - mScrollOffset
-    }
-
-    private fun emitButterfly(segment: Int, centerX: Float) {
-        if (segment < 0 || segment >= mPitchList.size) return
-        val drawable = mButterflyDrawables.filterNotNull().randomOrNull() ?: return
-        val curPitch = mPitchList[segment].referencePitch
-        val percent = (curPitch - mMinPitch).toFloat() / (mMaxPitch - mMinPitch)
-        val lineY = mDrawTop + percent * mDrawHeight
-        val startX = centerX - dpToPx(4f + 11 * Random.nextFloat())
-        val startY = lineY + dpToPx((Random.nextFloat() - 0.5f) * 16f)
-        val angle = 240f + (Random.nextFloat() - 0.5f) * 20f
-        val scale = 1.00f + Random.nextFloat() * 0.34f
-        val baseRotation = -15f + Random.nextFloat() * 30f
-        mButterflies += Butterfly(
-            drawable = drawable,
-            x0 = startX,
-            y0 = startY,
-            angle = angle,
-            scale = scale,
-            baseRotation = baseRotation,
-            startTime = System.currentTimeMillis(),
-            lifeMs = mButterflyLife
-        )
-    }
-
-    private fun updateButterflies() {
-        val now = System.currentTimeMillis()
-        mButterflies.removeAll { now - it.startTime > it.lifeMs }
-    }
-
-    private val mScoreTagImg: Drawable? by lazy {
-        ContextCompat.getDrawable(context, R.drawable.karaoke_score_bg)
-    }
-    private val mLinePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+    private val PITCH_TIME_TO_PIXELS_RATIO = 0.15f
+    private val PITCH_LINE_HEIGHT_DP = 3f
+    private val PITCH_DOT_RADIUS_DP = 4.5f
+    private val PITCH_HIT_TOLERANCE = 0.0f
+    private val SCORE_TEXT_SIZE_SP = 8f
+    private val SCORE_LABEL_GAP_DP = 3f
+    private val SCORE_BUBBLE_HEIGHT_DP = 12f
+    private val DOT_ANIMATION_SMOOTHING_FACTOR = 0.2f
+    private val lineColor = ContextCompat.getColor(context, R.color.karaoke_pitch_line)
+    private val highlightColor = ContextCompat.getColor(context, R.color.karaoke_text_color_red)
+    private val dotColor = ContextCompat.getColor(context, R.color.karaoke_white)
+    private val scoreLineColor = ContextCompat.getColor(context, R.color.karaoke_color_grey_8c)
+    private val scoreTextColor = ContextCompat.getColor(context, R.color.karaoke_pitch_score_text)
+    private val linePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.STROKE
-        strokeWidth = dpToPx(mPitchLineHeightDp)
-        color = mLineColor
+        strokeWidth = dpToPx(PITCH_LINE_HEIGHT_DP)
+        color = lineColor
         strokeCap = Paint.Cap.ROUND
     }
-    private val mHighlightLinePaint = Paint(mLinePaint).apply { color = mHighlightColor }
-    private val mDotPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+    private val highlightLinePaint = Paint(linePaint).apply { color = highlightColor }
+    private val dotPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.FILL
-        color = mDotColor
+        color = dotColor
         setShadowLayer(8f, 0f, 2f, 0x77000000)
     }
-    private val mScoreLinePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = mScoreLineColor
+    private val scoreLinePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = scoreLineColor
         strokeWidth = dpToPx(1f)
         style = Paint.Style.STROKE
     }
-    private val mScoreTextPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = mScoreTextColor
+    private val scoreTextPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = scoreTextColor
         style = Paint.Style.FILL
-        textSize = spToPx(mScoreTextSizeSp)
+        textSize = spToPx(SCORE_TEXT_SIZE_SP)
         textAlign = Paint.Align.CENTER
-        typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
+        typeface = Typeface.create(Typeface.DEFAULT, BOLD)
+    }
+    private val scoreTagDrawable: Drawable? by lazy {
+        ContextCompat.getDrawable(context, R.drawable.karaoke_score_bg)
+    }
+    private val butterflies = mutableListOf<Butterfly>()
+    private val butterflyDrawables: List<Drawable?> by lazy {
+        listOf(ContextCompat.getDrawable(context, R.drawable.karaoke_song_well_icon))
+    }
+    private val butterflyFlyDistance = dpToPx(52f)
+    private val butterflyLife = 1350L
+    private var pitchList: List<TXChorusMusicPlayer.TXReferencePitch> = emptyList()
+    private var userPitch: Int = 0
+    private var currentProgressMs: Long = 0L
+    private var currentScore: Int = -1
+    private var isScoringEnabled: Boolean = false
+    private var hitProgress: FloatArray = FloatArray(0)
+    private var pitchStartOffsetsPx: List<Float> = emptyList()
+    private var minPitch: Int = 0
+    private var maxPitch: Int = 100
+    private var scrollOffset: Float = 0f
+    private var currentDotTargetY: Float? = null
+    private var currentDotAnimatedY: Float? = null
+    private var lastHitSegmentIndexForButterfly = -1
+
+    fun setPitchList(list: List<TXChorusMusicPlayer.TXReferencePitch>?) {
+        val pitchList = list ?: emptyList()
+        this@PitchView.pitchList = pitchList
+        hitProgress = FloatArray(pitchList.size)
+
+        if (pitchList.isEmpty()) {
+            pitchStartOffsetsPx = emptyList()
+        } else {
+            minPitch = 0
+            maxPitch = 100
+            pitchStartOffsetsPx = pitchList.map { it.startTimeMs * PITCH_TIME_TO_PIXELS_RATIO }
+        }
+        resetState()
+        invalidate()
+    }
+
+    fun setPlayProgress(progressMs: Long) {
+        currentProgressMs = progressMs
+        updateStateByProgress()
+        invalidate()
+    }
+
+    fun setUserPitch(pitch: Int) {
+        val newPitch = pitch.coerceIn(0, 100)
+        if (userPitch != newPitch) {
+            userPitch = newPitch
+            invalidate()
+        }
+    }
+
+    fun setScore(score: Int) {
+        if (currentScore != score) {
+            currentScore = score
+            invalidate()
+        }
+    }
+
+    fun setScoringEnabled(enabled: Boolean) {
+        if (isScoringEnabled != enabled) {
+            isScoringEnabled = enabled
+            if (!enabled) {
+                currentScore = -1
+            }
+            invalidate()
+        }
+    }
+
+    override fun onDraw(canvas: Canvas) {
+        super.onDraw(canvas)
+
+        if (width == 0 || height == 0) {
+            return
+        }
+
+        val viewCenterX = width / 2f
+        val viewHeight = height.toFloat()
+
+        if (pitchList.isEmpty()) {
+            canvas.drawLine(viewCenterX, 0f, viewCenterX, viewHeight, scoreLinePaint)
+            drawUserPitchDot(canvas, viewCenterX)
+            return
+        }
+
+        for (i in pitchList.indices) {
+            val pitchData = pitchList[i]
+            val lineLength = pitchData.durationMs * PITCH_TIME_TO_PIXELS_RATIO
+            val startOffsetPx = pitchStartOffsetsPx[i]
+
+            val x1 = viewCenterX + startOffsetPx - scrollOffset
+            val x2 = x1 + lineLength
+
+            if (x2 < 0 || x1 > width) {
+                continue
+            }
+
+            val y = convertPitchToY(pitchData.referencePitch.toFloat())
+
+            canvas.drawLine(x1, y, x2, y, linePaint)
+
+            val hitRatio = hitProgress[i]
+            if (hitRatio > 0) {
+                val highlightWidth = (x2 - x1) * hitRatio
+                canvas.drawLine(x1, y, x1 + highlightWidth, y, highlightLinePaint)
+            }
+        }
+
+        canvas.drawLine(viewCenterX, 0f, viewCenterX, viewHeight, scoreLinePaint)
+        drawUserPitchDot(canvas, viewCenterX)
+        drawButterflies(canvas)
+    }
+
+    private fun resetState() {
+        currentProgressMs = 0L
+        userPitch = 0
+        scrollOffset = 0f
+        currentDotTargetY = null
+        currentDotAnimatedY = null
+        butterflies.clear()
+        lastHitSegmentIndexForButterfly = -1
+        currentScore = -1
+        hitProgress.fill(0f)
+    }
+
+    private fun updateStateByProgress() {
+        scrollOffset = currentProgressMs * PITCH_TIME_TO_PIXELS_RATIO
+
+        val currentSegmentIndex = pitchList.indexOfFirst {
+            currentProgressMs >= it.startTimeMs && currentProgressMs < (it.startTimeMs + it.durationMs)
+        }
+
+        if (currentSegmentIndex != -1) {
+            checkPitchHit(currentSegmentIndex)
+        } else {
+            lastHitSegmentIndexForButterfly = -1
+        }
+
+        updateButterflies()
+    }
+
+    private fun checkPitchHit(currentSegmentIndex: Int) {
+        if (userPitch < 0) return
+
+        val segment = pitchList[currentSegmentIndex]
+        val referencePitch = segment.referencePitch
+        val pitchDifference = abs(userPitch - referencePitch)
+
+        if (pitchDifference <= PITCH_HIT_TOLERANCE) {
+            val progressInSegment = (currentProgressMs - segment.startTimeMs).toFloat()
+            val currentHitRatio = (progressInSegment / segment.durationMs).coerceIn(0f, 1f)
+            hitProgress[currentSegmentIndex] = hitProgress[currentSegmentIndex].coerceAtLeast(currentHitRatio)
+
+            if (lastHitSegmentIndexForButterfly != currentSegmentIndex) {
+                lastHitSegmentIndexForButterfly = currentSegmentIndex
+                val y = convertPitchToY(referencePitch.toFloat())
+                emitButterfly(width / 2f, y)
+            }
+        }
+    }
+
+    private fun drawUserPitchDot(canvas: Canvas, centerX: Float) {
+        val defaultY = convertPitchToY(minPitch.toFloat())
+        var animatedY = currentDotAnimatedY
+
+        val finalTargetY = if (currentScore < 0) {
+            defaultY
+        } else {
+            convertPitchToY(userPitch.toFloat())
+        }
+
+        if (animatedY == null) {
+            animatedY = finalTargetY
+        }
+
+        val diff = finalTargetY - animatedY
+        if (abs(diff) < 1f) {
+            animatedY = finalTargetY
+        } else {
+            animatedY += diff * DOT_ANIMATION_SMOOTHING_FACTOR
+            invalidate()
+        }
+
+        currentDotAnimatedY = animatedY
+        canvas.drawCircle(centerX, animatedY, dpToPx(PITCH_DOT_RADIUS_DP), dotPaint)
+
+        if (isScoringEnabled) {
+            drawScoreTag(canvas, centerX, animatedY)
+        }
+    }
+
+    private fun drawScoreTag(canvas: Canvas, centerX: Float, dotY: Float) {
+        val tagDrawable = scoreTagDrawable ?: return
+        val scoreText = if (currentScore < 0) "评分" else currentScore.toString()
+
+        val tagHeight = dpToPx(SCORE_BUBBLE_HEIGHT_DP)
+        val scale = tagHeight / tagDrawable.intrinsicHeight.toFloat()
+        val tagWidth = tagDrawable.intrinsicWidth * scale
+
+        val dotRadius = dpToPx(PITCH_DOT_RADIUS_DP)
+        val labelGap = dpToPx(SCORE_LABEL_GAP_DP)
+
+        val tagTop = (dotY - dotRadius - labelGap - tagHeight)
+        tagDrawable.setBounds(
+            (centerX - tagWidth / 2).toInt(),
+            tagTop.toInt(),
+            (centerX + tagWidth / 2).toInt(),
+            (tagTop + tagHeight).toInt()
+        )
+        tagDrawable.draw(canvas)
+
+        val textBaseY = tagTop + tagHeight / 2f + getTextHeightCenterOffset(scoreTextPaint)
+        canvas.drawText(scoreText, centerX, textBaseY, scoreTextPaint)
+    }
+
+    private fun convertPitchToY(pitch: Float): Float {
+        if (height == 0) return 0f
+
+        val drawTop = height * 0.1f
+        val drawHeight = height * 0.8f
+        val pitchRange = (maxPitch - minPitch).toFloat().coerceAtLeast(1f)
+        val clampedPitch = pitch.coerceIn(minPitch.toFloat(), maxPitch.toFloat())
+        val percent = (clampedPitch - minPitch) / pitchRange
+        return drawTop + (1.0f - percent) * drawHeight
     }
 
     private fun dpToPx(dp: Float): Float =
-        TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp, context.resources.displayMetrics)
+        TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp, resources.displayMetrics)
 
     private fun spToPx(sp: Float): Float =
-        TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, sp, context.resources.displayMetrics)
+        TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, sp, resources.displayMetrics)
 
     private fun getTextHeightCenterOffset(paint: Paint): Float {
         val metrics = paint.fontMetrics
         return (metrics.descent - metrics.ascent) / 2 - metrics.descent
     }
 
-    private var mCurDotY: Float? = null
-
-    override fun onDraw(canvas: Canvas) {
-        super.onDraw(canvas)
-        if (mPitchList.isEmpty() || mPitchLineLengths.isEmpty()) return
-
-        val mVertCenterX = width / 2f
-
-        for (i in mPitchList.indices) {
-            val pitchValue = mPitchList[i].referencePitch
-            val lineLen = mPitchLineLengths[i]
-            val x1 = getSegmentX(i)
-            val x2 = x1 + lineLen
-            val percent = (pitchValue - mMinPitch).toFloat() / (mMaxPitch - mMinPitch)
-            val lineY = mDrawTop + percent * mDrawHeight
-            val redLen = mRedEndPercent[i].coerceIn(0f, 1f) * lineLen
-            if (redLen > 0f) {
-                canvas.drawLine(x1, lineY, x1 + redLen, lineY, mHighlightLinePaint)
-            }
-            if (redLen < lineLen) {
-                canvas.drawLine(x1 + redLen, lineY, x2, lineY, mLinePaint)
-            }
-        }
-
-        canvas.drawLine(
-            mVertCenterX,
-            0f,
-            mVertCenterX,
-            height.toFloat(),
-            mScoreLinePaint
+    private fun emitButterfly(x: Float, y: Float) {
+        val drawable = butterflyDrawables.filterNotNull().randomOrNull() ?: return
+        val angle = 240f + (Random.nextFloat() - 0.5f) * 20f
+        val scale = 1.00f + Random.nextFloat() * 0.34f
+        val baseRotation = -15f + Random.nextFloat() * 30f
+        butterflies.add(
+            Butterfly(
+                drawable = drawable, x0 = x, y0 = y, angle = angle, scale = scale,
+                baseRotation = baseRotation, startTime = System.currentTimeMillis(), lifeMs = butterflyLife
+            )
         )
+    }
 
-        if (mCurSegment < mPitchList.size && mCurSegment >= 0) {
-            val pitchValue = mPitchList[mCurSegment].referencePitch
-            val percentY = (pitchValue - mMinPitch).toFloat() / (mMaxPitch - mMinPitch)
-            val targetDotY = mDrawTop + percentY * mDrawHeight
-            if (mCurDotY == null) {
-                mCurDotY = targetDotY
-            } else {
-                val animFraction = 0.18f
-                mCurDotY = mCurDotY!! + (targetDotY - mCurDotY!!) * animFraction
-            }
-            canvas.drawCircle(mVertCenterX, mCurDotY!!, dpToPx(mPitchDotRadiusDp), mDotPaint)
-            if (mStore.isScoringEnabled.value == true) {
-                val tagDrawable = mScoreTagImg
-                val str = "10.0"
-                if (tagDrawable != null) {
-                    val tagHeight = mBubbleHeightPx
-                    val scale = tagHeight / tagDrawable.intrinsicHeight.toFloat()
-                    val tagWidth = tagDrawable.intrinsicWidth * scale
-                    val dotTop =
-                        (mCurDotY!! - dpToPx(mPitchDotRadiusDp) - dpToPx(mLabelGapDp) - tagHeight).toInt()
-                    tagDrawable.setBounds(
-                        (mVertCenterX - tagWidth / 2).toInt(), dotTop,
-                        (mVertCenterX + tagWidth / 2).toInt(), dotTop + tagHeight.toInt()
-                    )
-                    tagDrawable.draw(canvas)
-                    val textBaseY =
-                        dotTop + tagHeight / 2f + getTextHeightCenterOffset(mScoreTextPaint)
-                    canvas.drawText(str, mVertCenterX, textBaseY, mScoreTextPaint)
-                }
-            }
-        }
-        drawButterflies(canvas)
+    private fun updateButterflies() {
+        val now = System.currentTimeMillis()
+        butterflies.removeAll { now - it.startTime > it.lifeMs }
     }
 
     private fun drawButterflies(canvas: Canvas) {
         val now = System.currentTimeMillis()
-        for (b in mButterflies) {
+        for (b in butterflies) {
             val t = ((now - b.startTime).toFloat() / b.lifeMs).coerceIn(0f, 1f)
             val rad = Math.toRadians(b.angle.toDouble())
-            val dx = mButterflyFlyDistance * t * cos(rad).toFloat()
-            val dy = mButterflyFlyDistance * t * sin(rad).toFloat()
+            val dx = butterflyFlyDistance * t * cos(rad).toFloat()
+            val dy = butterflyFlyDistance * t * sin(rad).toFloat()
             val x = b.x0 + dx
             val y = b.y0 + dy
             val scale = b.scale * (1.00f - 0.14f * t)
@@ -373,39 +340,6 @@ class PitchView(
             d.alpha = alpha
             d.draw(canvas)
             canvas.restore()
-        }
-    }
-
-    fun startDemoAnim() {
-        randomTestData()
-        mAnimHandler.removeCallbacks(mAnimRunnable)
-        mAnimHandler.post(mAnimRunnable)
-        mButterflies.clear()
-        mLastSegmentForButterfly = -1
-        mCurSegmentEmitTime = 0L
-        mLastAnimTime = -1
-        mIsAnimPaused = false
-    }
-
-    fun stopDemoAnim() {
-        mAnimHandler.removeCallbacks(mAnimRunnable)
-        mButterflies.clear()
-        mLastSegmentForButterfly = -1
-        mCurSegmentEmitTime = 0L
-        mLastAnimTime = -1
-        mIsAnimPaused = true
-    }
-
-    fun pauseDemoAnim() {
-        mIsAnimPaused = true
-        mAnimHandler.removeCallbacks(mAnimRunnable)
-    }
-
-    fun resumeDemoAnim() {
-        if (mIsAnimPaused) {
-            mIsAnimPaused = false
-            mAnimHandler.post(mAnimRunnable)
-            mLastAnimTime = -1
         }
     }
 }

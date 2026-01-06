@@ -15,15 +15,15 @@
         android:background="@drawable/livekit_ic_audience_exit"
         android:importantForAccessibility="no" />
 
-    <TextView
+    <io.trtc.tuikit.atomicx.widget.basicwidget.label.AtomicLabel
         android:id="@+id/tv_title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="120dp"
         android:text="@string/common_live_has_stop"
-        android:textColor="@color/common_design_standard_flowkit_white"
-        android:textSize="20sp"
+        android:textColor="@color/text_color_primary"
+        android:textSize="@dimen/text_size_20"
         tools:ignore="RelativeOverlap" />
 
     <LinearLayout
@@ -37,14 +37,14 @@
         android:background="@drawable/livekit_live_end_data_bg"
         android:orientation="vertical">
 
-        <TextView
+        <io.trtc.tuikit.atomicx.widget.basicwidget.label.AtomicLabel
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="15dp"
             android:layout_marginTop="5dp"
             android:text="@string/common_common_this_live_data"
-            android:textColor="@color/common_design_standard_flowkit_white"
-            android:textSize="14sp"
+            android:textColor="@color/text_color_primary"
+            android:textSize="@dimen/text_size_14"
             tools:ignore="RelativeOverlap" />
 
         <LinearLayout
@@ -69,14 +69,14 @@
                     android:textSize="12sp"
                     tools:ignore="RelativeOverlap" />
 
-                <TextView
+                <io.trtc.tuikit.atomicx.widget.basicwidget.label.AtomicLabel
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center_horizontal"
                     android:layout_marginTop="2dp"
                     android:text="@string/common_common_live_duration"
-                    android:textColor="@color/common_design_standard_g5"
-                    android:textSize="12sp"
+                    android:textColor="@color/text_color_secondary"
+                    android:textSize="@dimen/text_size_12"
                     tools:ignore="RelativeOverlap" />
 
             </LinearLayout>
@@ -97,14 +97,14 @@
                     android:textSize="12sp"
                     tools:ignore="RelativeOverlap" />
 
-                <TextView
+                <io.trtc.tuikit.atomicx.widget.basicwidget.label.AtomicLabel
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center_horizontal"
                     android:layout_marginTop="2dp"
                     android:text="@string/common_common_live_people_number"
-                    android:textColor="@color/common_design_standard_g5"
-                    android:textSize="12sp"
+                    android:textColor="@color/text_color_secondary"
+                    android:textSize="@dimen/text_size_12"
                     tools:ignore="RelativeOverlap" />
             </LinearLayout>
 
@@ -124,14 +124,14 @@
                     android:textSize="12sp"
                     tools:ignore="RelativeOverlap" />
 
-                <TextView
+                <io.trtc.tuikit.atomicx.widget.basicwidget.label.AtomicLabel
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center_horizontal"
                     android:layout_marginTop="2dp"
                     android:text="@string/common_common_message_count"
-                    android:textColor="@color/common_design_standard_g5"
-                    android:textSize="12sp"
+                    android:textColor="@color/text_color_secondary"
+                    android:textSize="@dimen/text_size_12"
                     tools:ignore="RelativeOverlap" />
             </LinearLayout>
 
@@ -159,14 +159,14 @@
                     android:textSize="12sp"
                     tools:ignore="RelativeOverlap" />
 
-                <TextView
+                <io.trtc.tuikit.atomicx.widget.basicwidget.label.AtomicLabel
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center_horizontal"
                     android:layout_marginTop="2dp"
                     android:text="@string/common_common_gift_income"
-                    android:textColor="@color/common_design_standard_g5"
-                    android:textSize="12sp"
+                    android:textColor="@color/text_color_secondary"
+                    android:textSize="@dimen/text_size_12"
                     tools:ignore="RelativeOverlap" />
             </LinearLayout>
 
@@ -186,14 +186,14 @@
                     android:textSize="12sp"
                     tools:ignore="RelativeOverlap" />
 
-                <TextView
+                <io.trtc.tuikit.atomicx.widget.basicwidget.label.AtomicLabel
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center_horizontal"
                     android:layout_marginTop="2dp"
                     android:text="@string/common_common_send_gift_people_count"
-                    android:textColor="@color/common_design_standard_g5"
-                    android:textSize="12sp"
+                    android:textColor="@color/text_color_secondary"
+                    android:textSize="@dimen/text_size_12"
                     tools:ignore="RelativeOverlap" />
             </LinearLayout>
 
@@ -213,14 +213,14 @@
                     android:textSize="12sp"
                     tools:ignore="RelativeOverlap" />
 
-                <TextView
+                <io.trtc.tuikit.atomicx.widget.basicwidget.label.AtomicLabel
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center_horizontal"
                     android:layout_marginTop="2dp"
                     android:text="@string/common_common_like_count"
-                    android:textColor="@color/common_design_standard_g5"
-                    android:textSize="12sp"
+                    android:textColor="@color/text_color_secondary"
+                    android:textSize="@dimen/text_size_12"
                     tools:ignore="RelativeOverlap" />
             </LinearLayout>
         </LinearLayout>

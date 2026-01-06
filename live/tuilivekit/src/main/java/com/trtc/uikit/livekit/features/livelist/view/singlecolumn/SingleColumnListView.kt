@@ -13,13 +13,17 @@ import androidx.lifecycle.Observer
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.trtc.uikit.livekit.R
 import com.trtc.uikit.livekit.common.LiveKitLogger
-import com.trtc.uikit.livekit.component.pictureinpicture.PictureInPictureStore
+import com.trtc.uikit.livekit.component.pippanel.PIPPanelStore
 import com.trtc.uikit.livekit.features.livelist.LiveListViewAdapter
 import com.trtc.uikit.livekit.features.livelist.OnItemClickListener
-import com.trtc.uikit.livekit.features.livelist.manager.LiveInfoListService
+import com.trtc.uikit.livekit.features.livelist.store.LiveInfoListStore
 import com.trtc.uikit.livekit.features.livelist.view.liveListviewpager.LiveListViewPager
 import com.trtc.uikit.livekit.features.livelist.view.liveListviewpager.LiveListViewPagerAdapter
 import io.trtc.tuikit.atomicxcore.api.live.LiveInfo
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 
 class SingleColumnListView @JvmOverloads constructor(
     context: Context,
@@ -34,7 +38,7 @@ class SingleColumnListView @JvmOverloads constructor(
 
     private lateinit var fragmentActivity: FragmentActivity
     private lateinit var liveListViewAdapter: LiveListViewAdapter
-    private lateinit var liveInfoListService: LiveInfoListService
+    private lateinit var liveInfoListStore: LiveInfoListStore
     private lateinit var liveListViewPager: LiveListViewPager
     private lateinit var swipeRefreshLayout: SwipeRefreshLayout
     private lateinit var liveListViewPagerAdapter: LiveListViewPagerAdapter
@@ -46,6 +50,7 @@ class SingleColumnListView @JvmOverloads constructor(
     private var isResumed = false
     private var loadingTime = 0L
     private var isInit = false
+    private var subscribeStateJob: Job? = null
 
     private val pictureInPictureRoomIdObserver = Observer<String> { roomId ->
         onPictureInPictureRoomIdChanged(roomId)
@@ -66,14 +71,14 @@ class SingleColumnListView @JvmOverloads constructor(
     fun init(
         fragmentActivity: FragmentActivity,
         adapter: LiveListViewAdapter,
-        liveInfoListService: LiveInfoListService
+        liveInfoListStore: LiveInfoListStore
     ) {
         this.fragmentActivity = fragmentActivity
         this.liveListViewAdapter = adapter
-        this.liveInfoListService = liveInfoListService
+        this.liveInfoListStore = liveInfoListStore
         playStreamView.clear()
 
-        liveListViewPagerAdapter = object : LiveListViewPagerAdapter(fragmentActivity, liveInfoListService) {
+        liveListViewPagerAdapter = object : LiveListViewPagerAdapter(fragmentActivity, liveInfoListStore) {
             override fun createLiveInfoView(liveInfo: LiveInfo): View {
                 return SingleColumnItemView(context).apply {
                     createLiveInfoView(liveListViewAdapter, liveInfo)
@@ -122,14 +127,18 @@ class SingleColumnListView @JvmOverloads constructor(
     override fun onAttachedToWindow() {
         super.onAttachedToWindow()
         fragmentActivity.lifecycle.addObserver(lifecycleObserver)
-        PictureInPictureStore.sharedInstance().state.roomId.observeForever(pictureInPictureRoomIdObserver)
+        subscribeStateJob = CoroutineScope(Dispatchers.Main).launch {
+            PIPPanelStore.sharedInstance().state.roomId.collect {
+                onPictureInPictureRoomIdChanged(it)
+            }
+        }
     }
 
     override fun onDetachedFromWindow() {
         super.onDetachedFromWindow()
         fragmentActivity.lifecycle.removeObserver(lifecycleObserver)
         stopAllPreviewLiveStream()
-        PictureInPictureStore.sharedInstance().state.roomId.removeObserver(pictureInPictureRoomIdObserver)
+        subscribeStateJob?.cancel()
     }
 
     private fun startPreviewLiveStream(itemView: SingleColumnItemView, isMuteAudio: Boolean) {

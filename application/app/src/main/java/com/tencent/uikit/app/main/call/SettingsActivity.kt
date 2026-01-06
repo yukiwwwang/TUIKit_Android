@@ -21,8 +21,8 @@ import com.tencent.cloud.tuikit.engine.common.TUICommonDefine.VideoRenderParams
 import com.tencent.cloud.tuikit.engine.common.TUICommonDefine.VideoRenderParams.FillMode
 import com.tencent.cloud.tuikit.engine.common.TUICommonDefine.VideoRenderParams.Rotation
 import com.tencent.qcloud.tuicore.TUILogin
-import com.tencent.qcloud.tuicore.util.ToastUtil
 import com.tencent.qcloud.tuikit.tuicallkit.TUICallKit.Companion.createInstance
+import io.trtc.tuikit.atomicx.widget.basicwidget.toast.AtomicToast
 import com.tencent.qcloud.tuikit.tuicallkit.common.data.Constants
 import com.tencent.qcloud.tuikit.tuicallkit.state.GlobalState.Companion.instance
 import com.tencent.qcloud.tuikit.tuicallkit.view.CallAdapter
@@ -33,6 +33,7 @@ import com.tencent.uikit.app.main.call.SettingDetailActivity.Companion.ITEM_KEY
 import com.tencent.uikit.app.main.call.SettingDetailActivity.Companion.ITEM_OFFLINE_MESSAGE
 import com.tencent.uikit.app.main.call.SettingDetailActivity.Companion.ITEM_RING_PATH
 import com.tencent.uikit.app.main.call.SettingDetailActivity.Companion.ITEM_USER_DATA
+import io.trtc.tuikit.atomicxcore.api.CompletionHandler
 
 class SettingsActivity : BaseActivity() {
     private var textAvatar: TextView? = null
@@ -313,14 +314,14 @@ class SettingsActivity : BaseActivity() {
     private fun setUserName() {
         val nickname = editNickname?.getText().toString()
         createInstance(applicationContext).setSelfInfo(
-            nickname, TUILogin.getFaceUrl(), object : TUICommonDefine.Callback {
+            nickname, TUILogin.getFaceUrl(), object : CompletionHandler {
                 override fun onSuccess() {
-                    ToastUtil.toastShortMessage(getString(R.string.app_set_success))
+                    AtomicToast.show(this@SettingsActivity, getString(R.string.app_set_success), AtomicToast.Style.SUCCESS)
                 }
 
-                override fun onError(errCode: Int, errMsg: String?) {
+                override fun onFailure(code: Int, desc: String) {
                     editNickname?.setText(TUILogin.getNickName())
-                    ToastUtil.toastShortMessage(getString(R.string.app_set_fail))
+                    AtomicToast.show(this@SettingsActivity, getString(R.string.app_set_fail), AtomicToast.Style.ERROR)
                 }
             })
     }
@@ -328,20 +329,20 @@ class SettingsActivity : BaseActivity() {
     private fun setCallTimeout() {
         val text = editTimeout!!.getText().toString().trim { it <= ' ' }
         if (TextUtils.isEmpty(text)) {
-            ToastUtil.toastShortMessage(getString(R.string.app_please_set_call_waiting_timeout))
+            AtomicToast.show(this, getString(R.string.app_please_set_call_waiting_timeout), AtomicToast.Style.ERROR)
             return
         }
         try {
             val timeout = text.toInt()
             SettingsConfig.callTimeOut = timeout
-            ToastUtil.toastShortMessage(getString(R.string.app_set_success))
+            AtomicToast.show(this, getString(R.string.app_set_success), AtomicToast.Style.SUCCESS)
         } catch (_: Exception) {
         }
     }
 
     private fun setBeautyLevel() {
         if (TextUtils.isEmpty(editBeauty?.getText().toString())) {
-            ToastUtil.toastShortMessage(getString(R.string.app_please_set_beauty_level))
+            AtomicToast.show(this, getString(R.string.app_please_set_beauty_level), AtomicToast.Style.ERROR)
             return
         }
         val beauty = editBeauty?.getText().toString().toInt()
@@ -349,11 +350,15 @@ class SettingsActivity : BaseActivity() {
         TUICallEngine.createInstance(applicationContext)
             .setBeautyLevel(beauty.toFloat(), object : TUICommonDefine.Callback {
                 override fun onSuccess() {
-                    ToastUtil.toastShortMessage(getString(R.string.app_set_success))
+                    AtomicToast.show(this@SettingsActivity, getString(R.string.app_set_success), AtomicToast.Style.SUCCESS)
                 }
 
                 override fun onError(errCode: Int, errMsg: String?) {
-                    ToastUtil.toastShortMessage(getString(R.string.app_set_fail) + "| errorCode:" + errCode + ", " + "errMsg:" + errMsg)
+                    AtomicToast.show(
+                        this@SettingsActivity,
+                        getString(R.string.app_set_fail) + "| errorCode:" + errCode + ", " + "errMsg:" + errMsg,
+                        AtomicToast.Style.ERROR
+                    )
                 }
             })
     }
@@ -367,11 +372,15 @@ class SettingsActivity : BaseActivity() {
         TUICallEngine.createInstance(applicationContext).setVideoEncoderParams(
             videoEncoderParams, object : TUICommonDefine.Callback {
                 override fun onSuccess() {
-                    ToastUtil.toastShortMessage(getString(R.string.app_set_success))
+                    AtomicToast.show(this@SettingsActivity, getString(R.string.app_set_success), AtomicToast.Style.SUCCESS)
                 }
 
                 override fun onError(errCode: Int, errMsg: String?) {
-                    ToastUtil.toastShortMessage(getString(R.string.app_set_fail) + "| errorCode:" + errCode + ", " + "errMsg:" + errMsg)
+                    AtomicToast.show(
+                        this@SettingsActivity,
+                        getString(R.string.app_set_fail) + "| errorCode:" + errCode + ", " + "errMsg:" + errMsg,
+                        AtomicToast.Style.ERROR
+                    )
                 }
             })
     }
@@ -383,11 +392,15 @@ class SettingsActivity : BaseActivity() {
         TUICallEngine.createInstance(applicationContext).setVideoRenderParams(
             TUILogin.getLoginUser(), videoRenderParams, object : TUICommonDefine.Callback {
                 override fun onSuccess() {
-                    ToastUtil.toastShortMessage(getString(R.string.app_set_success))
+                    AtomicToast.show(this@SettingsActivity, getString(R.string.app_set_success), AtomicToast.Style.SUCCESS)
                 }
 
                 override fun onError(errCode: Int, errMsg: String?) {
-                    ToastUtil.toastShortMessage(getString(R.string.app_set_fail) + "| errorCode:" + errCode + ", " + "errMsg:" + errMsg)
+                    AtomicToast.show(
+                        this@SettingsActivity,
+                        getString(R.string.app_set_fail) + "| errorCode:" + errCode + ", " + "errMsg:" + errMsg,
+                        AtomicToast.Style.ERROR
+                    )
                 }
             })
     }
@@ -400,11 +413,11 @@ class SettingsActivity : BaseActivity() {
             SettingsConfig.intRoomId = 0
             editDigitalRoomId?.setText("0")
         }
-        ToastUtil.toastShortMessage(getString(R.string.app_set_success))
+        AtomicToast.show(this, getString(R.string.app_set_success), AtomicToast.Style.SUCCESS)
     }
 
     private fun setStringRoomId() {
         SettingsConfig.strRoomId = editStringRoomId?.getText().toString().trim { it <= ' ' }
-        ToastUtil.toastShortMessage(getString(R.string.app_set_success))
+        AtomicToast.show(this, getString(R.string.app_set_success), AtomicToast.Style.SUCCESS)
     }
 }

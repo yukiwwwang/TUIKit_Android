@@ -3,7 +3,6 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="718dp"
-    android:background="@drawable/livekit_dialog_background"
     android:orientation="vertical">
 
     <RelativeLayout
@@ -21,14 +20,14 @@
             android:src="@drawable/livekit_return_arrow"
             tools:ignore="ContentDescription" />
 
-        <TextView
+        <io.trtc.tuikit.atomicx.widget.basicwidget.label.AtomicLabel
             android:id="@+id/title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_centerInParent="true"
             android:text="@string/common_cover"
-            android:textColor="@color/common_design_standard_g7"
-            android:textSize="20sp" />
+            android:textColor="@color/text_color_primary"
+            android:textSize="@dimen/text_size_16" />
     </RelativeLayout>
 
     <androidx.recyclerview.widget.RecyclerView

@@ -7,17 +7,17 @@ import android.text.TextWatcher
 import android.util.Log
 import android.widget.Button
 import android.widget.EditText
-import android.widget.ImageView
 import android.widget.TextView
 import androidx.core.content.ContextCompat
 import com.tencent.imsdk.v2.V2TIMCallback
 import com.tencent.imsdk.v2.V2TIMUserFullInfo
-import com.tencent.qcloud.tuicore.util.ToastUtil
 import com.tencent.uikit.app.R
 import com.tencent.uikit.app.main.BaseActivity
 import com.tencent.uikit.app.main.MainActivity
 import com.tencent.uikit.app.mine.UserManager
-import com.trtc.tuikit.common.imageloader.ImageLoader
+import io.trtc.tuikit.atomicx.widget.basicwidget.avatar.AtomicAvatar
+import io.trtc.tuikit.atomicx.widget.basicwidget.avatar.AtomicAvatar.AvatarContent
+import io.trtc.tuikit.atomicx.widget.basicwidget.toast.AtomicToast
 import java.util.Random
 import java.util.regex.Pattern
 
@@ -42,7 +42,7 @@ class RegisterActivity : BaseActivity() {
         )
     }
 
-    private lateinit var imageAvatar: ImageView
+    private lateinit var imageAvatar: AtomicAvatar
     private lateinit var editUserName: EditText
     private lateinit var buttonRegister: Button
     private lateinit var tvInputTips: TextView
@@ -68,7 +68,7 @@ class RegisterActivity : BaseActivity() {
 
         val index = random.nextInt(USER_AVATAR_ARRAY.size)
         avatarUrl = USER_AVATAR_ARRAY[index]
-        ImageLoader.load(this, imageAvatar, avatarUrl, R.drawable.app_avatar)
+        imageAvatar.setContent(AvatarContent.URL(avatarUrl, R.drawable.app_avatar))
 
         buttonRegister.setOnClickListener {
             setProfile()
@@ -113,7 +113,12 @@ class RegisterActivity : BaseActivity() {
     private fun setProfile() {
         val userName = editUserName.text.toString().trim()
         if (userName.isEmpty()) {
-            ToastUtil.toastLongMessage(getString(R.string.app_hint_user_name))
+            AtomicToast.show(
+                this,
+                getString(R.string.app_hint_user_name),
+                AtomicToast.Style.ERROR,
+                duration = AtomicToast.Duration.LONG
+            )
             return
         }
         val reg = "^[a-z0-9A-Z\\u4e00-\\u9fa5\\_]{2,20}$"
@@ -133,15 +138,24 @@ class RegisterActivity : BaseActivity() {
         UserManager.getInstance().updateSelfUserInfo(v2TIMUserFullInfo, object : V2TIMCallback {
             override fun onError(code: Int, desc: String?) {
                 Log.e(TAG, "set profile failed errorCode : $code errorMsg : $desc")
-
-                ToastUtil.toastLongMessage(getString(R.string.app_toast_failed_to_set, desc))
+                AtomicToast.show(
+                    this@RegisterActivity,
+                    getString(R.string.app_toast_failed_to_set, desc),
+                    AtomicToast.Style.ERROR,
+                    duration = AtomicToast.Duration.LONG
+                )
                 startMainActivity()
                 finish()
             }
 
             override fun onSuccess() {
                 Log.i(TAG, "set profile success.")
-                ToastUtil.toastLongMessage(getString(R.string.app_toast_register_success_and_logging_in))
+                AtomicToast.show(
+                    this@RegisterActivity,
+                    getString(R.string.app_toast_register_success_and_logging_in),
+                    AtomicToast.Style.SUCCESS,
+                    duration = AtomicToast.Duration.LONG
+                )
                 startMainActivity()
                 finish()
             }

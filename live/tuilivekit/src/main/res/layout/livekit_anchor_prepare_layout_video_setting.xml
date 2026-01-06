@@ -2,21 +2,19 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:background="@color/common_gray_dark_2"
     android:orientation="vertical"
     android:padding="24dp">
 
-    <TextView
+    <io.trtc.tuikit.atomicx.widget.basicwidget.label.AtomicLabel
         android:id="@+id/tv_title"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="32dp"
         android:gravity="center"
         android:text="@string/common_video_settings"
-        android:textColor="#FFFFFF"
-        android:textSize="16sp"
-        android:textStyle="bold" />
+        android:textColor="@color/text_color_primary"
+        android:textSize="@dimen/text_size_16"
+        android:textStyle="bold"/>
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -36,14 +34,14 @@
             android:paddingTop="18dp"
             android:paddingBottom="18dp">
 
-            <TextView
+            <io.trtc.tuikit.atomicx.widget.basicwidget.label.AtomicLabel
                 android:id="@+id/tv_mirror_label"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="@string/common_video_settings_item_mirror"
-                android:textColor="@color/common_text_color_primary"
-                android:textSize="16sp" />
+                android:textColor="@color/text_color_primary"
+                android:textSize="@dimen/text_size_16" />
 
             <TextView
                 android:id="@+id/tv_mirror"
@@ -72,14 +70,14 @@
             android:paddingTop="18dp"
             android:paddingBottom="18dp">
 
-            <TextView
+            <io.trtc.tuikit.atomicx.widget.basicwidget.label.AtomicLabel
                 android:id="@+id/tv_quality_label"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="@string/live_video_resolution"
-                android:textColor="@color/common_text_color_primary"
-                android:textSize="16sp" />
+                android:textColor="@color/text_color_primary"
+                android:textSize="@dimen/text_size_16" />
 
             <TextView
                 android:id="@+id/tv_quality_value"

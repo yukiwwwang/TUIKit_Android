@@ -30,7 +30,7 @@ class NetworkBadTipsDialog(context: Context) :
         bindViewId(view)
         initCloseView()
         initSwitchNetworkView()
-        setContentView(view)
+        this@NetworkBadTipsDialog.setContentView(view)
     }
 
     private fun bindViewId(view: View) {

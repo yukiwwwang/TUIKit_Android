@@ -7,7 +7,7 @@ import android.widget.ImageView
 import android.widget.TextView
 import com.trtc.uikit.livekit.R
 import com.trtc.uikit.livekit.common.LiveKitLogger
-import com.trtc.uikit.livekit.features.audiencecontainer.manager.AudienceManager
+import com.trtc.uikit.livekit.features.audiencecontainer.store.AudienceStore
 import com.trtc.uikit.livekit.features.audiencecontainer.view.BasicView
 import io.trtc.tuikit.atomicxcore.api.live.BattleEndedReason
 import io.trtc.tuikit.atomicxcore.api.live.BattleInfo
@@ -37,9 +37,9 @@ class BattleMemberInfoView @JvmOverloads constructor(
         }
     }
 
-    fun init(audienceManager: AudienceManager, userId: String) {
+    fun init(store: AudienceStore, userId: String) {
         this.userId = userId
-        super.init(audienceManager)
+        super.init(store)
     }
 
     override fun initView() {
@@ -53,7 +53,7 @@ class BattleMemberInfoView @JvmOverloads constructor(
     override fun addObserver() {
         subscribeStateJob = CoroutineScope(Dispatchers.Main).launch {
             launch {
-                audienceManager.getBattleStore().battleState.battleUsers.collect {
+                audienceStore.getBattleStore().battleState.battleUsers.collect {
                     logger.info("battleUsers changed: $it")
                     if (it.isNotEmpty()) {
                         updateUserInfo()
@@ -61,7 +61,7 @@ class BattleMemberInfoView @JvmOverloads constructor(
                 }
             }
             launch {
-                audienceManager.getBattleStore().battleState.battleScore.collect {
+                audienceStore.getBattleStore().battleState.battleScore.collect {
                     logger.info("battleScore changed: $it")
                     if (it.isNotEmpty()) {
                         updateUserInfo()
@@ -69,7 +69,7 @@ class BattleMemberInfoView @JvmOverloads constructor(
                 }
             }
             launch {
-                audienceManager.getViewState().isOnDisplayResult.collect {
+                audienceStore.getViewState().isOnDisplayResult.collect {
                     onBattleResultDisplay(it)
                 }
             }
@@ -79,29 +79,29 @@ class BattleMemberInfoView @JvmOverloads constructor(
                 }
             }
         }
-        audienceManager.getBattleStore().addBattleListener(battleListener)
+        audienceStore.getBattleStore().addBattleListener(battleListener)
     }
 
     override fun removeObserver() {
         subscribeStateJob?.cancel()
-        audienceManager.getBattleStore().removeBattleListener(battleListener)
+        audienceStore.getBattleStore().removeBattleListener(battleListener)
     }
 
     private fun updateUserInfo() {
-        if (audienceManager.getCoHostState().connected.value.size <= 1) {
+        if (audienceStore.getCoHostState().connected.value.size <= 1) {
             return
         }
 
         var userInfo: SeatUserInfo? = null
-        for (user in audienceManager.getCoHostState().connected.value) {
+        for (user in audienceStore.getCoHostState().connected.value) {
             if (user.userID == userId) {
                 userInfo = user
             }
         }
-        val is1V1Battle = audienceManager.getCoHostState().connected.value.size <= 2
-        val userScore = audienceManager.getBattleState().battleScore.value[userId] ?: 0
+        val is1V1Battle = audienceStore.getCoHostState().connected.value.size <= 2
+        val userScore = audienceStore.getBattleState().battleScore.value[userId] ?: 0
         val currentUserIsBattle =
-            audienceManager.getBattleState().battleUsers.value.find({ it.userID == userId }) != null
+            audienceStore.getBattleState().battleUsers.value.find({ it.userID == userId }) != null
         logger.info("updateUserInfo is1V1Battle: $is1V1Battle, userScore:$userScore, currentUserIsBattle:$currentUserIsBattle, userInfo: $userInfo")
         if (is1V1Battle || userInfo == null) {
             reset()
@@ -112,7 +112,7 @@ class BattleMemberInfoView @JvmOverloads constructor(
                 val ranking =
                     getRankingFromMap(
                         userInfo.userID,
-                        audienceManager.getBattleState().battleScore.value
+                        audienceStore.getBattleState().battleScore.value
                     )
                 if (ranking > 0 && ranking <= RANKING_IMAGE.size) {
                     rankingView.setImageResource(RANKING_IMAGE[ranking - 1])
@@ -166,7 +166,7 @@ class BattleMemberInfoView @JvmOverloads constructor(
         if (true == isPipMode) {
             visibility = GONE
         } else {
-            if (!audienceManager.getBattleState().currentBattleInfo.value?.battleID.isNullOrBlank()) {
+            if (!audienceStore.getBattleState().currentBattleInfo.value?.battleID.isNullOrBlank()) {
                 visibility = VISIBLE
             }
         }

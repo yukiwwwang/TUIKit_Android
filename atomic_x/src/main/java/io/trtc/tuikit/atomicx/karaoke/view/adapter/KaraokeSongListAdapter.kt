@@ -11,14 +11,15 @@ import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import com.tencent.cloud.tuikit.engine.extension.TUISongListManager
 import com.tencent.cloud.tuikit.engine.room.TUIRoomDefine
 import com.tencent.cloud.tuikit.engine.room.TUIRoomEngine
+import com.trtc.tuikit.common.imageloader.ImageLoader
 import io.trtc.tuikit.atomicx.R
 import io.trtc.tuikit.atomicx.karaoke.store.KaraokeStore
 import io.trtc.tuikit.atomicx.karaoke.store.utils.MusicInfo
-import io.trtc.tuikit.atomicx.karaoke.store.utils.MusicSelection
 
-class KaraokeSongListAdapter(private val mKaraokeStore: KaraokeStore) :
+class KaraokeSongListAdapter(private val store: KaraokeStore) :
     ListAdapter<MusicInfo, KaraokeSongListAdapter.SongViewHolder>(DIFF) {
     companion object {
         val DIFF = object : DiffUtil.ItemCallback<MusicInfo>() {
@@ -43,29 +44,32 @@ class KaraokeSongListAdapter(private val mKaraokeStore: KaraokeStore) :
     }
 
     inner class SongViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        private val mImageCover: ImageView = itemView.findViewById(R.id.iv_cover)
-        private val mTextSongName: TextView = itemView.findViewById(R.id.tv_song_name)
-        private val mTextSinger: TextView = itemView.findViewById(R.id.tv_singer)
-        private val mButtonRequestSong: Button = itemView.findViewById(R.id.btn_request_music)
+        private val imageCover: ImageView = itemView.findViewById(R.id.iv_cover)
+        private val textSongName: TextView = itemView.findViewById(R.id.tv_song_name)
+        private val textSinger: TextView = itemView.findViewById(R.id.tv_singer)
+        private val buttonRequestSong: Button = itemView.findViewById(R.id.btn_request_music)
 
         fun bind(music: MusicInfo) {
-            mTextSongName.text = music.musicName
-            mTextSinger.text = music.artist.getOrNull(0) ?: ""
+            textSongName.text = music.musicName
+            textSinger.text = music.artist
             initRequestSongButton(music)
             initMusicCover(music)
             initFunctionVisible()
         }
 
         private fun initMusicCover(music: MusicInfo) {
-            mImageCover.setImageResource(music.coverUrl)
+            ImageLoader.load(
+                imageCover.context,
+                imageCover,
+                music.coverUrl,
+                R.drawable.karaoke_song_cover
+            )
         }
 
         private fun initRequestSongButton(music: MusicInfo) {
-            val isOrdered = mKaraokeStore.songQueue.value?.any { it.musicId == music.musicId } == true
-            val isPending = mKaraokeStore.pendingSongAdds.value?.contains(music.musicId) == true
-
-            if (isOrdered || isPending) {
-                mButtonRequestSong.apply {
+            val isOrdered = store.songQueue.value?.any { it.songId == music.musicId } == true
+            if (isOrdered) {
+                buttonRequestSong.apply {
                     background =
                         ContextCompat.getDrawable(context, R.drawable.karaoke_btn_grey_edge_bg)
                     text = context.getString(R.string.karaoke_ordered)
@@ -73,28 +77,30 @@ class KaraokeSongListAdapter(private val mKaraokeStore: KaraokeStore) :
                     setOnClickListener(null)
                 }
             } else {
-                mButtonRequestSong.apply {
+                buttonRequestSong.apply {
                     background = ContextCompat.getDrawable(context, R.drawable.karaoke_btn_blue_bg)
                     text = context.getString(R.string.karaoke_order_song)
                     isEnabled = true
                     setOnClickListener {
                         val selfInfo: TUIRoomDefine.LoginUserInfo = TUIRoomEngine.getSelfInfo()
-                        mKaraokeStore.addSongToQueue(
-                            MusicSelection(
-                                music.musicId,
-                                selfInfo.userId,
-                                selfInfo.userName,
-                                selfInfo.avatarUrl
-                            )
-                        )
+                        val songInfo : TUISongListManager.SongInfo = TUISongListManager.SongInfo()
+                        songInfo.songId = music.musicId
+                        songInfo.songName = music.musicName
+                        songInfo.artistName = music.artist
+                        songInfo.duration = music.duration
+                        songInfo.coverUrl = music.coverUrl
+                        songInfo.requester.userId = selfInfo.userId
+                        songInfo.requester.userName = selfInfo.userName
+                        songInfo.requester.avatarUrl = selfInfo.avatarUrl
+                        store.addSong(songInfo)
                     }
                 }
             }
         }
 
         private fun initFunctionVisible() {
-            if (mKaraokeStore.isRoomOwner.value == false) {
-                mButtonRequestSong.visibility = GONE
+            if (store.isRoomOwner.value == false) {
+                buttonRequestSong.visibility = GONE
             }
         }
     }

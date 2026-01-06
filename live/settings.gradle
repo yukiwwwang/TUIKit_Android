@@ -1,6 +1,0 @@
-include ':app'
-include ':debug'
-include ':tuilivekit'
-
-include(":atomic")
-project(':atomic').projectDir = new File(settingsDir, '../atomic_x')

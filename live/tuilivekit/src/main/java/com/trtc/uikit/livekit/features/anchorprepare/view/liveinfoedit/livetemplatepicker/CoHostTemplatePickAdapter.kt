@@ -9,12 +9,12 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.trtc.uikit.livekit.R
-import com.trtc.uikit.livekit.features.anchorprepare.manager.AnchorPrepareManager
+import com.trtc.uikit.livekit.features.anchorprepare.store.AnchorPrepareStore
 import com.trtc.uikit.livekit.features.anchorprepare.view.liveinfoedit.livetemplatepicker.LiveTemplatePicker.TemplateType
 
 class CoHostTemplatePickAdapter(
     private val context: Context,
-    private val manager: AnchorPrepareManager,
+    private val store: AnchorPrepareStore,
     private val dataList: List<TemplateType>,
     private val itemClickListener: OnItemClickListener
 ) : RecyclerView.Adapter<CoHostTemplatePickAdapter.ImageViewHolder>() {
@@ -31,7 +31,7 @@ class CoHostTemplatePickAdapter(
         holder.imageIcon.setImageResource(data.icon)
         holder.textName.text = TemplateType.getNameById(context, data.id)
         
-        if (manager.getState().coHostTemplateId.value == data.id) {
+        if (store.getState().coHostTemplateId.value == data.id) {
             holder.layoutContainer.setBackgroundResource(R.drawable.anchor_prepare_template_icon_background_selected)
         } else {
             holder.layoutContainer.setBackgroundResource(R.drawable.anchor_prepare_template_icon_background)

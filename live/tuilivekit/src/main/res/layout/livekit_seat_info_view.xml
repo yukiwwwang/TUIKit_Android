@@ -20,14 +20,13 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center">
 
-            <androidx.constraintlayout.utils.widget.ImageFilterView
+            <io.trtc.tuikit.atomicx.widget.basicwidget.avatar.AtomicAvatar
                 android:id="@+id/iv_head"
-                android:layout_width="50dp"
-                android:layout_height="50dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
                 android:layout_gravity="center"
-                android:src="@drawable/livekit_ic_avatar"
                 android:visibility="gone"
-                app:round="32dp" />
+                app:avatarSize="l" />
 
             <ImageView
                 android:id="@+id/iv_mute"

@@ -24,11 +24,8 @@ project(':tuilivekit').projectDir = new File(settingsDir, "../live/tuilivekit")
 include ':tuiroomkit'
 project(':tuiroomkit').projectDir = new File(settingsDir, "../room/tuiroomkit")
 
-include ':timcommon'
-project(':timcommon').projectDir = new File(settingsDir, "../TIMCommon/timcommon")
-
-include(":atomic")
-project(':atomic').projectDir = new File(settingsDir, "../atomic_x")
+include ':atomic_x'
+project(':atomic_x').projectDir = new File(settingsDir, "../atomic_x")
 
 if (buildEngineSource.toBoolean()) {
     apply from: new File(settingsDir, './engine_source_settings.gradle').getAbsolutePath()

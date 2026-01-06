@@ -5,7 +5,6 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.text.TextUtils
 import android.util.TypedValue
-import com.tencent.cloud.tuikit.engine.common.TUIVideoView
 import com.tencent.cloud.tuikit.engine.room.TUIRoomDefine
 import com.tencent.cloud.tuikit.engine.room.TUIRoomEngine
 import com.tencent.cloud.tuikit.engine.room.TUIRoomObserver
@@ -84,10 +83,6 @@ class MediaStore(liveID: String) {
         opt.inDensity = tv.density
         opt.inScaled = false
         return BitmapFactory.decodeResource(context.resources, resId, opt)
-    }
-
-    fun setLocalVideoView(view: TUIVideoView) {
-        roomEngine.setLocalVideoView(view)
     }
 
     fun setCustomVideoProcess() {

@@ -1,7 +1,6 @@
 package com.trtc.uikit.livekit.voiceroom.store
 
 import android.text.TextUtils
-import com.tencent.cloud.tuikit.engine.common.TUICommonDefine
 import com.tencent.cloud.tuikit.engine.room.TUIRoomDefine.SeatMode
 import com.tencent.cloud.tuikit.engine.room.TUIRoomEngine
 import com.trtc.uikit.livekit.R
@@ -170,7 +169,7 @@ class PrepareStore {
             hashMap.put(KEY_LAYOUT_TYPE, layoutStr)
             LiveListStore.shared().updateLiveMetaData(hashMap, completionHandler {
                 onError { code, _ ->
-                    ErrorLocalized.onError(TUICommonDefine.Error.fromInt(code))
+                    ErrorLocalized.onError(code)
                 }
             })
         }

@@ -8,15 +8,14 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.core.view.isVisible
 import com.tencent.cloud.tuikit.engine.room.TUIRoomEngine
+import io.trtc.tuikit.atomicx.karaoke.view.KaraokeControlView
+import io.trtc.tuikit.atomicx.karaoke.view.KaraokeFloatingView
 import com.trtc.uikit.livekit.R
-import com.trtc.uikit.livekit.common.PackageService
-import com.trtc.uikit.livekit.voiceroom.interaction.common.CrossRoomInteractionDialog
+import com.trtc.uikit.livekit.voiceroom.interaction.common.InteractionInvitePanel
 import com.trtc.uikit.livekit.voiceroom.store.LayoutType
 import com.trtc.uikit.livekit.voiceroom.view.basic.BasicView
 import com.trtc.uikit.livekit.voiceroom.view.seatmanager.SeatManagerDialog
 import com.trtc.uikit.livekit.voiceroom.view.settings.SettingsDialog
-import io.trtc.tuikit.atomicx.karaoke.KaraokeControlView
-import io.trtc.tuikit.atomicx.karaoke.KaraokeFloatingView
 import io.trtc.tuikit.atomicxcore.api.live.CoGuestStore
 import io.trtc.tuikit.atomicxcore.api.live.CoHostStore
 import io.trtc.tuikit.atomicxcore.api.live.CoHostStore.Companion.create
@@ -41,6 +40,7 @@ class AnchorFunctionView @JvmOverloads constructor(
     private var mCoHostStore: CoHostStore? = null
     private lateinit var coGuestStore: CoGuestStore
     private lateinit var mImageBattle: ImageView
+    private var crossRoomInteractionDialog: InteractionInvitePanel? = null
     private var mImageKTV: ImageView? = null
 
     init {
@@ -50,7 +50,6 @@ class AnchorFunctionView @JvmOverloads constructor(
         seatApplicationCountText = findViewById(R.id.application_count)
         findViewById<View>(R.id.iv_settings).setOnClickListener { showSettingsPanel() }
         val imageKTV: ImageView = findViewById(R.id.iv_song_request)
-        imageKTV.setVisibility(if (PackageService.isRTCubeOrTencentRTC) GONE else VISIBLE)
         imageKTV.setOnClickListener { showSongRequestPanel() }
         findViewById<View>(R.id.iv_seat_management).setOnClickListener { showSeatManagementPanel() }
     }
@@ -80,17 +79,16 @@ class AnchorFunctionView @JvmOverloads constructor(
         val isConnected = connectedRoomList.any { it.liveID == currentLiveId }
         if (isConnected) {
             mImageBattle.setImageResource(R.drawable.livekit_voiceroom_connected_icon)
-            if (!PackageService.isRTCubeOrTencentRTC) mImageKTV?.visibility = GONE
+            mImageKTV?.visibility = GONE
         } else {
             mImageBattle.setImageResource(R.drawable.livekit_function_voice_room_pk)
-            if (!PackageService.isRTCubeOrTencentRTC) mImageKTV?.visibility = VISIBLE
+            mImageKTV?.visibility = VISIBLE
         }
 
     }
 
     private fun initKTVView() {
         mImageKTV = findViewById(R.id.iv_song_request)
-        mImageKTV?.setVisibility(if (PackageService.isRTCubeOrTencentRTC) GONE else VISIBLE)
         mImageKTV?.setOnClickListener { showSongRequestPanel() }
     }
 
@@ -111,8 +109,10 @@ class AnchorFunctionView @JvmOverloads constructor(
     }
 
     private fun showPKPanel() {
-        val crossRoomInteractionDialog = CrossRoomInteractionDialog(context)
-        crossRoomInteractionDialog.show()
+        if (crossRoomInteractionDialog == null) {
+            crossRoomInteractionDialog = InteractionInvitePanel(context)
+        }
+        crossRoomInteractionDialog?.show()
     }
 
     private fun showSettingsPanel() {
@@ -131,7 +131,7 @@ class AnchorFunctionView @JvmOverloads constructor(
                 showSongRequestPanel()
             }
 
-            else -> if (!PackageService.isRTCubeOrTencentRTC) {
+            else ->
                 KaraokeFloatingView(context).apply {
                     init(
                         liveID,
@@ -139,7 +139,6 @@ class AnchorFunctionView @JvmOverloads constructor(
                     )
                     showSongRequestPanel()
                 }
-            }
         }
     }
 

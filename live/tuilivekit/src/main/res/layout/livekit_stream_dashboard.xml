@@ -2,18 +2,17 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@drawable/livekit_stream_dashboard_dialog_bg"
     android:orientation="vertical"
     android:paddingTop="20dp"
     android:paddingBottom="20dp">
 
-    <TextView
+    <io.trtc.tuikit.atomicx.widget.basicwidget.label.AtomicLabel
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center"
         android:text="@string/common_dashboard_title"
-        android:textColor="@color/common_text_color_primary"
-        android:textSize="16sp"
+        android:textColor="@color/text_color_primary"
+        android:textSize="@dimen/text_size_16"
         android:textStyle="bold" />
 
     <LinearLayout
@@ -43,12 +42,12 @@
                     android:textColor="@color/common_text_color_normal"
                     android:textSize="16sp" />
 
-                <TextView
+                <io.trtc.tuikit.atomicx.widget.basicwidget.label.AtomicLabel
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/common_dashboard_rtt"
-                    android:textColor="@color/common_text_color_secondary"
-                    android:textSize="12sp" />
+                    android:textColor="@color/text_color_secondary"
+                    android:textSize="@dimen/text_size_12" />
             </LinearLayout>
 
             <LinearLayout
@@ -65,12 +64,12 @@
                     android:textColor="@color/common_text_color_normal"
                     android:textSize="16sp" />
 
-                <TextView
+                <io.trtc.tuikit.atomicx.widget.basicwidget.label.AtomicLabel
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/common_dashboard_down_loss"
-                    android:textColor="@color/common_text_color_secondary"
-                    android:textSize="12sp" />
+                    android:textColor="@color/text_color_secondary"
+                    android:textSize="@dimen/text_size_12" />
             </LinearLayout>
 
             <LinearLayout
@@ -87,12 +86,12 @@
                     android:textColor="@color/common_text_color_normal"
                     android:textSize="16sp" />
 
-                <TextView
+                <io.trtc.tuikit.atomicx.widget.basicwidget.label.AtomicLabel
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/common_dashboard_up_loss"
-                    android:textColor="@color/common_text_color_secondary"
-                    android:textSize="12sp" />
+                    android:textColor="@color/text_color_secondary"
+                    android:textSize="@dimen/text_size_12" />
             </LinearLayout>
         </LinearLayout>
 

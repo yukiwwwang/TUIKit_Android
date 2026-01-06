@@ -8,11 +8,12 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.ActivityResultCaller
-import com.tencent.cloud.tuikit.engine.call.TUICallDefine
 import com.tencent.cloud.tuikit.engine.call.TUICallEngine
+import com.tencent.cloud.tuikit.engine.common.TUICommonDefine
 import com.tencent.qcloud.tuicore.TUIConstants
 import com.tencent.qcloud.tuicore.TUIConstants.TUICalling.ObjectFactory.RecentCalls
 import com.tencent.qcloud.tuicore.TUICore
+import com.tencent.qcloud.tuicore.TUILogin
 import com.tencent.qcloud.tuicore.interfaces.ITUIExtension
 import com.tencent.qcloud.tuicore.interfaces.ITUINotification
 import com.tencent.qcloud.tuicore.interfaces.ITUIObjectFactory
@@ -21,14 +22,19 @@ import com.tencent.qcloud.tuicore.interfaces.TUIExtensionEventListener
 import com.tencent.qcloud.tuicore.interfaces.TUIExtensionInfo
 import com.tencent.qcloud.tuikit.tuicallkit.R
 import com.tencent.qcloud.tuikit.tuicallkit.TUICallKit
-import com.tencent.qcloud.tuikit.tuicallkit.common.config.OfflinePushInfoConfig
 import com.tencent.qcloud.tuikit.tuicallkit.common.data.Constants
 import com.tencent.qcloud.tuikit.tuicallkit.common.data.Logger
 import com.tencent.qcloud.tuikit.tuicallkit.manager.CallManager
-import com.tencent.qcloud.tuikit.tuicallkit.state.GlobalState
+import com.tencent.qcloud.tuikit.tuicallkit.manager.feature.CallingBellFeature
+import com.tencent.qcloud.tuikit.tuicallkit.manager.feature.CallingVibratorFeature
+import com.tencent.qcloud.tuikit.tuicallkit.manager.feature.NotificationFeature
 import com.tencent.qcloud.tuikit.tuicallkit.view.component.joiningroupcall.JoinCallView
 import com.tencent.qcloud.tuikit.tuicallkit.view.component.joiningroupcall.JoinCallViewManager
 import com.tencent.qcloud.tuikit.tuicallkit.view.component.recents.RecentCallsFragment
+import io.trtc.tuikit.atomicxcore.api.call.CallMediaType
+import io.trtc.tuikit.atomicxcore.api.call.CallParams
+import io.trtc.tuikit.atomicxcore.api.call.CallStore
+import io.trtc.tuikit.atomicxcore.api.login.LoginStore
 import org.json.JSONException
 import org.json.JSONObject
 
@@ -45,6 +51,14 @@ class CallKitService private constructor(context: Context) : ITUINotification, I
         TUICore.registerEvent(
             TUIConstants.TIMPush.EVENT_IM_LOGIN_AFTER_APP_WAKEUP_KEY,
             TUIConstants.TIMPush.EVENT_IM_LOGIN_AFTER_APP_WAKEUP_SUB_KEY, this
+        )
+        TUICore.registerEvent(
+            TUIConstants.TUILogin.EVENT_LOGIN_STATE_CHANGED,
+            TUIConstants.TUILogin.EVENT_SUB_KEY_USER_LOGIN_SUCCESS, this
+        )
+        TUICore.registerEvent(
+            TUIConstants.TUILogin.EVENT_LOGIN_STATE_CHANGED,
+            TUIConstants.TUILogin.EVENT_SUB_KEY_USER_LOGOUT_SUCCESS, this
         )
 
         TUICore.registerService(TUIConstants.TUICalling.SERVICE_NAME, this)
@@ -92,6 +106,15 @@ class CallKitService private constructor(context: Context) : ITUINotification, I
                 TUIConstants.TIMPush.SERVICE_NAME, TUIConstants.TIMPush.METHOD_REPORT_NOTIFICATION_CLICKED, map
             )
         }
+        if (TUIConstants.TUILogin.EVENT_LOGIN_STATE_CHANGED == key) {
+            if (TUIConstants.TUILogin.EVENT_SUB_KEY_USER_LOGOUT_SUCCESS == subKey) {
+                CallStore.shared.hangup(null)
+                CallManager.instance.reset()
+                // TUICallEngine.destroyInstance() todo 待修复反复登录后收不到离线来电的问题后打开
+            } else if (TUIConstants.TUILogin.EVENT_SUB_KEY_USER_LOGIN_SUCCESS == subKey) {
+                initCallEngine()
+            }
+        }
     }
 
     private fun adaptiveComponentReport() {
@@ -129,6 +152,28 @@ class CallKitService private constructor(context: Context) : ITUINotification, I
         } catch (e: Exception) {
             e.printStackTrace()
         }
+    }
+
+    private fun initCallEngine() {
+        val sdkAppId = TUILogin.getSdkAppId()
+        val userId = TUILogin.getLoginUser()
+        val userSig = TUILogin.getUserSig()
+        Logger.i(TAG, "sdkAppId=$sdkAppId userId=$userId")
+        LoginStore.shared.login(appContext, sdkAppId, userId, userSig, null)
+        TUICallEngine.createInstance(appContext).init(sdkAppId, userId, userSig,
+            object : TUICommonDefine.Callback {
+                override fun onSuccess() {
+                    Logger.i(TAG, "callEngine init success")
+                    val notificationFeature = NotificationFeature(appContext)
+                    notificationFeature.registerNotificationBannerChannel()
+                    CallingBellFeature(appContext)
+                    CallingVibratorFeature(appContext)
+                }
+
+                override fun onError(errCode: Int, errMsg: String) {
+                    Logger.e(TAG, "callEngine init failed, errCode: $errCode, errMsg: $errMsg")
+                }
+            })
     }
 
     companion object {
@@ -173,7 +218,7 @@ class CallKitService private constructor(context: Context) : ITUINotification, I
 
     private fun getJoinCallViewManager(): JoinCallViewManager {
         if (joinCallViewManager == null) {
-            joinCallViewManager = JoinCallViewManager()
+            joinCallViewManager = JoinCallViewManager(appContext)
         }
         return joinCallViewManager as JoinCallViewManager
     }
@@ -213,20 +258,20 @@ class CallKitService private constructor(context: Context) : ITUINotification, I
         val userID: String? = getOrDefault<String>(param, TUIConstants.TUIChat.Extension.InputMore.USER_ID, null)
         val groupID: String? = getOrDefault<String>(param, TUIConstants.TUIChat.Extension.InputMore.GROUP_ID, null)
         val voiceListener: ResultTUIExtensionEventListener = ResultTUIExtensionEventListener()
-        voiceListener.mediaType = TUICallDefine.MediaType.Audio
+        voiceListener.mediaType = CallMediaType.Audio
         voiceListener.userID = userID
         voiceListener.groupID = groupID
         val videoListener: ResultTUIExtensionEventListener = ResultTUIExtensionEventListener()
-        videoListener.mediaType = TUICallDefine.MediaType.Video
+        videoListener.mediaType = CallMediaType.Video
         videoListener.userID = userID
         videoListener.groupID = groupID
-        voiceCallExtension.text = appContext.getString(R.string.tuicallkit_audio_call)
+        voiceCallExtension.text = appContext.getString(R.string.callkit_audio_call)
         voiceCallExtension.icon = R.drawable.tuicallkit_ic_audio_call
         voiceCallExtension.extensionListener = voiceListener
         voiceListener.activityResultCaller = getOrDefault<ActivityResultCaller>(
             param, TUIConstants.TUIChat.Extension.InputMore.CONTEXT, null
         )
-        videoCallExtension.text = appContext.getString(R.string.tuicallkit_video_call)
+        videoCallExtension.text = appContext.getString(R.string.callkit_video_call)
         videoCallExtension.icon = R.drawable.tuicallkit_ic_video_call
         videoCallExtension.extensionListener = videoListener
         videoListener.activityResultCaller = getOrDefault<ActivityResultCaller>(
@@ -248,7 +293,7 @@ class CallKitService private constructor(context: Context) : ITUINotification, I
 
     inner class ResultTUIExtensionEventListener : TUIExtensionEventListener() {
         var activityResultCaller: ActivityResultCaller? = null
-        var mediaType: TUICallDefine.MediaType = TUICallDefine.MediaType.Audio
+        var mediaType: CallMediaType = CallMediaType.Audio
         var isClassicUI = true
         var userID: String? = null
         var groupID: String? = null
@@ -270,7 +315,9 @@ class CallKitService private constructor(context: Context) : ITUINotification, I
                     val stringList: ArrayList<String>? = result.data?.getStringArrayListExtra(
                         TUIConstants.TUIContact.StartActivity.GroupMemberSelect.DATA_LIST
                     )
-                    startCall(groupID, stringList, mediaType)
+                    if (stringList != null) {
+                        startCall(groupID, stringList, mediaType)
+                    }
                 }
             } else if (!userID.isNullOrEmpty()) {
                 val userList = mutableListOf<String>()
@@ -287,21 +334,21 @@ class CallKitService private constructor(context: Context) : ITUINotification, I
         videoCallExtension.weight = 100
         val groupID = getOrDefault<String?>(param, TUIConstants.TUIContact.Extension.GroupProfileItem.GROUP_ID, null)
         val voiceListener = ResultTUIExtensionEventListener()
-        voiceListener.mediaType = TUICallDefine.MediaType.Audio
+        voiceListener.mediaType = CallMediaType.Audio
         voiceListener.groupID = groupID
         voiceListener.isClassicUI = false
         val videoListener = ResultTUIExtensionEventListener()
-        videoListener.mediaType = TUICallDefine.MediaType.Video
+        videoListener.mediaType = CallMediaType.Video
         videoListener.groupID = groupID
         videoListener.isClassicUI = false
-        voiceCallExtension.text = appContext.getString(R.string.tuicallkit_audio_call)
+        voiceCallExtension.text = appContext.getString(R.string.callkit_audio_call)
         voiceCallExtension.icon = R.drawable.tuicallkit_profile_minimalist_audio_icon
         voiceCallExtension.extensionListener = voiceListener
         voiceListener.activityResultCaller = getOrDefault<ActivityResultCaller?>(
             param, TUIConstants.TUIContact.Extension.GroupProfileItem.CONTEXT, null
         )
         voiceListener.isClassicUI = false
-        videoCallExtension.text = appContext.getString(R.string.tuicallkit_video_call)
+        videoCallExtension.text = appContext.getString(R.string.callkit_video_call)
         videoCallExtension.icon = R.drawable.tuicallkit_profile_minimalist_video_icon
         videoCallExtension.extensionListener = videoListener
         videoListener.isClassicUI = false
@@ -321,14 +368,14 @@ class CallKitService private constructor(context: Context) : ITUINotification, I
         videoCallExtension.weight = 200
         val userID = getOrDefault<String?>(param, TUIConstants.TUIContact.Extension.FriendProfileItem.USER_ID, null)
         val voiceListener = ResultTUIExtensionEventListener()
-        voiceListener.mediaType = TUICallDefine.MediaType.Audio
+        voiceListener.mediaType = CallMediaType.Audio
         voiceListener.userID = userID
         val videoListener = ResultTUIExtensionEventListener()
-        videoListener.mediaType = TUICallDefine.MediaType.Video
+        videoListener.mediaType = CallMediaType.Video
         videoListener.userID = userID
-        voiceCallExtension.text = appContext.getString(R.string.tuicallkit_audio_call)
+        voiceCallExtension.text = appContext.getString(R.string.callkit_audio_call)
         voiceCallExtension.extensionListener = voiceListener
-        videoCallExtension.text = appContext.getString(R.string.tuicallkit_video_call)
+        videoCallExtension.text = appContext.getString(R.string.callkit_video_call)
         videoCallExtension.extensionListener = videoListener
         val extensionInfoList: MutableList<TUIExtensionInfo> = java.util.ArrayList()
         extensionInfoList.add(videoCallExtension)
@@ -343,18 +390,18 @@ class CallKitService private constructor(context: Context) : ITUINotification, I
         videoCallExtension.weight = 200
         val userID = getOrDefault<String?>(param, TUIConstants.TUIContact.Extension.FriendProfileItem.USER_ID, null)
         val voiceListener = ResultTUIExtensionEventListener()
-        voiceListener.mediaType = TUICallDefine.MediaType.Audio
+        voiceListener.mediaType = CallMediaType.Audio
         voiceListener.userID = userID
         voiceListener.isClassicUI = false
         val videoListener = ResultTUIExtensionEventListener()
-        videoListener.mediaType = TUICallDefine.MediaType.Video
+        videoListener.mediaType = CallMediaType.Video
         videoListener.userID = userID
         videoListener.isClassicUI = false
         voiceCallExtension.icon = R.drawable.tuicallkit_profile_minimalist_audio_icon
-        voiceCallExtension.text = appContext.getString(R.string.tuicallkit_audio_call)
+        voiceCallExtension.text = appContext.getString(R.string.callkit_audio_call)
         voiceCallExtension.extensionListener = voiceListener
         videoCallExtension.icon = R.drawable.tuicallkit_profile_minimalist_video_icon
-        videoCallExtension.text = appContext.getString(R.string.tuicallkit_video_call)
+        videoCallExtension.text = appContext.getString(R.string.callkit_video_call)
         videoCallExtension.extensionListener = videoListener
         val extensionInfoList: MutableList<TUIExtensionInfo> = java.util.ArrayList()
         extensionInfoList.add(videoCallExtension)
@@ -366,7 +413,7 @@ class CallKitService private constructor(context: Context) : ITUINotification, I
         val userID = getOrDefault<String?>(param, TUIConstants.TUIChat.Extension.ChatNavigationMoreItem.USER_ID, null)
         val groupID = getOrDefault<String?>(param, TUIConstants.TUIChat.Extension.ChatNavigationMoreItem.GROUP_ID, null)
         val voiceListener = ResultTUIExtensionEventListener()
-        voiceListener.mediaType = TUICallDefine.MediaType.Audio
+        voiceListener.mediaType = CallMediaType.Audio
         voiceListener.groupID = groupID
         voiceListener.userID = userID
         voiceListener.isClassicUI = false
@@ -374,7 +421,7 @@ class CallKitService private constructor(context: Context) : ITUINotification, I
             param, TUIConstants.TUIChat.Extension.ChatNavigationMoreItem.CONTEXT, null
         )
         val videoListener = ResultTUIExtensionEventListener()
-        videoListener.mediaType = TUICallDefine.MediaType.Video
+        videoListener.mediaType = CallMediaType.Video
         videoListener.groupID = groupID
         videoListener.userID = userID
         videoListener.isClassicUI = false
@@ -422,7 +469,7 @@ class CallKitService private constructor(context: Context) : ITUINotification, I
         if (null != param && TextUtils.equals(TUIConstants.TUICalling.METHOD_NAME_ENABLE_MULTI_DEVICE, method)) {
             val enable = param[TUIConstants.TUICalling.PARAM_NAME_ENABLE_MULTI_DEVICE] as Boolean
             Log.i(TAG, "onCall, enableMultiDevice: $enable")
-            GlobalState.instance.enableMultiDevice = enable
+            CallManager.instance.enableMultiDeviceAbility(enable, null)
             return null
         }
         if (param != null && TextUtils.equals(TUIConstants.TUICalling.METHOD_NAME_ENABLE_INCOMING_BANNER, method)) {
@@ -444,32 +491,19 @@ class CallKitService private constructor(context: Context) : ITUINotification, I
             Logger.i(TAG, "onCall, groupID: $groupID, userIdList: $userIdList")
             userIdList = userIdList?.filterNotNull()
 
-            var mediaType = TUICallDefine.MediaType.Unknown
-            if (TUIConstants.TUICalling.TYPE_AUDIO == typeString) {
-                mediaType = TUICallDefine.MediaType.Audio
-            } else if (TUIConstants.TUICalling.TYPE_VIDEO == typeString) {
-                mediaType = TUICallDefine.MediaType.Video
+            var mediaType = CallMediaType.Audio
+            if (TUIConstants.TUICalling.TYPE_VIDEO == typeString) {
+                mediaType = CallMediaType.Video
             }
-            startCall(groupID, userIdList, mediaType)
+            if (userIdList != null) {
+                startCall(groupID, userIdList, mediaType)
+            }
         }
         return null
     }
 
-    private fun startCall(groupID: String?, userIdList: List<String>?, mediaType: TUICallDefine.MediaType) {
-        if (GlobalState.instance.enableForceUseV2API) {
-            Logger.w(TAG, "startCall, enableForceUseV2API is true, use deprecated api")
-            if (!groupID.isNullOrEmpty()) {
-                TUICallKit.createInstance(appContext).groupCall(groupID, userIdList, mediaType)
-            } else if (userIdList?.size == 1) {
-                TUICallKit.createInstance(appContext).call(userIdList[0], mediaType)
-            } else {
-                Logger.e(TAG, "startCall ignored, enableForceUseV2API and groupId is empty and userList is not 1")
-            }
-            return
-        }
-
-        val params = TUICallDefine.CallParams()
-        params.offlinePushInfo = OfflinePushInfoConfig.createOfflinePushInfo(appContext)
+    private fun startCall(groupID: String?, userIdList: List<String>, mediaType: CallMediaType) {
+        val params = CallParams()
         params.timeout = Constants.CALL_WAITING_MAX_TIME
         if (!groupID.isNullOrEmpty()) {
             params.chatGroupId = groupID
@@ -481,7 +515,8 @@ class CallKitService private constructor(context: Context) : ITUINotification, I
         if (TextUtils.equals(objectName, RecentCalls.OBJECT_NAME)) {
             var style = RecentCalls.UI_STYLE_MINIMALIST
             if (param != null && param[RecentCalls.UI_STYLE] != null
-                && RecentCalls.UI_STYLE_CLASSIC == param[RecentCalls.UI_STYLE]!!) {
+                && RecentCalls.UI_STYLE_CLASSIC == param[RecentCalls.UI_STYLE]!!
+            ) {
                 style = RecentCalls.UI_STYLE_CLASSIC
             }
             return RecentCallsFragment(style)

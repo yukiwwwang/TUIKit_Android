@@ -21,7 +21,8 @@ import com.google.gson.Gson
 import com.trtc.tuikit.common.imageloader.BlurUtils
 import com.trtc.tuikit.common.util.ScreenUtil
 import com.trtc.uikit.livekit.common.LiveKitLogger
-import com.trtc.uikit.livekit.features.audiencecontainer.manager.AudienceManager
+import com.trtc.uikit.livekit.features.audiencecontainer.store.AudienceStore
+import io.trtc.tuikit.atomicx.pictureinpicture.PictureInPictureStore
 import io.trtc.tuikit.atomicxcore.api.live.SeatInfo
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -40,7 +41,7 @@ class LiveCoreViewMaskBackgroundView @JvmOverloads constructor(
     }
 
     private val oid = hashCode()
-    private lateinit var audienceManager: AudienceManager
+    private lateinit var audienceStore: AudienceStore
     private var parentWidth = ScreenUtil.dip2px(720f)
     private var parentHeight = ScreenUtil.dip2px(1080f)
     private var backgroundDrawable: Drawable? = null
@@ -55,8 +56,15 @@ class LiveCoreViewMaskBackgroundView @JvmOverloads constructor(
     override fun onAttachedToWindow() {
         super.onAttachedToWindow()
         subscribeStateJob = CoroutineScope(Dispatchers.Main).launch {
-            audienceManager.getLiveSeatState().seatList.collect {
-                onSeatLayoutChange(it)
+            launch {
+                audienceStore.getLiveSeatState().seatList.collect {
+                    onSeatLayoutChange(it)
+                }
+            }
+            launch {
+                PictureInPictureStore.shared.state.isPictureInPictureMode.collect {
+                    visibility = if (it) GONE else VISIBLE
+                }
             }
         }
     }
@@ -66,8 +74,8 @@ class LiveCoreViewMaskBackgroundView @JvmOverloads constructor(
         subscribeStateJob?.cancel()
     }
 
-    fun init(manager: AudienceManager) {
-        this.audienceManager = manager
+    fun init(manager: AudienceStore) {
+        this.audienceStore = manager
     }
 
     override fun setImageDrawable(drawable: Drawable?) {
@@ -107,7 +115,7 @@ class LiveCoreViewMaskBackgroundView @JvmOverloads constructor(
         super.onSizeChanged(w, h, oldw, oldh)
         LOGGER.info("onSizeChanged OID:$oid w:$w h:$h oldw:$oldw oldh:$oldh")
         if (w != oldw || h != oldh) {
-            onSeatLayoutChange(audienceManager.getLiveSeatState().seatList.value)
+            onSeatLayoutChange(audienceStore.getLiveSeatState().seatList.value)
         }
     }
 
@@ -122,7 +130,7 @@ class LiveCoreViewMaskBackgroundView @JvmOverloads constructor(
         val isFullScreen = isFullScreenLayoutBySeatLayout()
         LOGGER.info(
             "onDraw OID:$oid,: isFullScreen:$isFullScreen" +
-                    ", roomId:${audienceManager.getLiveListState().currentLive.value.liveID}" +
+                    ", roomId:${audienceStore.getLiveListState().currentLive.value.liveID}" +
                     ", topRect:$topRect, middleRect:$middleRect" +
                     ", bottomRect:$bottomRect,backgroundColor:$backgroundColor" +
                     ", backgroundDrawable:$backgroundDrawable"
@@ -216,7 +224,7 @@ class LiveCoreViewMaskBackgroundView @JvmOverloads constructor(
 
     fun setBackgroundUrl(url: String?) {
         LOGGER.info(
-            "setBackgroundUrl OID:$oid, roomId:${audienceManager.getLiveListState().currentLive.value.liveID}" +
+            "setBackgroundUrl OID:$oid, roomId:${audienceStore.getLiveListState().currentLive.value.liveID}" +
                     ", topRect:$topRect, middleRect:$middleRect, bottomRect:$bottomRect,backgroundColor:$backgroundColor" +
                     ", backgroundDrawable:$backgroundDrawable, url:$url"
         )
@@ -244,13 +252,13 @@ class LiveCoreViewMaskBackgroundView @JvmOverloads constructor(
                         transition: Transition<in Drawable>?
                     ) {
                         LOGGER.info(
-                            "onBackgroundUrlChange OID:$oid, roomId:${audienceManager.getLiveListState().currentLive.value.liveID}, resource:$resource"
+                            "onBackgroundUrlChange OID:$oid, roomId:${audienceStore.getLiveListState().currentLive.value.liveID}, resource:$resource"
                         )
                         this@LiveCoreViewMaskBackgroundView.setImageDrawable(resource)
                     }
 
                     override fun onLoadFailed(errorDrawable: Drawable?) {
-                        LOGGER.info("onLoadFailed OID:$oid, roomId:${audienceManager.getLiveListState().currentLive.value.liveID}")
+                        LOGGER.info("onLoadFailed OID:$oid, roomId:${audienceStore.getLiveListState().currentLive.value.liveID}")
                         backgroundDrawable = null
                         setBackgroundColor(Color.TRANSPARENT)
                     }
@@ -262,14 +270,14 @@ class LiveCoreViewMaskBackgroundView @JvmOverloads constructor(
     }
 
     fun isFullScreenLayoutBySeatLayout(): Boolean {
-        if (audienceManager.getLiveSeatState().seatList.value.isEmpty()) {
+        if (audienceStore.getLiveSeatState().seatList.value.isEmpty()) {
             return true
         }
-        if (audienceManager.getLiveSeatState().seatList.value.size <= 1) {
+        if (audienceStore.getLiveSeatState().seatList.value.size <= 1) {
             return true
         }
-        for (seatInfo in audienceManager.getLiveSeatState().seatList.value) {
-            if (seatInfo.region.w == audienceManager.getLiveSeatState().canvas.value.w && seatInfo.region.h == audienceManager.getLiveSeatState().canvas.value.h) {
+        for (seatInfo in audienceStore.getLiveSeatState().seatList.value) {
+            if (seatInfo.region.w == audienceStore.getLiveSeatState().canvas.value.w && seatInfo.region.h == audienceStore.getLiveSeatState().canvas.value.h) {
                 return true
             }
         }
@@ -278,8 +286,8 @@ class LiveCoreViewMaskBackgroundView @JvmOverloads constructor(
 
     private fun onSeatLayoutChange(seatList: List<SeatInfo>) {
         LOGGER.info("setSeatLayout OID:$oid,seatLayout:${Gson().toJson(seatList)}")
-        if (audienceManager.getLiveSeatState().canvas.value.w == 0
-            || audienceManager.getLiveSeatState().canvas.value.h == 0
+        if (audienceStore.getLiveSeatState().canvas.value.w == 0
+            || audienceStore.getLiveSeatState().canvas.value.h == 0
             || seatList.isEmpty()
         ) {
             invalidate()
@@ -304,7 +312,7 @@ class LiveCoreViewMaskBackgroundView @JvmOverloads constructor(
                     seatInfo.region.y + seatInfo.region.h
                 )
         }
-        val scale = parentWidth / audienceManager.getLiveSeatState().canvas.value.w.toFloat()
+        val scale = parentWidth / audienceStore.getLiveSeatState().canvas.value.w.toFloat()
         val width = (rect.width() * scale).toInt()
         val height = (rect.height() * scale).toInt()
         val top = (rect.top * scale).toInt()

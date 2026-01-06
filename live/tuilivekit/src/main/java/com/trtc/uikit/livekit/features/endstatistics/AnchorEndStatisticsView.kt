@@ -6,11 +6,13 @@ import android.view.LayoutInflater
 import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.TextView
-import androidx.lifecycle.Observer
 import com.trtc.uikit.livekit.R
 import com.trtc.uikit.livekit.common.LiveKitLogger
-import com.trtc.uikit.livekit.features.endstatistics.manager.EndStatisticsManager
-import com.trtc.uikit.livekit.features.endstatistics.state.EndStatisticsState
+import com.trtc.uikit.livekit.features.endstatistics.store.EndStatisticsStore
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import java.util.Locale
 import kotlin.math.max
 
@@ -20,15 +22,9 @@ class AnchorEndStatisticsView @JvmOverloads constructor(
 ) : FrameLayout(context, attrs) {
 
     private val logger = LiveKitLogger.getFeaturesLogger("AnchorEndStatisticsView")
-    private val manager = EndStatisticsManager()
-    private val state: EndStatisticsState = manager.getState()
-
-    private val liveDurationObserver = Observer<Long> { onLiveDurationChange(it) }
-    private val maxViewersCountObserver = Observer<Long> { onMaxViewersCountChange(it) }
-    private val messageCountObserver = Observer<Long> { onMessageCountChange(it) }
-    private val likeCountObserver = Observer<Long> { onLikeCountChange(it) }
-    private val giftIncomeObserver = Observer<Long> { onGiftIncomeChange(it) }
-    private val giftSenderCountObserver = Observer<Long> { onGiftSenderCountChange(it) }
+    private val store = EndStatisticsStore()
+    private val state = store.getState()
+    private var subscribeStateJob: Job? = null
 
     private lateinit var textDuration: TextView
     private lateinit var textViewersCount: TextView
@@ -58,13 +54,13 @@ class AnchorEndStatisticsView @JvmOverloads constructor(
         if (info == null) {
             logger.error("init, info is null")
         } else {
-            manager.setRoomId(info.roomId)
-            manager.setLiveDuration(info.liveDurationMS)
-            manager.setMaxViewersCount(max(0, info.maxViewersCount - 1))
-            manager.setMessageCount(max(0, info.messageCount - 1))
-            manager.setLikeCount(info.likeCount)
-            manager.setGiftIncome(info.giftIncome)
-            manager.setGiftSenderCount(info.giftSenderCount)
+            store.setRoomId(info.roomId)
+            store.setLiveDuration(info.liveDurationMS)
+            store.setMaxViewersCount(max(0, info.maxViewersCount - 1))
+            store.setMessageCount(max(0, info.messageCount - 1))
+            store.setLikeCount(info.likeCount)
+            store.setGiftIncome(info.giftIncome)
+            store.setGiftSenderCount(info.giftSenderCount)
             logger.info("init, ${state}")
         }
     }
@@ -84,21 +80,47 @@ class AnchorEndStatisticsView @JvmOverloads constructor(
     }
 
     private fun addObserver() {
-        state.liveDurationMS.observeForever(liveDurationObserver)
-        state.maxViewersCount.observeForever(maxViewersCountObserver)
-        state.messageCount.observeForever(messageCountObserver)
-        state.likeCount.observeForever(likeCountObserver)
-        state.giftIncome.observeForever(giftIncomeObserver)
-        state.giftSenderCount.observeForever(giftSenderCountObserver)
+        subscribeStateJob = CoroutineScope(Dispatchers.Main).launch {
+            launch {
+                state.liveDurationMS.collect {
+                    onLiveDurationChange(it)
+                }
+            }
+
+            launch {
+                state.maxViewersCount.collect {
+                    onMaxViewersCountChange(it)
+                }
+            }
+
+            launch {
+                state.messageCount.collect {
+                    onMessageCountChange(it)
+                }
+            }
+
+            launch {
+                state.likeCount.collect {
+                    onLikeCountChange(it)
+                }
+            }
+
+            launch {
+                state.giftIncome.collect {
+                    onGiftIncomeChange(it)
+                }
+            }
+
+            launch {
+                state.giftSenderCount.collect {
+                    onGiftSenderCountChange(it)
+                }
+            }
+        }
     }
 
     private fun removeObserver() {
-        state.liveDurationMS.removeObserver(liveDurationObserver)
-        state.maxViewersCount.removeObserver(maxViewersCountObserver)
-        state.messageCount.removeObserver(messageCountObserver)
-        state.likeCount.removeObserver(likeCountObserver)
-        state.giftIncome.removeObserver(giftIncomeObserver)
-        state.giftSenderCount.removeObserver(giftSenderCountObserver)
+        subscribeStateJob?.cancel()
     }
 
     private fun onExitClick() {
@@ -107,7 +129,7 @@ class AnchorEndStatisticsView @JvmOverloads constructor(
 
     private fun onLiveDurationChange(durationMS: Long) {
         val duration = (durationMS / 1000).toInt()
-        val formatSeconds = manager.formatSeconds(duration)
+        val formatSeconds = store.formatSeconds(duration)
         textDuration.text = formatSeconds
     }
 

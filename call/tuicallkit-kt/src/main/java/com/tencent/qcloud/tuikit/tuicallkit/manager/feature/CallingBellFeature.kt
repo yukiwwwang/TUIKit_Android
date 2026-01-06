@@ -10,7 +10,6 @@ import android.os.Handler
 import android.os.HandlerThread
 import android.text.TextUtils
 import androidx.core.content.ContextCompat
-import com.tencent.cloud.tuikit.engine.call.TUICallDefine
 import com.tencent.cloud.tuikit.engine.call.TUICallEngine
 import com.tencent.liteav.audio.TXAudioEffectManager.AudioMusicParam
 import com.tencent.qcloud.tuicore.TUIConfig
@@ -21,44 +20,50 @@ import com.tencent.qcloud.tuikit.tuicallkit.R
 import com.tencent.qcloud.tuikit.tuicallkit.common.data.Logger
 import com.tencent.qcloud.tuikit.tuicallkit.common.utils.DeviceUtils
 import com.tencent.qcloud.tuikit.tuicallkit.common.utils.PermissionRequest
-import com.tencent.qcloud.tuikit.tuicallkit.manager.CallManager
 import com.tencent.qcloud.tuikit.tuicallkit.manager.PushManager
 import com.tencent.qcloud.tuikit.tuicallkit.state.GlobalState
-import com.trtc.tuikit.common.livedata.Observer
+import io.trtc.tuikit.atomicxcore.api.call.CallStore
+import io.trtc.tuikit.atomicxcore.api.call.CallParticipantStatus
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.launch
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
 
 class CallingBellFeature(context: Context) {
+    private val scope = MainScope()
     private val context: Context = context.applicationContext
     private var mediaPlayer: MediaPlayer? = null
     private var handler: Handler? = null
     private var bellResourceId: Int
     private var bellResourcePath: String = ""
     private var dialPath: String? = null
-
-    private val callStatusObserver = Observer<TUICallDefine.Status> {
-        if (it != TUICallDefine.Status.Waiting) {
-            stopMusic()
-            return@Observer
-        }
-        if (CallManager.instance.userState.selfUser.get().callRole == TUICallDefine.Role.Caller) {
-            startDialingMusic()
-            return@Observer
-        }
-        if (isLocalRingtonePlaybackNeeded()) {
-            startRinging()
-        }
-    }
+    private var isMusicPlaying = false
 
     init {
         bellResourceId = -1
         bellResourcePath = ""
+        isMusicPlaying = false
         registerObserver()
     }
 
-    fun registerObserver() {
-        CallManager.instance.userState.selfUser.get().callStatus.observe(callStatusObserver)
+    private fun registerObserver() {
+        scope.launch {
+            CallStore.shared.observerState.selfInfo.collect { selfInfo ->
+                if (selfInfo.status != CallParticipantStatus.Waiting) {
+                    stopMusic()
+                    return@collect
+                }
+                val self = CallStore.shared.observerState.selfInfo.value.copy()
+                if (isCaller(self.id)) {
+                    startDialingMusic()
+                    return@collect
+                }
+                if (isLocalRingtonePlaybackNeeded()) {
+                    startRinging()
+                }
+            }
+        }
     }
 
     private fun isLocalRingtonePlaybackNeeded(): Boolean {
@@ -97,7 +102,12 @@ class CallingBellFeature(context: Context) {
     }
 
     private fun stopMusic() {
-        if (CallManager.instance.userState.selfUser.get()?.callRole == TUICallDefine.Role.Caller) {
+        if (!isMusicPlaying) {
+            return
+        }
+        isMusicPlaying = false
+        val self = CallStore.shared.observerState.selfInfo.value.copy()
+        if (isCaller(self.id)) {
             TUICallEngine.createInstance(context).trtcCloudInstance.audioEffectManager.stopPlayMusic(AUDIO_DIAL_ID)
         } else {
             stopRinging()
@@ -112,6 +122,7 @@ class CallingBellFeature(context: Context) {
             .audioEffectManager.setMusicPlayoutVolume(AUDIO_DIAL_ID, 100)
         val param = AudioMusicParam(AUDIO_DIAL_ID, dialPath)
         param.isShortFile = true
+        isMusicPlaying = true
         TUICallEngine.createInstance(context).trtcCloudInstance.audioEffectManager.startPlayMusic(param)
     }
 
@@ -129,6 +140,7 @@ class CallingBellFeature(context: Context) {
         if (!TextUtils.isEmpty(resPath) && isUrl(resPath)) {
             return
         }
+        isMusicPlaying = true
 
         var assetFileDescriptor: AssetFileDescriptor? = null
         if (!TextUtils.isEmpty(resPath) && File(resPath).exists()) {
@@ -228,6 +240,11 @@ class CallingBellFeature(context: Context) {
             e.printStackTrace()
         }
         return null
+    }
+
+    private fun isCaller(userId: String): Boolean {
+        val callerId = CallStore.shared.observerState.activeCall.value.inviterId
+        return callerId == userId
     }
 
     companion object {

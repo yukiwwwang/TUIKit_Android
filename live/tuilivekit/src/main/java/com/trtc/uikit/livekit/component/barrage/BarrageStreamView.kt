@@ -7,7 +7,6 @@ import android.util.AttributeSet
 import android.view.LayoutInflater
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.tencent.cloud.tuikit.engine.room.TUIRoomDefine
 import com.trtc.uikit.livekit.R
 import com.trtc.uikit.livekit.common.reportEventData
 import com.trtc.uikit.livekit.common.ui.BasicView
@@ -140,7 +139,7 @@ class BarrageStreamView @JvmOverloads constructor(
     }
 
     interface OnMessageClickListener {
-        fun onMessageClick(userInfo: TUIRoomDefine.UserInfo)
+        fun onMessageClick(userInfo: LiveUserInfo)
     }
 
     private val liveAudienceListener = object : LiveAudienceListener() {

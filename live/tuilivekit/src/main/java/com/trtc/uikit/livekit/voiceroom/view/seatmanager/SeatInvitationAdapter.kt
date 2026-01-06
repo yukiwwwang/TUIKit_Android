@@ -8,10 +8,13 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
-import androidx.constraintlayout.utils.widget.ImageFilterView
 import androidx.recyclerview.widget.RecyclerView
-import com.trtc.tuikit.common.imageloader.ImageLoader
 import com.trtc.uikit.livekit.R
+import io.trtc.tuikit.atomicx.widget.basicwidget.avatar.AtomicAvatar
+import io.trtc.tuikit.atomicx.widget.basicwidget.avatar.AtomicAvatar.AvatarContent
+import io.trtc.tuikit.atomicx.widget.basicwidget.button.AtomicButton
+import io.trtc.tuikit.atomicx.widget.basicwidget.button.ButtonColorType
+import io.trtc.tuikit.atomicx.widget.basicwidget.button.ButtonVariant
 import io.trtc.tuikit.atomicxcore.api.live.CoGuestStore
 import io.trtc.tuikit.atomicxcore.api.live.LiveAudienceStore
 import io.trtc.tuikit.atomicxcore.api.live.LiveListStore
@@ -62,31 +65,32 @@ class SeatInvitationAdapter(
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val userInfo = data[position]
-        if (TextUtils.isEmpty(userInfo.avatarURL)) {
-            holder.imageHead.setImageResource(R.drawable.livekit_ic_avatar)
-        } else {
-            ImageLoader.load(
-                context,
-                holder.imageHead,
+        holder.imageHead.setContent(
+            AvatarContent.URL(
                 userInfo.avatarURL,
                 R.drawable.livekit_ic_avatar
             )
-        }
+        )
 
-        if (TextUtils.isEmpty(userInfo.userName)) {
-            holder.textName.text = userInfo.userID
+        holder.textName.text = if (TextUtils.isEmpty(userInfo.userName)) {
+            userInfo.userID
         } else {
-            holder.textName.text = userInfo.userName
+            userInfo.userName
         }
 
-        if (coGuestStore.coGuestState.invitees.value.find { it.userID == userInfo.userID } != null) {
+        val invited = coGuestStore.coGuestState.invitees.value
+            .find { it.userID == userInfo.userID } != null
+
+        if (invited) {
             holder.inviteButton.isSelected = true
-            holder.inviteButton.setText(R.string.common_cancel)
-            holder.inviteButton.setTextColor(context.resources.getColor(R.color.common_not_standard_red))
+            holder.inviteButton.text = context.getString(R.string.common_cancel)
+            holder.inviteButton.variant = ButtonVariant.OUTLINED
+            holder.inviteButton.colorType = ButtonColorType.SECONDARY
         } else {
             holder.inviteButton.isSelected = false
-            holder.inviteButton.setText(R.string.common_voiceroom_invite)
-            holder.inviteButton.setTextColor(Color.WHITE)
+            holder.inviteButton.text = context.getString(R.string.common_voiceroom_invite)
+            holder.inviteButton.variant = ButtonVariant.FILLED
+            holder.inviteButton.colorType = ButtonColorType.PRIMARY
         }
 
         holder.inviteButton.setOnClickListener {
@@ -105,13 +109,13 @@ class SeatInvitationAdapter(
     }
 
     class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        val imageHead: ImageFilterView = itemView.findViewById(R.id.iv_head)
+        val imageHead: AtomicAvatar = itemView.findViewById(R.id.iv_head)
         val textName: TextView = itemView.findViewById(R.id.tv_name)
         val textLevel: TextView = itemView.findViewById(R.id.tv_level)
-        val inviteButton: TextView = itemView.findViewById(R.id.invite_button)
+        val inviteButton: AtomicButton = itemView.findViewById(R.id.invite_button)
     }
 
     interface OnInviteButtonClickListener {
-        fun onItemClick(inviteButton: TextView, userInfo: LiveUserInfo)
+        fun onItemClick(inviteButton: View, userInfo: LiveUserInfo)
     }
 }

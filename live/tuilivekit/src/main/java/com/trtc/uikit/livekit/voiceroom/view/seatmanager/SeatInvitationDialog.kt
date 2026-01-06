@@ -8,15 +8,13 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.tencent.cloud.tuikit.engine.common.TUICommonDefine
-import com.tencent.qcloud.tuicore.TUIConfig
-import com.tencent.qcloud.tuicore.util.ToastUtil
 import com.trtc.uikit.livekit.R
 import com.trtc.uikit.livekit.common.ErrorLocalized
 import com.trtc.uikit.livekit.common.LiveKitLogger
 import com.trtc.uikit.livekit.common.completionHandler
-import com.trtc.uikit.livekit.common.ui.PopupDialog
 import com.trtc.uikit.livekit.voiceroom.view.seatmanager.SeatInvitationAdapter.OnInviteButtonClickListener
+import io.trtc.tuikit.atomicx.widget.basicwidget.popover.AtomicPopover
+import io.trtc.tuikit.atomicx.widget.basicwidget.toast.AtomicToast
 import io.trtc.tuikit.atomicxcore.api.live.CoGuestStore
 import io.trtc.tuikit.atomicxcore.api.live.CoHostStore
 import io.trtc.tuikit.atomicxcore.api.live.HostListener
@@ -32,7 +30,7 @@ import kotlinx.coroutines.launch
 
 class SeatInvitationDialog(
     private val context: Context,
-) : PopupDialog(context) {
+) : AtomicPopover(context) {
     private val TAKE_SEAT_TIMEOUT: Int = 10
     private lateinit var imageBack: ImageView
     private lateinit var tvTitle: TextView
@@ -65,7 +63,7 @@ class SeatInvitationDialog(
 
     private fun initView() {
         val rootView = View.inflate(context, R.layout.livekit_voiceroom_seat_invite_panel, null)
-        setView(rootView)
+        setContent(rootView)
         bindViewId(rootView)
         tvTitle.setText(R.string.common_voiceroom_invite)
         setTitle(context.getString(R.string.common_voiceroom_invite))
@@ -121,7 +119,10 @@ class SeatInvitationDialog(
             LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false)
         seatInvitationAdapter = SeatInvitationAdapter(context)
         seatInvitationAdapter.setOnInviteButtonClickListener(object : OnInviteButtonClickListener {
-            override fun onItemClick(inviteButton: TextView, userInfo: LiveUserInfo) {
+            override fun onItemClick(
+                inviteButton: View,
+                userInfo: LiveUserInfo,
+            ) {
                 onInviteButtonClicked(inviteButton, userInfo)
             }
         })
@@ -141,13 +142,13 @@ class SeatInvitationDialog(
             invitationIndex = index
     }
 
-    private fun onInviteButtonClicked(inviteButton: TextView, userInfo: LiveUserInfo) {
+    private fun onInviteButtonClicked(inviteButton: View, userInfo: LiveUserInfo) {
         val userId = userInfo.userID
         if (inviteButton.isSelected) {
             coGuestStore.cancelInvitation(userId, completionHandler {
                 onError { code, desc ->
                     LOGGER.error("cancelInvitation failed,error:$code,message:$desc")
-                    ErrorLocalized.onError(TUICommonDefine.Error.fromInt(code))
+                    ErrorLocalized.onError(code)
                 }
             })
             return
@@ -155,15 +156,24 @@ class SeatInvitationDialog(
         val isConnected =
             coHostStore.coHostState.connected.value.any { it.liveID == LiveListStore.shared().liveState.currentLive.value.liveID }
         if (isConnected && !hasAvailableSeat()) {
-            ToastUtil.toastShortMessage(context.getString(R.string.common_server_error_the_seats_are_all_taken))
+            AtomicToast.show(
+                context,
+                context.getString(R.string.common_server_error_the_seats_are_all_taken),
+                AtomicToast.Style.ERROR
+            )
             return
         }
-        coGuestStore.inviteToSeat(userId, invitationIndex, TAKE_SEAT_TIMEOUT, null, completionHandler {
-            onError { code, desc ->
-                LOGGER.error("takeUserOnSeatByAdmin failed,error:$code,message:$desc")
-                ErrorLocalized.onError(TUICommonDefine.Error.fromInt(code))
-            }
-        })
+        coGuestStore.inviteToSeat(
+            userId,
+            invitationIndex,
+            TAKE_SEAT_TIMEOUT,
+            null,
+            completionHandler {
+                onError { code, desc ->
+                    LOGGER.error("takeUserOnSeatByAdmin failed,error:$code,message:$desc")
+                    ErrorLocalized.onError(code)
+                }
+            })
         if (invitationIndex != -1) {
             dismiss()
         }
@@ -193,19 +203,19 @@ class SeatInvitationDialog(
     private val hostListener = object : HostListener() {
         override fun onHostInvitationResponded(isAccept: Boolean, guestUser: LiveUserInfo) {
             if (isAccept) return
-            ToastUtil.toastShortMessage(
-                TUIConfig.getAppContext().getString(
-                    R.string.common_voiceroom_invite_seat_canceled
-                )
+            AtomicToast.show(
+                context,
+                context.getString(R.string.common_voiceroom_invite_seat_canceled),
+                AtomicToast.Style.INFO
             )
         }
 
         override fun onHostInvitationNoResponse(guestUser: LiveUserInfo, reason: NoResponseReason) {
             if (reason != NoResponseReason.TIMEOUT) return
-            ToastUtil.toastShortMessage(
-                TUIConfig.getAppContext().getString(
-                    R.string.common_voiceroom_invite_seat_canceled
-                )
+            AtomicToast.show(
+                context,
+                context.getString(R.string.common_voiceroom_invite_seat_canceled),
+                AtomicToast.Style.INFO
             )
         }
     }

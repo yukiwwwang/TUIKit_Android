@@ -1,6 +1,5 @@
 package io.trtc.tuikit.atomicx.karaoke.store
 
-
 import android.content.Context
 import android.os.Handler
 import android.os.Looper
@@ -11,25 +10,37 @@ import androidx.lifecycle.MutableLiveData
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.tencent.cloud.tuikit.engine.common.TUICommonDefine
+import com.tencent.cloud.tuikit.engine.extension.TUISongListManager
+import com.tencent.cloud.tuikit.engine.extension.TUISongListManager.SongInfo
+import com.tencent.cloud.tuikit.engine.extension.TUISongListManager.SongListChangeReason
+import com.tencent.cloud.tuikit.engine.extension.TUISongListManager.SongListResult
 import com.tencent.cloud.tuikit.engine.room.TUIRoomDefine
 import com.tencent.cloud.tuikit.engine.room.TUIRoomDefine.GetRoomMetadataCallback
 import com.tencent.cloud.tuikit.engine.room.TUIRoomDefine.RoomDismissedReason
 import com.tencent.cloud.tuikit.engine.room.TUIRoomEngine
 import com.tencent.cloud.tuikit.engine.room.TUIRoomObserver
+import com.tencent.qcloud.tuicore.TUILogin
 import com.tencent.trtc.TRTCCloud
+import com.tencent.trtc.TRTCCloudDef
 import com.tencent.trtc.TRTCCloudDef.TRTCParams
+import com.tencent.trtc.TRTCCloudListener
 import com.tencent.trtc.TXChorusMusicPlayer
-import com.tencent.trtc.TXChorusMusicPlayer.TXChorusExternalMusicParams
 import com.tencent.trtc.TXChorusMusicPlayer.TXChorusRole
 import io.trtc.tuikit.atomicx.R
-import io.trtc.tuikit.atomicx.karaoke.store.utils.GenerateTestUserSig
+import io.trtc.tuikit.atomicx.karaoke.service.SongServiceFactory
 import io.trtc.tuikit.atomicx.karaoke.store.utils.LyricsFileReader
 import io.trtc.tuikit.atomicx.karaoke.store.utils.MusicInfo
-import io.trtc.tuikit.atomicx.karaoke.store.utils.MusicSelection
 import io.trtc.tuikit.atomicx.karaoke.store.utils.PlaybackState
+import io.trtc.tuikit.atomicx.widget.basicwidget.toast.AtomicToast
+import io.trtc.tuikit.atomicxcore.api.live.LiveListStore
 import java.io.File
 import java.io.FileOutputStream
 import java.nio.ByteBuffer
+
+private const val TAG = "KaraokeStore"
+private const val LOCAL_MUSIC_PREFIX = "local_demo"
+private const val KEY_ENABLE_REQUEST_MUSIC = "EnableRequestMusic"
+private const val KEY_ENABLE_SCORE = "EnableScore"
 
 class KaraokeStore private constructor(private val context: Context) {
     companion object {
@@ -51,86 +62,113 @@ class KaraokeStore private constructor(private val context: Context) {
     }
 
     var isAwaitingScoreDisplay = true
-    private var chorusPlayer: TXChorusMusicPlayer? = null
+
+    val hostPitch: LiveData<Int> get() = _hostPitch
+    val hostScore: LiveData<Int> get() = _hostScore
+    val currentPlayingSong: LiveData<SongInfo> get() = _currentPlayingSong
+    val isRoomOwner: LiveData<Boolean> get() = _isRoomOwner
+    val songCatalog: LiveData<List<MusicInfo>> get() = _songCatalog
+    val songQueue: LiveData<List<SongInfo>> get() = _songQueue
+    val currentTrack: LiveData<TXChorusMusicPlayer.TXChorusMusicTrack> get() = _currentAudioTrack
+    val playbackProgressMs: LiveData<Long> get() = _playbackProgressMs
+    val songDurationMs: LiveData<Long> get() = _songDurationMs
+    val playbackState: LiveData<PlaybackState> get() = _playbackState
+    val isDisplayFloatView: LiveData<Boolean> get() = _isDisplayFloatView
+    val pitchList: LiveData<List<TXChorusMusicPlayer.TXReferencePitch>> get() = _pitchList
+    val songLyrics: LiveData<List<TXChorusMusicPlayer.TXLyricLine>> get() = _songLyrics
+    val currentScore: LiveData<Int> get() = _currentScore
+    val averageScore: LiveData<Int> get() = _averageScore
+    val currentPitch: LiveData<Int> get() = _currentPitch
+    val publishVolume: LiveData<Int> get() = _publishVolume
+    val playoutVolume: LiveData<Int> get() = _playoutVolume
+    val songPitch: LiveData<Float> get() = _songPitch
+    val enableScore: LiveData<Boolean> get() = _enableScore
+    val isRoomDismissed: LiveData<Boolean> get() = _isRoomDismissed
+    private val songListManager: TUISongListManager = TUIRoomEngine.sharedInstance().songListManager
     private val trtcCloud: TRTCCloud = TUIRoomEngine.sharedInstance().trtcCloud
     private val gson = Gson()
     private val mainHandler = Handler(Looper.getMainLooper())
-    private val _currentPlayingSong = MutableLiveData<MusicSelection>()
-    val currentPlayingSong: LiveData<MusicSelection> get() = _currentPlayingSong
-    private val _isRoomOwner = MutableLiveData(false)
-    val isRoomOwner: LiveData<Boolean> get() = _isRoomOwner
-    private val _pendingSongAdds = MutableLiveData<Set<String>>(emptySet())
-    val pendingSongAdds: LiveData<Set<String>> get() = _pendingSongAdds
-    private val _songCatalog = MutableLiveData<List<MusicInfo>>(emptyList())
-    val songCatalog: LiveData<List<MusicInfo>> get() = _songCatalog
-    private val _songQueue = MutableLiveData<List<MusicSelection>>(emptyList())
-    val songQueue: LiveData<List<MusicSelection>> get() = _songQueue
-    private val _currentAudioTrack =
-        MutableLiveData(TXChorusMusicPlayer.TXChorusMusicTrack.TXChorusOriginalSong)
-    val currentTrack: LiveData<TXChorusMusicPlayer.TXChorusMusicTrack> get() = _currentAudioTrack
-    private val _playbackProgressMs = MutableLiveData(0L)
-    val playbackProgressMs: LiveData<Long> get() = _playbackProgressMs
-    private val _songDurationMs = MutableLiveData(0L)
-    val songDurationMs: LiveData<Long> get() = _songDurationMs
-    private val _playbackState = MutableLiveData(PlaybackState.IDLE)
-    val playbackState: LiveData<PlaybackState> get() = _playbackState
-    private val _isDisplayFloatView = MutableLiveData(true)
-    val isDisplayFloatView: LiveData<Boolean> get() = _isDisplayFloatView
-    private val _songPitchData =
-        MutableLiveData<List<TXChorusMusicPlayer.TXReferencePitch>>(emptyList())
-    val songPitchData: LiveData<List<TXChorusMusicPlayer.TXReferencePitch>> get() = _songPitchData
-    private val _songLyrics = MutableLiveData<List<TXChorusMusicPlayer.TXLyricLine>>(emptyList())
-    val songLyrics: LiveData<List<TXChorusMusicPlayer.TXLyricLine>> get() = _songLyrics
-    private val _currentScore = MutableLiveData(0)
-    val currentScore: LiveData<Int> get() = _currentScore
-    private val _averageScore = MutableLiveData(100.0F)
-    val averageScore: LiveData<Float> get() = _averageScore
-    private val _publishVolume = MutableLiveData(60)
-    val publishVolume: LiveData<Int> get() = _publishVolume
-    private val _playoutVolume = MutableLiveData(95)
-    val playoutVolume: LiveData<Int> get() = _playoutVolume
-    private val _songPitch = MutableLiveData(0.0F)
-    val songPitch: LiveData<Float> get() = _songPitch
-    private val _isScoringEnabled = MutableLiveData(false)
-    val isScoringEnabled: LiveData<Boolean> get() = _isScoringEnabled
-    private val _isRoomDismissed = MutableLiveData(false)
-    val isRoomDismissed: LiveData<Boolean> get() = _isRoomDismissed
+    private var musicCatalogService: MusicCatalogService? = null
+    private var chorusPlayer: TXChorusMusicPlayer? = null
+    private lateinit var userId: String
+    private var ownerId: String? = null
+    private var isFullScreenUIMode = false
     private var _isManualStop = false
-    val KEY_ENABLE_REQUEST_MUSIC = "EnableRequestMusic"
-    val KEY_PLAY_QUEUE = "SongPlayList"
-    val KEY_ENABLE_SCORE = "EnableScore"
-    val KEY_LOCAL_DEMO = "local_demo"
+    private var _isSwitchingToNext = false
+    private var _isCurrentSongRemoved = false
+    private var _loadingMusicId: String? = null
+
+    private val _hostPitch = MutableLiveData(0)
+    private val _hostScore = MutableLiveData(-1)
+    private val _currentPlayingSong = MutableLiveData<SongInfo>()
+    private val _isRoomOwner = MutableLiveData(false)
+    private val _songCatalog = MutableLiveData<List<MusicInfo>>(emptyList())
+    private val _songQueue = MutableLiveData<List<SongInfo>>(emptyList())
+    private val _currentAudioTrack = MutableLiveData(TXChorusMusicPlayer.TXChorusMusicTrack.TXChorusOriginalSong)
+    private val _playbackProgressMs = MutableLiveData(0L)
+    private val _songDurationMs = MutableLiveData(0L)
+    private val _playbackState = MutableLiveData(PlaybackState.IDLE)
+    private val _isDisplayFloatView = MutableLiveData(true)
+    private val _pitchList = MutableLiveData<List<TXChorusMusicPlayer.TXReferencePitch>>(emptyList())
+    private val _songLyrics = MutableLiveData<List<TXChorusMusicPlayer.TXLyricLine>>(emptyList())
+    private val _currentScore = MutableLiveData(-1)
+    private val _averageScore = MutableLiveData(0)
+    private val _currentPitch = MutableLiveData(0)
+    private val _publishVolume = MutableLiveData(60)
+    private val _playoutVolume = MutableLiveData(95)
+    private val _songPitch = MutableLiveData(0.0F)
+    private val _enableScore = MutableLiveData(true)
+    private val _isRoomDismissed = MutableLiveData(false)
 
     fun init(roomId: String, isOwner: Boolean) {
         if (chorusPlayer != null) return
         _isRoomOwner.value = isOwner
+        ownerId = LiveListStore.shared().liveState.currentLive.value.liveOwner.userID
+        userId = TUIRoomEngine.getSelfInfo().userId
+        musicCatalogService = SongServiceFactory.getInstance()
         setupChorusPlayer(roomId)
         copyAllAssetsToStorage()
-//        loadLocalSongCatalog()
         fetchRoomMetadata()
+        getWaitingList()
+        loadMusicCatalog()
+        addObserver()
         if (isOwner) {
-            initializeAudioSettings()
+            setScoringEnabled(enableScore.value == true)
+            applyDefaultAudioEffects()
         }
     }
 
     fun destroy() {
         stopPlayback()
-        updateRemoteSongQueue(emptyList())
         _isRoomDismissed.value = true
         _songQueue.value = emptyList()
-        _pendingSongAdds.value = emptySet()
-        _currentPlayingSong.value = MusicSelection()
+        _currentPlayingSong.value = SongInfo()
         _playbackProgressMs.value = 0L
         _songLyrics.value = emptyList()
-        _songPitchData.value = emptyList()
+        _pitchList.value = emptyList()
         _currentScore.value = 0
         _playbackState.value = PlaybackState.IDLE
         _isManualStop = true
-        _averageScore.value = 100.0F
+        _isSwitchingToNext = false
+        _isCurrentSongRemoved = false
+        _loadingMusicId = null
+        _averageScore.value = 100
         _currentAudioTrack.value = TXChorusMusicPlayer.TXChorusMusicTrack.TXChorusOriginalSong
-        TUIRoomEngine.sharedInstance().removeObserver(roomEngineObserver)
+        removeObserver()
         chorusPlayer?.destroy()
         chorusPlayer = null
+    }
+
+    fun addObserver() {
+        songListManager.addObserver(songListObserver)
+        TUIRoomEngine.sharedInstance().addObserver(roomEngineObserver)
+        TUIRoomEngine.sharedInstance().trtcCloud.setAudioFrameListener(audioFrameListener)
+    }
+
+    fun removeObserver() {
+        songListManager.removeObserver(songListObserver)
+        TUIRoomEngine.sharedInstance().removeObserver(roomEngineObserver)
+        TUIRoomEngine.sharedInstance().trtcCloud.setAudioFrameListener(null)
     }
 
     fun enableRequestMusic(enable: Boolean) {
@@ -138,16 +176,15 @@ class KaraokeStore private constructor(private val context: Context) {
             val metadata = hashMapOf(KEY_ENABLE_REQUEST_MUSIC to enable.toString())
             TUIRoomEngine.sharedInstance().setRoomMetadataByAdmin(metadata, null)
             if (!enable) {
-                updateRemoteSongQueue(emptyList())
+                clearAllSongs()
                 _songQueue.value = emptyList()
-                _pendingSongAdds.value = emptySet()
-                _currentPlayingSong.value = MusicSelection()
+                _currentPlayingSong.value = SongInfo()
                 _playbackProgressMs.value = 0L
                 _songLyrics.value = emptyList()
-                _songPitchData.value = emptyList()
+                _pitchList.value = emptyList()
                 _currentScore.value = 0
                 _playbackState.value = PlaybackState.IDLE
-                _averageScore.value = 100.0F
+                _averageScore.value = 100
                 _currentAudioTrack.value =
                     TXChorusMusicPlayer.TXChorusMusicTrack.TXChorusOriginalSong
                 _isManualStop = true
@@ -156,9 +193,32 @@ class KaraokeStore private constructor(private val context: Context) {
         }
     }
 
-    fun loadLocalDemoSong(musicId: String) {
+    private fun loadMusicByLeadSinger() {
+        if (isRoomOwner.value == false) return
+        val songQueueValue = songQueue.value
+        if (songQueueValue.isNullOrEmpty()) {
+            _playbackState.value = PlaybackState.IDLE
+            _loadingMusicId = null
+            return
+        }
+        val firstSong = songQueueValue.first()
+        val songId = firstSong.songId
+        if (!songId.isNullOrEmpty()) {
+            _loadingMusicId = songId
+            Log.d(TAG, "loadMusicByLeadSinger: loading songId=$songId, songName=${firstSong.songName}")
+            loadMusic(songId)
+        }
+    }
+
+    private fun loadMusic(musicId: String) {
+        if (musicId.startsWith(LOCAL_MUSIC_PREFIX)) {
+            loadLocalDemoMusic(musicId)
+        } else loadCopyrightedMusic(musicId)
+    }
+
+    private fun loadLocalDemoMusic(musicId: String) {
         val musicInfo = findSongInCatalog(musicId) ?: return
-        val params = TXChorusExternalMusicParams().apply {
+        val params = TXChorusMusicPlayer.TXChorusExternalMusicParams().apply {
             this.musicId = musicInfo.musicId
             musicUrl = musicInfo.originalUrl
             accompanyUrl = musicInfo.accompanyUrl
@@ -168,14 +228,60 @@ class KaraokeStore private constructor(private val context: Context) {
         chorusPlayer?.loadExternalMusic(params)
     }
 
+    private fun loadCopyrightedMusic(musicId: String) {
+        musicCatalogService?.queryPlayToken(musicId, userId, object : QueryPlayTokenCallBack {
+            override fun onSuccess(
+                musicId: String,
+                playToken: String,
+                copyrightedLicenseKey: String?,
+                copyrightedLicenseUrl: String?,
+            ) {
+                val params = TXChorusMusicPlayer.TXChorusCopyrightedMusicParams().apply {
+                    this.musicId = musicId
+                    this.playToken = playToken
+                    this.copyrightedLicenseKey = copyrightedLicenseKey
+                    this.copyrightedLicenseUrl = copyrightedLicenseUrl
+                }
+                chorusPlayer?.loadMusic(params)
+            }
+
+            override fun onFailure(code: Int, desc: String) {
+                onKaraokeError(code, desc)
+            }
+        })
+    }
+
+    fun loadMusicCatalog() {
+        musicCatalogService?.getSongList(object : GetSongListCallBack {
+            override fun onSuccess(songList: List<MusicInfo>) {
+                _songCatalog.postValue(songList)
+            }
+
+            override fun onFailure(code: Int, desc: String) {
+                onKaraokeError(code, desc)
+            }
+        })
+    }
+
     fun setChorusRole(roomId: String, chorusRole: TXChorusRole) {
-        val params = TRTCParams().apply {
-            sdkAppId = GenerateTestUserSig.SDKAPPID
-            strRoomId = roomId
-            userId = "${roomId}_bgm"
-            userSig = GenerateTestUserSig.genTestUserSig(userId)
-        }
-        chorusPlayer?.setChorusRole(chorusRole, params)
+        val robotID = "${roomId}_bgm"
+        musicCatalogService?.generateUserSig(robotID, object : ActionCallback {
+            override fun onSuccess(robotSig: String) {
+                val params = TRTCParams().apply {
+                    this.sdkAppId = TUILogin.getSdkAppId()
+                    strRoomId = roomId
+                    userId = robotID
+                    userSig = robotSig
+                }
+                chorusPlayer?.setChorusRole(chorusRole, params)
+            }
+
+            override fun onFailed(code: Int, msg: String?) {
+                onKaraokeError(code, msg)
+            }
+
+        })
+
     }
 
     fun startPlayback() {
@@ -204,8 +310,10 @@ class KaraokeStore private constructor(private val context: Context) {
     }
 
     fun switchMusicTrack(trackType: TXChorusMusicPlayer.TXChorusMusicTrack) {
-        chorusPlayer?.switchMusicTrack(trackType)
-        _currentAudioTrack.value = trackType
+        if (isRoomOwner.value == true) {
+            chorusPlayer?.switchMusicTrack(trackType)
+            _currentAudioTrack.value = trackType
+        }
     }
 
     fun setPlayoutVolume(volume: Int?) {
@@ -229,86 +337,104 @@ class KaraokeStore private constructor(private val context: Context) {
         }
     }
 
-    fun addSongToQueue(music: MusicSelection) {
-        val musicId = music.musicId
-        val isAlreadyOrdered = _songQueue.value.orEmpty().any { it.musicId == musicId }
-        val isAlreadyPending = _pendingSongAdds.value.orEmpty().contains(musicId)
+    fun addSong(song: SongInfo) {
+        songListManager.addSong(listOf(song), object : TUIRoomDefine.ActionCallback {
+            override fun onSuccess() {
+            }
 
-        if (isAlreadyOrdered || isAlreadyPending) {
+            override fun onError(
+                code: TUICommonDefine.Error?,
+                message: String?,
+            ) {
+                onKaraokeError(code?.value, message)
+            }
+
+        })
+    }
+
+    fun removeSong(song: SongInfo) {
+        songListManager.removeSong(listOf(song.songId), object : TUIRoomDefine.ActionCallback {
+            override fun onSuccess() {
+            }
+
+            override fun onError(
+                code: TUICommonDefine.Error?,
+                message: String?,
+            ) {
+                onKaraokeError(code?.value, message)
+            }
+
+        })
+    }
+
+    fun clearAllSongs() {
+        val currentQueue = _songQueue.value.orEmpty()
+        if (currentQueue.isEmpty()) {
             return
         }
+        songListManager.removeSong( currentQueue.map { it.songId }, object : TUIRoomDefine.ActionCallback {
+            override fun onSuccess() {
+            }
 
-        val newPendingSet = _pendingSongAdds.value.orEmpty().toMutableSet()
-        newPendingSet.add(musicId)
-        _pendingSongAdds.postValue(newPendingSet)
-
-        if (_songQueue.value.orEmpty().isEmpty()) {
-            loadLocalDemoSong(musicId)
-        }
-
-        val updatedList = _songQueue.value.orEmpty() + music
-        updateRemoteSongQueue(updatedList, musicId)
+            override fun onError(
+                code: TUICommonDefine.Error?,
+                message: String?,
+            ) {
+                onKaraokeError(code?.value, message)
+            }
+        })
     }
 
-    fun removeSongFromQueue(music: MusicSelection) {
-        val updatedList = _songQueue.value.orEmpty().filter { it.musicId != music.musicId }
-        updateRemoteSongQueue(updatedList)
+    fun setNextSong(targetSongId: String) {
+        songListManager.setNextSong(targetSongId, object : TUIRoomDefine.ActionCallback {
+            override fun onSuccess() {
+            }
+
+            override fun onError(
+                code: TUICommonDefine.Error?,
+                message: String?,
+            ) {
+                onKaraokeError(code?.value, message)
+            }
+        })
     }
 
-    fun playSongNext(music: MusicSelection) {
-        val currentList = _songQueue.value.orEmpty().toMutableList()
-        currentList.removeAll { it.musicId == music.musicId }
-        val insertIndex = if (currentList.isNotEmpty()) 1 else 0
-        currentList.add(insertIndex, music)
-        updateRemoteSongQueue(currentList)
-    }
-
-    fun playNextSongInQueue() {
-        if (_isRoomOwner.value == false) return
-        if (_playbackState.value != PlaybackState.STOP && _playbackState.value != PlaybackState.IDLE) {
-            stopPlayback()
-        }
+    fun playNextSong() {
         val currentQueue = _songQueue.value.orEmpty()
-        val updatedQueue = currentQueue.drop(1)
-        updateRemoteSongQueue(updatedQueue)
-        updatedQueue.firstOrNull()?.let {
-            loadLocalDemoSong(it.musicId)
+        if (currentQueue.isEmpty()) {
+            Log.d(TAG, "playNextSong: song queue is empty, skip playNextSong")
+            _playbackState.value = PlaybackState.IDLE
+            return
         }
+        if (_isSwitchingToNext) {
+            Log.d(TAG, "playNextSong: already switching, skip")
+            return
+        }
+        _isSwitchingToNext = true
+        Log.d(TAG, "playNextSong: start switching to next song")
+
+        songListManager.playNextSong(object : TUIRoomDefine.ActionCallback {
+            override fun onSuccess() {
+                Log.d(TAG, "playNextSong: SDK playNextSong success")
+            }
+
+            override fun onError(
+                code: TUICommonDefine.Error?,
+                message: String?,
+            ) {
+                Log.e(TAG, "playNextSong: SDK playNextSong error: $message")
+                _isSwitchingToNext = false
+                onKaraokeError(code?.value, message)
+            }
+        })
     }
 
     fun setIsDisplayScoreView(isDisplay: Boolean) {
         isAwaitingScoreDisplay = isDisplay
     }
 
-    fun updateRemoteSongQueue(list: List<MusicSelection>, musicIdBeingAdded: String? = null) {
-        if (isRoomOwner.value != true) {
-            if (musicIdBeingAdded != null) {
-                val currentPending = _pendingSongAdds.value.orEmpty().toMutableSet()
-                if (currentPending.remove(musicIdBeingAdded)) {
-                    _pendingSongAdds.postValue(currentPending)
-                }
-            }
-            return
-        }
-
-        val metadata = hashMapOf(KEY_PLAY_QUEUE to gson.toJson(list))
-        TUIRoomEngine.sharedInstance()
-            .setRoomMetadataByAdmin(metadata, object : TUIRoomDefine.ActionCallback {
-                override fun onSuccess() {
-                }
-
-                override fun onError(
-                    error: TUICommonDefine.Error?,
-                    message: String?,
-                ) {
-                    if (musicIdBeingAdded != null) {
-                        val currentPending = _pendingSongAdds.value.orEmpty().toMutableSet()
-                        if (currentPending.remove(musicIdBeingAdded)) {
-                            _pendingSongAdds.postValue(currentPending)
-                        }
-                    }
-                }
-            })
+    fun setFullScreenUIMode(isFullScreen: Boolean) {
+        this.isFullScreenUIMode = isFullScreen
     }
 
     fun updatePlaybackStatus(state: PlaybackState) {
@@ -318,7 +444,7 @@ class KaraokeStore private constructor(private val context: Context) {
     }
 
     fun setScoringEnabled(enable: Boolean) {
-        _isScoringEnabled.value = enable
+        _enableScore.value = enable
         val metadata = hashMapOf(KEY_ENABLE_SCORE to enable.toString())
         TUIRoomEngine.sharedInstance().setRoomMetadataByAdmin(metadata, null)
     }
@@ -328,7 +454,6 @@ class KaraokeStore private constructor(private val context: Context) {
     }
 
     private fun setupChorusPlayer(roomId: String) {
-        TUIRoomEngine.sharedInstance().addObserver(roomEngineObserver)
         chorusPlayer = TXChorusMusicPlayer.create(trtcCloud, roomId, chorusMusicObserver)
         val role = if (_isRoomOwner.value == true) {
             TXChorusRole.TXChorusRoleLeadSinger
@@ -338,36 +463,59 @@ class KaraokeStore private constructor(private val context: Context) {
         setChorusRole(roomId, role)
     }
 
-    private fun initializeAudioSettings() {
-        setPlayoutVolume(playoutVolume.value)
-        setPublishVolume(publishVolume.value)
-        setMusicPitch(songPitch.value)
-        applyDefaultAudioEffects()
+    private fun getWaitingList() {
+        val allSongsAccumulator = mutableListOf<SongInfo>()
+        fetchNextPage(null, allSongsAccumulator)
+    }
+
+    private fun fetchNextPage(cursor: String?, currentAccumulator: MutableList<SongInfo>) {
+        val count = 20
+        songListManager.getWaitingList(cursor, count, object : TUISongListManager.SongListCallback {
+            override fun onSuccess(result: SongListResult?) {
+                if (result == null) {
+                    _songQueue.value = currentAccumulator
+                    return
+                }
+                if (!result.songList.isNullOrEmpty()) {
+                    currentAccumulator.addAll(result.songList)
+                }
+                val nextCursor = result.cursor
+                val hasMoreData = !nextCursor.isNullOrEmpty()
+
+                if (hasMoreData) {
+                    fetchNextPage(nextCursor, currentAccumulator)
+                } else {
+                    Log.i(TAG, "finished fetching all songs. total count: ${currentAccumulator.size}")
+                    _songQueue.value = currentAccumulator
+                }
+            }
+
+            override fun onError(code: TUICommonDefine.Error?, msg: String?) {
+                onKaraokeError(code?.value, msg)
+            }
+        })
     }
 
     private fun fetchRoomMetadata() {
         TUIRoomEngine.sharedInstance().getRoomMetadata(
-            listOf(KEY_PLAY_QUEUE, KEY_ENABLE_SCORE, KEY_ENABLE_REQUEST_MUSIC),
-            object : GetRoomMetadataCallback {
+            listOf(KEY_ENABLE_SCORE, KEY_ENABLE_REQUEST_MUSIC), object : GetRoomMetadataCallback {
                 override fun onSuccess(map: HashMap<String?, String?>?) {
                     map?.let {
                         if (isRoomOwner.value == true) {
-                            if (_songQueue.value?.isNotEmpty() == true) {
-                                updateRemoteSongQueue(emptyList())
-                            }
-                            if (_isScoringEnabled.value == true) {
-                                setScoringEnabled(false)
+                            if (_enableScore.value == false) {
+                                setScoringEnabled(true)
                             }
                         } else {
-                            _songQueue.value = parsePlayQueue(it)
-                            _isScoringEnabled.value = it[KEY_ENABLE_SCORE]?.toBoolean() ?: false
+                            _enableScore.value = it[KEY_ENABLE_SCORE]?.toBoolean() ?: true
                             _isDisplayFloatView.value =
                                 it[KEY_ENABLE_REQUEST_MUSIC]?.toBoolean() ?: true
                         }
                     }
                 }
 
-                override fun onError(error: TUICommonDefine.Error?, message: String?) {}
+                override fun onError(error: TUICommonDefine.Error?, message: String) {
+                    onError(error, message)
+                }
             })
     }
 
@@ -377,6 +525,117 @@ class KaraokeStore private constructor(private val context: Context) {
 
     private fun findSongLyricPath(musicId: String): String {
         return _songCatalog.value?.find { it.musicId == musicId }?.lyricUrl ?: ""
+    }
+
+    private fun getSongInfoById(musicId: String): SongInfo {
+        val songInQueue = _songQueue.value?.find { it.songId == musicId }
+        if (songInQueue != null) {
+            return songInQueue
+        }
+        return SongInfo().apply {
+            this.songId = musicId
+        }
+    }
+
+    private val songListObserver: TUISongListManager.Observer =
+        object : TUISongListManager.Observer() {
+            override fun onWaitingListChanged(
+                reason: SongListChangeReason?,
+                changedSongs: MutableList<SongInfo?>?,
+            ) {
+                updateSongQueue(reason, changedSongs)
+                handlePlayOperation(reason, changedSongs)
+            }
+        }
+
+    private fun updateSongQueue(
+        reason: SongListChangeReason?,
+        changedSongs: MutableList<SongInfo?>?,
+    ) {
+        val currentQueue = _songQueue.value.orEmpty().toMutableList()
+        if (reason == null || changedSongs.isNullOrEmpty()) {
+            return
+        }
+        Log.d(
+            TAG,
+            "onWaitingListChanged, reason: ${reason.name}, changedSongs: ${changedSongs.joinToString { it.toString() }}"
+        )
+        when (reason) {
+            SongListChangeReason.ADD -> {
+                changedSongs.filterNotNull().forEach { newSong ->
+                    if (currentQueue.none { it.songId == newSong.songId }) {
+                        currentQueue.add(newSong)
+                    }
+                }
+            }
+
+            SongListChangeReason.REMOVE -> {
+                val removeSongIds = changedSongs.filterNotNull().map { it.songId }
+                val songsToRemove = currentQueue.filter { it.songId in removeSongIds }
+                currentQueue.removeAll(songsToRemove)
+            }
+
+            SongListChangeReason.ORDER_CHANGED -> {
+                val songToMoveUp = changedSongs.filterNotNull().firstOrNull()
+                if (songToMoveUp == null) {
+                    return
+                }
+                currentQueue.removeAll { it.songId == songToMoveUp.songId }
+                val targetIndex = minOf(1, currentQueue.size)
+                currentQueue.add(targetIndex, songToMoveUp)
+                _songQueue.postValue(currentQueue)
+                return
+            }
+
+            SongListChangeReason.UNKNOWN -> {
+                val newQueue = changedSongs.filterNotNull()
+                _songQueue.postValue(newQueue)
+                return
+            }
+        }
+        _songQueue.value = currentQueue
+
+        val currentPlayingId = _currentPlayingSong.value?.songId
+        if (!currentPlayingId.isNullOrEmpty()) {
+
+            val songInNewQueue = currentQueue.find { it.songId == currentPlayingId }
+            if (songInNewQueue != null) {
+                _currentPlayingSong.postValue(songInNewQueue)
+                Log.d(TAG, "Sync current playing info from new queue: ${songInNewQueue.songName}")
+            }
+        }
+        Log.d(TAG, "onWaitingListChanged, new songQueue: " + gson.toJson(songQueue.value))
+    }
+
+    private fun handlePlayOperation(
+        reason: SongListChangeReason?,
+        changedSongs: MutableList<SongInfo?>?,
+    ) {
+        if (reason == null || changedSongs.isNullOrEmpty()) {
+            return
+        }
+        when (reason) {
+            SongListChangeReason.ADD -> {
+                val isNeedLoadMusic = songQueue.value?.size == changedSongs.size
+                if (isNeedLoadMusic) loadMusicByLeadSinger()
+            }
+
+            SongListChangeReason.REMOVE -> {
+                val currentPlayingId = _currentPlayingSong.value?.songId
+                val isCurrentSongAffected = changedSongs.any { it?.songId == currentPlayingId }
+
+                if (isCurrentSongAffected && _isRoomOwner.value == true) {
+                    Log.d(TAG, "handlePlayOperation REMOVE: current song removed, isSwitchingToNext=$_isSwitchingToNext")
+                    _isCurrentSongRemoved = true
+                    stopPlayback()
+                    loadMusicByLeadSinger()
+                    _isSwitchingToNext = false
+                }
+            }
+
+            SongListChangeReason.ORDER_CHANGED, SongListChangeReason.UNKNOWN -> {
+            }
+        }
     }
 
     private val roomEngineObserver: TUIRoomObserver = object : TUIRoomObserver() {
@@ -389,30 +648,8 @@ class KaraokeStore private constructor(private val context: Context) {
 
         override fun onRoomMetadataChanged(key: String?, value: String?) {
             when (key) {
-                KEY_PLAY_QUEUE -> {
-                    try {
-                        val type = object : TypeToken<List<MusicSelection>>() {}.type
-                        val newList: List<MusicSelection> = gson.fromJson(value ?: "[]", type)
-
-                        _songQueue.value = newList
-                        _currentPlayingSong.value = updateCurrentPlayingSong()
-
-                        val currentPending = _pendingSongAdds.value.orEmpty()
-                        if (currentPending.isNotEmpty()) {
-                            val orderedIds = newList.map { it.musicId }.toSet()
-                            val newPending =
-                                currentPending.filterNot { orderedIds.contains(it) }.toSet()
-                            if (newPending.size != currentPending.size) {
-                                _pendingSongAdds.value = newPending
-                            }
-                        }
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                    }
-                }
-
                 KEY_ENABLE_SCORE -> {
-                    _isScoringEnabled.value = value?.toBoolean() ?: true
+                    _enableScore.value = value?.toBoolean() ?: true
                 }
 
                 KEY_ENABLE_REQUEST_MUSIC -> {
@@ -422,12 +659,101 @@ class KaraokeStore private constructor(private val context: Context) {
         }
     }
 
-    private fun updateCurrentPlayingSong(): MusicSelection {
-        val currentMusic =
-            _songQueue.value?.find { it.musicId == currentPlayingSong.value?.musicId }
-                ?: MusicSelection()
-        return currentMusic
-    }
+    private val audioFrameListener: TRTCCloudListener.TRTCAudioFrameListener =
+        object : TRTCCloudListener.TRTCAudioFrameListener {
+
+            private var lastSentJsonData: String? = null
+            private var sendCounter = 0
+            val userIdKey = "u"
+            val pitchKey = "p"
+            val scoreKey = "s"
+            val avgScoreKey = "a"
+
+            override fun onCapturedAudioFrame(p0: TRTCCloudDef.TRTCAudioFrame?) {
+
+            }
+
+            override fun onLocalProcessedAudioFrame(frame: TRTCCloudDef.TRTCAudioFrame?) {
+                frame ?: return
+
+                if (_isRoomOwner.value != true || (_playbackState.value != PlaybackState.START && _playbackState.value != PlaybackState.RESUME)) {
+                    lastSentJsonData = null
+                    sendCounter = 0
+                    return
+                }
+
+                val dataMap = mutableMapOf<String, Any>()
+                dataMap[userIdKey] = userId
+
+                _currentPitch.value?.let { pitch -> dataMap[pitchKey] = pitch }
+                _currentScore.value?.let { score -> dataMap[scoreKey] = score }
+                _averageScore.value?.let { avgScore -> dataMap[avgScoreKey] = avgScore }
+
+                if (dataMap.size > 1) {
+                    val currentJsonString = gson.toJson(dataMap)
+                    if (currentJsonString != lastSentJsonData) {
+                        lastSentJsonData = currentJsonString
+                        sendCounter = 5
+                    }
+                }
+
+                if (sendCounter > 0 && lastSentJsonData != null) {
+                    val dataBytes = lastSentJsonData!!.toByteArray(Charsets.UTF_8)
+                    frame.extraData = dataBytes
+                    sendCounter--
+                }
+            }
+
+            override fun onRemoteUserAudioFrame(
+                frame: TRTCCloudDef.TRTCAudioFrame?,
+                userId: String?,
+            ) {
+                frame?.extraData ?: return
+                userId ?: return
+                if (frame.extraData.isEmpty()) return
+                if (ownerId == null) return
+
+                try {
+                    val jsonString = String(frame.extraData, Charsets.UTF_8)
+                    val type = object : TypeToken<Map<String, Any>>() {}.type
+                    val dataMap: Map<String, Any> = gson.fromJson(jsonString, type)
+
+                    val itemUserId = dataMap[userIdKey] as? String
+                    if (itemUserId != ownerId) {
+                        return
+                    }
+
+                    (dataMap[pitchKey] as? Double)?.toInt()?.let { pitch ->
+                        if (_hostPitch.value != pitch) {
+                            _hostPitch.postValue(pitch)
+                        }
+                    }
+
+                    (dataMap[scoreKey] as? Double)?.toInt()?.let { score ->
+                        if (_hostScore.value != score) {
+                            _hostScore.postValue(score)
+                        }
+                    }
+
+                    (dataMap[avgScoreKey] as? Double)?.toInt()?.let { avgScore ->
+                        if (_averageScore.value != avgScore) {
+                            _averageScore.postValue(avgScore)
+                        }
+                    }
+
+                } catch (e: Exception) {
+                }
+            }
+
+            override fun onMixedPlayAudioFrame(p0: TRTCCloudDef.TRTCAudioFrame?) {
+            }
+
+            override fun onMixedAllAudioFrame(p0: TRTCCloudDef.TRTCAudioFrame?) {
+            }
+
+            override fun onVoiceEarMonitorAudioFrame(p0: TRTCCloudDef.TRTCAudioFrame?) {
+            }
+        }
 
     private val chorusMusicObserver: TXChorusMusicPlayer.ITXChorusPlayerListener =
         object : TXChorusMusicPlayer.ITXChorusPlayerListener {
@@ -436,25 +762,40 @@ class KaraokeStore private constructor(private val context: Context) {
                 lyricList: List<TXChorusMusicPlayer.TXLyricLine>,
                 pitchList: List<TXChorusMusicPlayer.TXReferencePitch>,
             ) {
-                if (musicId.startsWith(KEY_LOCAL_DEMO)) {
+                val queueFirst = _songQueue.value?.firstOrNull()
+                if (queueFirst != null && queueFirst.songId != musicId) {
+                    loadMusicByLeadSinger()
+                    return
+                }
+
+                if (musicId.startsWith(LOCAL_MUSIC_PREFIX)) {
                     val musicPathTest = findSongLyricPath(musicId)
                     _songLyrics.value = LyricsFileReader().parseLyricInfo(musicPathTest)
                 } else {
                     _songLyrics.value = lyricList
-                    _songPitchData.value = pitchList
+                    _pitchList.value = pitchList
                 }
+                _currentScore.postValue(-1)
+                _averageScore.postValue(0)
+                _hostPitch.postValue(0)
+                _hostScore.postValue(-1)
+                _currentPitch.postValue(0)
+                _currentPlayingSong.postValue(getSongInfoById(musicId))
+                _loadingMusicId = null
+                _isCurrentSongRemoved = false
                 startPlayback()
-                _currentPlayingSong.value = MusicSelection(musicId = musicId)
             }
 
             override fun onChorusError(error: TXChorusMusicPlayer.TXChorusError, errMsg: String) {
-                Log.e("KaraokeStore", "onChorusError, error is: $error, errMsg: $errMsg")
+                if (error == TXChorusMusicPlayer.TXChorusError.TXChorusErrorMusicLoadFailed) {
+                    onKaraokeError(error.ordinal, errMsg)
+                }
             }
 
             override fun onNetworkQualityUpdated(userId: Int, upQuality: Int, downQuality: Int) {}
 
             override fun onChorusRequireLoadMusic(musicId: String) {
-                loadLocalDemoSong(musicId)
+                loadMusic(musicId)
             }
 
             override fun onChorusMusicLoadProgress(musicId: String, progress: Float) {}
@@ -479,9 +820,21 @@ class KaraokeStore private constructor(private val context: Context) {
             }
 
             override fun onChorusStopped() {
+                Log.d(TAG, "onChorusStopped: isManualStop=$_isManualStop, isSwitchingToNext=$_isSwitchingToNext, isCurrentSongRemoved=$_isCurrentSongRemoved")
+
                 if (_isManualStop) {
                     _isManualStop = false
                     _playbackState.value = PlaybackState.IDLE
+                    return
+                }
+                if (_isCurrentSongRemoved) {
+                    Log.d(TAG, "onChorusStopped: current song already removed, skip playNextSong")
+                    _playbackState.value = PlaybackState.STOP
+                    return
+                }
+                if (_isSwitchingToNext) {
+                    Log.d(TAG, "onChorusStopped: switching in progress, skip playNextSong")
+                    _playbackState.value = PlaybackState.STOP
                     return
                 }
                 if (_isRoomOwner.value == false && _songQueue.value.orEmpty().isEmpty()) {
@@ -492,25 +845,26 @@ class KaraokeStore private constructor(private val context: Context) {
                     enableReverb(false)
                 }
                 _playbackState.value = PlaybackState.STOP
-                if (isAwaitingScoreDisplay && _isScoringEnabled.value == true) {
+                val shouldDelayForScore =
+                    isFullScreenUIMode && isAwaitingScoreDisplay && enableScore.value == true
+
+                if (shouldDelayForScore) {
                     mainHandler.postDelayed({
                         _songQueue.value?.size?.let {
                             if (it <= 1) {
                                 _playbackState.value = PlaybackState.IDLE
                             }
-                            playNextSongInQueue()
+                            playNextSong()
                         }
                     }, 5000)
                 } else {
-                    playNextSongInQueue()
+                    playNextSong()
                 }
             }
 
             override fun onMusicProgressUpdated(progressMs: Long, durationMs: Long) {
                 _playbackProgressMs.value = progressMs
-                if (durationMs != songDurationMs.value) {
-                    _songDurationMs.value = durationMs
-                }
+                _songDurationMs.value = durationMs
                 if (isRoomOwner.value == false) {
                     if (isAwaitingScoreDisplay && progressMs / 1000 != durationMs / 1000) {
                         isAwaitingScoreDisplay = false
@@ -520,35 +874,23 @@ class KaraokeStore private constructor(private val context: Context) {
                 }
             }
 
-            override fun onVoicePitchUpdated(pitch: Int, hasVoice: Boolean, progressMs: Long) {}
+            override fun onVoicePitchUpdated(pitch: Int, hasVoice: Boolean, progressMs: Long) {
+                _currentPitch.value = if (pitch == -1) 0 else pitch
+            }
 
             override fun onVoiceScoreUpdated(
                 currentScore: Int,
                 averageScore: Int,
                 currentLine: Int,
             ) {
+                _currentScore.value = currentScore
+                _averageScore.value = averageScore
             }
 
-            override fun shouldDecryptAudioData(audioData: ByteBuffer) {}
-        }
+            override fun shouldDecryptAudioData(audioData: ByteBuffer) {
 
-    private fun parsePlayQueue(map: Map<String?, String?>): List<MusicSelection> {
-        val json = map[KEY_PLAY_QUEUE]
-        if (json.isNullOrEmpty()) {
-            return emptyList()
+            }
         }
-        return try {
-            val type = object : TypeToken<List<MusicSelection>>() {}.type
-            gson.fromJson(json, type)
-        } catch (e: Exception) {
-            e.printStackTrace()
-            emptyList()
-        }
-    }
-
-    private fun parseEnableScore(map: HashMap<String?, String?>): Boolean {
-        return map[KEY_ENABLE_SCORE]?.toBoolean() ?: false
-    }
 
     private fun applyDefaultAudioEffects() {
         enableDsp()
@@ -567,9 +909,7 @@ class KaraokeStore private constructor(private val context: Context) {
         val params = mapOf(
             "configs" to listOf(
                 mapOf(
-                    "key" to "Liteav.Audio.common.dsp.version",
-                    "value" to "2",
-                    "default" to "1"
+                    "key" to "Liteav.Audio.common.dsp.version", "value" to "2", "default" to "1"
                 )
             )
         )
@@ -645,35 +985,6 @@ class KaraokeStore private constructor(private val context: Context) {
         callTRTCExperimentalApi("setCustomReverbParams", params)
     }
 
-    private fun loadLocalSongCatalog() {
-        val localPath =
-            ContextCompat.getExternalFilesDirs(context, null)[0].absolutePath + "/"
-
-        val songData = listOf(
-            Triple("${KEY_LOCAL_DEMO}1004", "暖暖", "梁静茹")
-        )
-
-        val songInfoMap = mapOf(
-            "暖暖" to Triple(R.drawable.karaoke_song_cover, 4 * 60 + 3, "nuannuan")
-        )
-
-        val musicList = songData.mapNotNull { (id, name, artist) ->
-            songInfoMap[name]?.let { (cover, duration, filePrefix) ->
-                MusicInfo().apply {
-                    musicId = id
-                    musicName = name
-                    this.artist = mutableListOf(artist)
-                    coverUrl = cover
-                    this.duration = duration
-                    lyricUrl = "${localPath}${filePrefix}_lrc.vtt"
-                    originalUrl = "${localPath}${filePrefix}_yc.mp3"
-                    accompanyUrl = "${localPath}${filePrefix}_bz.mp3"
-                }
-            }
-        }
-        _songCatalog.value = musicList
-    }
-
 
     private fun copyAllAssetsToStorage() {
         val assetFiles = listOf(
@@ -695,6 +1006,22 @@ class KaraokeStore private constructor(private val context: Context) {
             }
         } catch (e: Exception) {
             e.printStackTrace()
+        }
+    }
+
+    private fun onKaraokeError(code: Int?, desc: String?) {
+        val errorCode = code ?: -1
+        val errorMessage = desc ?: "Unknown error"
+        Log.e(TAG, "errorCode: $errorCode, errorMessage: $errorMessage")
+
+        mainHandler.post {
+            if (errorMessage == "Music load failed") {
+                playNextSong()
+                val content = context.getString(R.string.karaoke_music_loading_error)
+                AtomicToast.show(context,"$content ($errorCode)", AtomicToast.Style.ERROR)
+            } else {
+                AtomicToast.show(context,"$errorMessage ($errorCode)", AtomicToast.Style.ERROR)
+            }
         }
     }
 }

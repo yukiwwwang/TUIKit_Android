@@ -7,15 +7,15 @@ import android.view.LayoutInflater
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
-import com.tencent.cloud.tuikit.engine.room.TUIRoomDefine
-import com.tencent.cloud.tuikit.engine.room.TUIRoomDefine.DeviceStatus.OPENED
 import com.trtc.uikit.livekit.R
 import com.trtc.uikit.livekit.common.LiveKitLogger
-import com.trtc.uikit.livekit.features.anchorboardcast.manager.AnchorManager
+import com.trtc.uikit.livekit.features.anchorboardcast.store.AnchorStore
 import com.trtc.uikit.livekit.features.anchorboardcast.view.BasicView
+import io.trtc.tuikit.atomicxcore.api.device.DeviceStatus
 import io.trtc.tuikit.atomicxcore.api.live.CoGuestStore
 import io.trtc.tuikit.atomicxcore.api.live.CoHostStore
 import io.trtc.tuikit.atomicxcore.api.live.LiveListStore
+import io.trtc.tuikit.atomicxcore.api.live.SeatInfo
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -31,11 +31,11 @@ class CoHostForegroundWidgetsView @JvmOverloads constructor(
     private lateinit var layoutUserInfo: LinearLayout
     private lateinit var textName: TextView
     private lateinit var imageMuteAudio: ImageView
-    private var state = TUIRoomDefine.SeatFullInfo()
+    private var state = SeatInfo()
     private var subscribeStateJob: Job? = null
 
-    fun init(manager: AnchorManager, seatInfo: TUIRoomDefine.SeatFullInfo) {
-        logger.info("init userId:${seatInfo.userId},roomId:${seatInfo.roomId}")
+    fun init(manager: AnchorStore, seatInfo: SeatInfo) {
+        logger.info("init userId:${seatInfo.userInfo.userID},roomId:${seatInfo.userInfo.liveID}")
         state = seatInfo
         super.init(manager)
     }
@@ -53,7 +53,7 @@ class CoHostForegroundWidgetsView @JvmOverloads constructor(
     }
 
     private fun initMuteAudioView() {
-        imageMuteAudio.visibility = if (state.userMicrophoneStatus == OPENED) GONE else VISIBLE
+        imageMuteAudio.visibility = if (state.userInfo.microphoneStatus == DeviceStatus.ON) GONE else VISIBLE
     }
 
     private fun initUserNameView() {
@@ -62,7 +62,7 @@ class CoHostForegroundWidgetsView @JvmOverloads constructor(
         } else {
             layoutUserInfo.visibility = GONE
         }
-        textName.text = if (TextUtils.isEmpty(state.userName)) state.userId else state.userName
+        textName.text = if (TextUtils.isEmpty(state.userInfo.userName)) state.userInfo.userID else state.userInfo.userName
     }
 
     override fun addObserver() {
@@ -112,6 +112,9 @@ class CoHostForegroundWidgetsView @JvmOverloads constructor(
 
     private fun isShowUserInfo(): Boolean {
         val currentLiveId = LiveListStore.shared().liveState.currentLive.value.liveID
+        if (currentLiveId.isEmpty()) {
+            return false
+        }
         if (CoHostStore.create(currentLiveId).coHostState.connected.value.size > 1) {
             return true
         }

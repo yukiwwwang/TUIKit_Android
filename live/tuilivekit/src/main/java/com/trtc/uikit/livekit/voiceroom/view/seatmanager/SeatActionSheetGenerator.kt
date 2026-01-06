@@ -2,22 +2,16 @@ package com.trtc.uikit.livekit.voiceroom.view.seatmanager
 
 import android.content.Context
 import android.text.TextUtils
-import com.tencent.cloud.tuikit.engine.common.TUICommonDefine
 import com.tencent.cloud.tuikit.engine.room.TUIRoomDefine
 import com.tencent.cloud.tuikit.engine.room.TUIRoomEngine
-import com.tencent.qcloud.tuicore.TUIConfig
-import com.tencent.qcloud.tuicore.util.ToastUtil
 import com.trtc.uikit.livekit.R
 import com.trtc.uikit.livekit.common.ErrorLocalized
 import com.trtc.uikit.livekit.common.completionHandler
 import com.trtc.uikit.livekit.voiceroom.manager.VoiceRoomManager
 import io.trtc.tuikit.atomicxcore.api.live.CoGuestStore
-import io.trtc.tuikit.atomicxcore.api.live.GuestListener
 import io.trtc.tuikit.atomicxcore.api.live.LiveListStore
 import io.trtc.tuikit.atomicxcore.api.live.LiveSeatStore
-import io.trtc.tuikit.atomicxcore.api.live.LiveUserInfo
 import io.trtc.tuikit.atomicxcore.api.live.MoveSeatPolicy
-import io.trtc.tuikit.atomicxcore.api.live.NoResponseReason
 import io.trtc.tuikit.atomicxcore.api.live.TakeSeatMode
 
 class SeatActionSheetGenerator(
@@ -30,31 +24,8 @@ class SeatActionSheetGenerator(
     private val coGuestStore = CoGuestStore.create(liveListStore.liveState.currentLive.value.liveID)
     private var seatInvitationDialog: SeatInvitationDialog? = null
     private var userManagerDialog: UserManagerDialog? = null
-    private val guestListener = object : GuestListener() {
-        override fun onGuestApplicationResponded(isAccept: Boolean, hostUser: LiveUserInfo) {
-            if (isAccept) return
-            voiceRoomManager?.viewStore?.updateTakeSeatState(false)
-            ToastUtil.toastShortMessage(
-                TUIConfig.getAppContext()
-                    .getString(R.string.common_voiceroom_take_seat_rejected)
-            )
-        }
-
-        override fun onGuestApplicationNoResponse(reason: NoResponseReason) {
-            voiceRoomManager?.viewStore?.updateTakeSeatState(false)
-            if (reason != NoResponseReason.TIMEOUT) return
-            ToastUtil.toastShortMessage(
-                TUIConfig.getAppContext().getString(R.string.common_voiceroom_take_seat_timeout)
-            )
-        }
-    }
-
-    init {
-        coGuestStore.addGuestListener(guestListener)
-    }
 
     fun destroy() {
-        coGuestStore.removeGuestListener(guestListener)
         userManagerDialog?.dismiss()
     }
 
@@ -180,7 +151,7 @@ class SeatActionSheetGenerator(
                 completionHandler {
                     onError { code, _ ->
                         ErrorLocalized.onError(
-                            TUICommonDefine.Error.fromInt(code)
+                            code
                         )
                     }
                 })
@@ -194,7 +165,7 @@ class SeatActionSheetGenerator(
                     voiceRoomManager?.viewStore?.updateTakeSeatState(false)
                 }
                 ErrorLocalized.onError(
-                    TUICommonDefine.Error.fromInt(code)
+                    code
                 )
             }
         })
@@ -208,7 +179,7 @@ class SeatActionSheetGenerator(
             completionHandler {
                 onError { code, _ ->
                     ErrorLocalized.onError(
-                        TUICommonDefine.Error.fromInt(code)
+                        code
                     )
                 }
             }

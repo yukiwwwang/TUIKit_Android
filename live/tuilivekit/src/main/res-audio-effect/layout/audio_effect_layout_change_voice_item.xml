@@ -15,11 +15,11 @@
         android:background="@drawable/audio_effect_settings_item_not_select_background"
         android:padding="13dp"/>
 
-    <TextView
+    <io.trtc.tuikit.atomicx.widget.basicwidget.label.AtomicLabel
         android:id="@+id/tv_title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="2dp"
-        android:textColor="@color/common_design_standard_g6"
-        android:textSize="12sp" />
+        android:textColor="@color/text_color_primary"
+        android:textSize="@dimen/text_size_12" />
 </LinearLayout>

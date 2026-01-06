@@ -5,7 +5,6 @@
     android:layout_height="wrap_content"
     android:paddingTop="20dp"
     android:paddingBottom="20dp"
-    android:background="@drawable/audio_effect_dialog_background"
     android:orientation="vertical">
 
     <RelativeLayout
@@ -15,13 +14,13 @@
         android:layout_marginEnd="24dp"
         android:layout_marginBottom="10dp">
 
-        <TextView
+        <io.trtc.tuikit.atomicx.widget.basicwidget.label.AtomicLabel
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_centerInParent="true"
             android:text="@string/common_audio_effect_settings"
-            android:textColor="@color/common_design_standard_g7"
-            android:textSize="16sp" />
+            android:textColor="@color/text_color_primary"
+            android:textSize="@dimen/text_size_16" />
 
         <TextView
             android:id="@+id/tv_finish"
@@ -49,14 +48,16 @@
             android:paddingStart="24dp"
             android:paddingEnd="24dp">
 
-            <TextView
+            <io.trtc.tuikit.atomicx.widget.basicwidget.label.AtomicLabel
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_alignParentStart="true"
                 android:layout_centerVertical="true"
                 android:text="@string/common_ear_return"
-                android:textColor="@color/common_not_standard_white"
-                android:textSize="16sp" />
+                android:layout_toStartOf="@id/sc_enable_ear"
+                android:layout_marginEnd="@dimen/spacing_16"
+                android:textColor="@color/text_color_primary"
+                android:textSize="@dimen/text_size_16" />
 
             <androidx.appcompat.widget.SwitchCompat
                 android:id="@+id/sc_enable_ear"
@@ -83,14 +84,16 @@
             android:paddingStart="24dp"
             android:paddingEnd="24dp">
 
-            <TextView
+            <io.trtc.tuikit.atomicx.widget.basicwidget.label.AtomicLabel
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_alignParentStart="true"
                 android:layout_centerVertical="true"
                 android:text="@string/common_ear_return_volume"
-                android:textColor="@color/common_not_standard_white"
-                android:textSize="16sp" />
+                android:layout_toStartOf="@id/tv_ear_return_volume"
+                android:layout_marginEnd="@dimen/spacing_16"
+                android:textColor="@color/text_color_primary"
+                android:textSize="@dimen/text_size_16" />
 
             <SeekBar
                 android:id="@+id/sb_ear_return_volume"
@@ -116,14 +119,14 @@
         </RelativeLayout>
     </LinearLayout>
 
-    <TextView
+    <io.trtc.tuikit.atomicx.widget.basicwidget.label.AtomicLabel
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
         android:layout_marginTop="20dp"
         android:text="@string/common_audio_settings"
-        android:textColor="@color/common_design_standard_g7"
-        android:textSize="14sp" />
+        android:textColor="@color/text_color_secondary"
+        android:textSize="@dimen/text_size_14" />
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -140,15 +143,16 @@
             android:paddingStart="24dp"
             android:paddingEnd="24dp">
 
-            <TextView
+            <io.trtc.tuikit.atomicx.widget.basicwidget.label.AtomicLabel
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_alignParentStart="true"
                 android:layout_centerVertical="true"
                 android:text="@string/common_people_volume"
-                android:textColor="@color/common_not_standard_white"
-                android:textSize="16sp" />
-
+                android:layout_toStartOf="@id/tv_people_volume"
+                android:layout_marginEnd="@dimen/spacing_16"
+                android:textColor="@color/text_color_primary"
+                android:textSize="@dimen/text_size_16" />
 
             <SeekBar
                 android:id="@+id/sb_people_volume"
@@ -174,14 +178,14 @@
         </RelativeLayout>
     </LinearLayout>
 
-    <TextView
+    <io.trtc.tuikit.atomicx.widget.basicwidget.label.AtomicLabel
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
         android:layout_marginTop="20dp"
         android:text="@string/common_change_voice"
-        android:textColor="@color/common_design_standard_g7"
-        android:textSize="14sp" />
+        android:textColor="@color/text_color_secondary"
+        android:textSize="@dimen/text_size_14" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rv_change_voice"
@@ -191,14 +195,14 @@
         android:layout_marginTop="10dp"
         android:layout_marginEnd="16dp" />
 
-    <TextView
+    <io.trtc.tuikit.atomicx.widget.basicwidget.label.AtomicLabel
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
         android:layout_marginTop="20dp"
         android:text="@string/common_reverb"
-        android:textColor="@color/common_design_standard_g7"
-        android:textSize="14sp" />
+        android:textColor="@color/text_color_secondary"
+        android:textSize="@dimen/text_size_14" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rv_reverb"

@@ -6,9 +6,9 @@ import android.view.View
 import android.widget.TextView
 import com.tencent.cloud.tuikit.engine.room.TUIRoomDefine
 import com.trtc.uikit.livekit.R
-import com.trtc.uikit.livekit.common.ui.PopupDialog
+import io.trtc.tuikit.atomicx.widget.basicwidget.popover.AtomicPopover
 
-class AudioModePanel(context: Context) : PopupDialog(context) {
+class AudioModePanel(context: Context) : AtomicPopover(context) {
 
     private lateinit var textDefault: TextView
     private lateinit var textSpeech: TextView
@@ -24,7 +24,7 @@ class AudioModePanel(context: Context) : PopupDialog(context) {
         val view = LayoutInflater.from(context).inflate(R.layout.network_info_audio_mode_panel, null)
         bindViewId(view)
         setClickListener()
-        setView(view)
+        setContent(view)
     }
 
     fun setAudioModeListener(audioModeListener: NetworkInfoPanel.OnAudioModeListener) {

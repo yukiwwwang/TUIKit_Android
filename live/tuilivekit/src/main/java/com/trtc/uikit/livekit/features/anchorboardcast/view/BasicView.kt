@@ -3,16 +3,16 @@ package com.trtc.uikit.livekit.features.anchorboardcast.view
 import android.content.Context
 import android.util.AttributeSet
 import android.widget.FrameLayout
-import com.trtc.uikit.livekit.features.anchorboardcast.manager.AnchorManager
-import com.trtc.uikit.livekit.features.anchorboardcast.manager.module.BattleManager
-import com.trtc.uikit.livekit.features.anchorboardcast.manager.module.CoHostManager
-import com.trtc.uikit.livekit.features.anchorboardcast.manager.module.MediaManager
-import com.trtc.uikit.livekit.features.anchorboardcast.manager.module.UserManager
-import com.trtc.uikit.livekit.features.anchorboardcast.state.AnchorState
-import com.trtc.uikit.livekit.features.anchorboardcast.state.BattleState
-import com.trtc.uikit.livekit.features.anchorboardcast.state.CoHostState
-import com.trtc.uikit.livekit.features.anchorboardcast.state.MediaState
-import com.trtc.uikit.livekit.features.anchorboardcast.state.UserState
+import com.trtc.uikit.livekit.features.anchorboardcast.store.AnchorBattleState
+import com.trtc.uikit.livekit.features.anchorboardcast.store.AnchorBattleStore
+import com.trtc.uikit.livekit.features.anchorboardcast.store.AnchorCoHostState
+import com.trtc.uikit.livekit.features.anchorboardcast.store.AnchorCoHostStore
+import com.trtc.uikit.livekit.features.anchorboardcast.store.AnchorState
+import com.trtc.uikit.livekit.features.anchorboardcast.store.AnchorStore
+import com.trtc.uikit.livekit.features.anchorboardcast.store.MediaState
+import com.trtc.uikit.livekit.features.anchorboardcast.store.MediaStore
+import com.trtc.uikit.livekit.features.anchorboardcast.store.UserState
+import com.trtc.uikit.livekit.features.anchorboardcast.store.UserStore
 
 abstract class BasicView @JvmOverloads constructor(
     context: Context,
@@ -22,32 +22,32 @@ abstract class BasicView @JvmOverloads constructor(
 
     protected val baseContext: Context = context
     protected var anchorState: AnchorState? = null
-    protected var coHostState: CoHostState? = null
-    protected var battleState: BattleState? = null
+    protected var coHostState: AnchorCoHostState? = null
+    protected var battleState: AnchorBattleState? = null
     protected var userState: UserState? = null
     protected var mediaState: MediaState? = null
-    protected var anchorManager: AnchorManager? = null
-    protected var coHostManager: CoHostManager? = null
-    protected var battleManager: BattleManager? = null
-    protected var userManager: UserManager? = null
-    protected var mediaManager: MediaManager? = null
+    protected var anchorStore: AnchorStore? = null
+    protected var anchorCoHostStore: AnchorCoHostStore? = null
+    protected var anchorBattleStore: AnchorBattleStore? = null
+    protected var userStore: UserStore? = null
+    protected var mediaStore: MediaStore? = null
     private var isAddObserver = false
 
     init {
         initView()
     }
 
-    fun init(liveStreamManager: AnchorManager) {
-        anchorManager = liveStreamManager
-        userManager = liveStreamManager.getUserManager()
-        mediaManager = liveStreamManager.getMediaManager()
-        coHostManager = liveStreamManager.getCoHostManager()
-        battleManager = liveStreamManager.getBattleManager()
-        anchorState = liveStreamManager.getState()
-        userState = liveStreamManager.getUserState()
-        mediaState = liveStreamManager.getMediaState()
-        coHostState = liveStreamManager.getCoHostState()
-        battleState = liveStreamManager.getBattleState()
+    fun init(anchorStore: AnchorStore) {
+        this@BasicView.anchorStore = anchorStore
+        userStore = anchorStore.getUserStore()
+        mediaStore = anchorStore.getMediaStore()
+        anchorCoHostStore = anchorStore.getAnchorCoHostStore()
+        anchorBattleStore = anchorStore.getAnchorBattleStore()
+        anchorState = anchorStore.getState()
+        userState = anchorStore.getUserState()
+        mediaState = anchorStore.getMediaState()
+        coHostState = anchorStore.getCoHostState()
+        battleState = anchorStore.getBattleState()
 
         refreshView()
         if (!isAddObserver) {
@@ -58,7 +58,7 @@ abstract class BasicView @JvmOverloads constructor(
 
     override fun onAttachedToWindow() {
         super.onAttachedToWindow()
-        if (anchorManager == null) {
+        if (anchorStore == null) {
             return
         }
         if (!isAddObserver) {

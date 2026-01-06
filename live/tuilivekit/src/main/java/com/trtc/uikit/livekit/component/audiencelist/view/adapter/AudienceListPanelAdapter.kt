@@ -8,16 +8,16 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
-import androidx.constraintlayout.utils.widget.ImageFilterView
 import androidx.recyclerview.widget.RecyclerView
 import com.tencent.cloud.tuikit.engine.room.TUIRoomEngine
-import com.trtc.tuikit.common.imageloader.ImageLoader
 import com.trtc.uikit.livekit.R
-import com.trtc.uikit.livekit.common.convertToUserInfo
 import com.trtc.uikit.livekit.component.audiencelist.AudienceListView
 import io.trtc.tuikit.atomicxcore.api.live.LiveAudienceState
 import io.trtc.tuikit.atomicxcore.api.live.LiveListStore
 import io.trtc.tuikit.atomicxcore.api.live.LiveUserInfo
+import io.trtc.tuikit.atomicx.widget.basicwidget.avatar.AtomicAvatar
+import io.trtc.tuikit.atomicx.widget.basicwidget.avatar.AtomicAvatar.AvatarContent
+import io.trtc.tuikit.atomicxcore.api.login.LoginStore
 import java.util.concurrent.CopyOnWriteArrayList
 
 class AudienceListPanelAdapter(
@@ -42,17 +42,15 @@ class AudienceListPanelAdapter(
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         holder.itemView.setOnClickListener {
-            onItemClickListener?.onUserItemClick(convertToUserInfo(data[position]))
+            onItemClickListener?.onUserItemClick(data[position])
         }
 
-        if (TextUtils.isEmpty(data[position].avatarURL)) {
-            holder.imageHead.setImageResource(R.drawable.audience_list_default_avatar)
-        } else {
-            ImageLoader.load(
-                context, holder.imageHead, data[position].avatarURL,
+        holder.imageHead.setContent(
+            AvatarContent.URL(
+                data[position].avatarURL,
                 R.drawable.audience_list_default_avatar
             )
-        }
+        )
 
         if (TextUtils.isEmpty(data[position].userName)) {
             holder.textName.text = data[position].userID
@@ -60,7 +58,7 @@ class AudienceListPanelAdapter(
             holder.textName.text = data[position].userName
         }
 
-        val selfUserId = TUIRoomEngine.getSelfInfo().userId
+        val selfUserId = LoginStore.shared.loginState.loginUserInfo.value?.userID ?: ""
         if (!TextUtils.isEmpty(selfUserId) && selfUserId == LiveListStore.shared().liveState.currentLive.value.liveOwner.userID) {
             holder.more.visibility = if (onItemClickListener == null) View.GONE else View.VISIBLE
         } else {
@@ -80,7 +78,7 @@ class AudienceListPanelAdapter(
     }
 
     class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        val imageHead: ImageFilterView = itemView.findViewById(R.id.iv_head)
+        val imageHead: AtomicAvatar = itemView.findViewById(R.id.iv_head)
         val textName: TextView = itemView.findViewById(R.id.tv_name)
         val textLevel: TextView = itemView.findViewById(R.id.tv_level)
         val more: ImageView = itemView.findViewById(R.id.more)

@@ -3,7 +3,7 @@
     android:layout_height="72dp"
     android:background="@color/karaoke_panel_bg">
 
-    <ImageView
+    <androidx.constraintlayout.utils.widget.ImageFilterView
         android:id="@+id/iv_cover"
         android:layout_width="48dp"
         android:layout_height="48dp"

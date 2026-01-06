@@ -5,11 +5,11 @@ import android.view.View
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.trtc.uikit.livekit.R
-import com.trtc.uikit.livekit.common.ui.PopupDialog
+import io.trtc.tuikit.atomicx.widget.basicwidget.popover.AtomicPopover
 
 class SettingsDialog(
     context: Context
-) : PopupDialog(context) {
+) : AtomicPopover(context) {
 
     private val mContext: Context = context
 
@@ -24,6 +24,6 @@ class SettingsDialog(
         recycleSettingsList.layoutManager = GridLayoutManager(mContext, adapter.itemCount)
         recycleSettingsList.addItemDecoration(SettingsListAdapter.SpaceItemDecoration(mContext))
         recycleSettingsList.adapter = adapter
-        setView(rootView)
+        setContent(rootView)
     }
 }

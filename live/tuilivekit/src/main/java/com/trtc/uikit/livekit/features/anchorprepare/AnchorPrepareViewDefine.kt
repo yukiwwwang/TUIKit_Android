@@ -1,14 +1,14 @@
 package com.trtc.uikit.livekit.features.anchorprepare
 
-import androidx.lifecycle.LiveData
 import com.trtc.uikit.livekit.R
+import kotlinx.coroutines.flow.StateFlow
 
 data class PrepareState(
-    @JvmField val coverURL: LiveData<String>,
-    @JvmField val liveMode: LiveData<LiveStreamPrivacyStatus>,
-    @JvmField val roomName: LiveData<String>,
-    @JvmField val coGuestTemplateId: LiveData<Int>,
-    @JvmField val coHostTemplateId: LiveData<Int>
+    @JvmField val coverURL: StateFlow<String>,
+    @JvmField val liveMode: StateFlow<LiveStreamPrivacyStatus>,
+    @JvmField val roomName: StateFlow<String>,
+    @JvmField val coGuestTemplateId: StateFlow<Int>,
+    @JvmField val coHostTemplateId: StateFlow<Int>
 )
 
 interface AnchorPrepareViewListener {

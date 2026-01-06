@@ -13,14 +13,13 @@
         android:layout_marginTop="20dp"
         android:background="@drawable/gift_bg_show">
 
-        <androidx.constraintlayout.utils.widget.ImageFilterView
+        <io.trtc.tuikit.atomicx.widget.basicwidget.avatar.AtomicAvatar
             android:id="@+id/iv_send_user_icon"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:layout_centerVertical="true"
             android:layout_margin="3dp"
-            android:scaleType="centerCrop"
-            app:round="20dp"/>
+            app:avatarSize="m" />
 
         <RelativeLayout
             android:id="@+id/gift_text_group"

@@ -40,6 +40,7 @@ class LyricsFileReader {
             Log.e(TAG, "Failed to parse lyric file: ${e.message}", e)
         }.getOrNull()
     }
+
     private fun parseLyricTimeLine(lineString: String): TXChorusMusicPlayer.TXLyricLine {
         val (startTime, endTime) = lineString.split(" --> ").map { dateToMilliseconds(it) }
         val lyricLine = TXChorusMusicPlayer.TXLyricLine()
@@ -49,7 +50,10 @@ class LyricsFileReader {
         return lyricLine
     }
 
-    private fun parseLyricWords(lineString: String?, lineInfo: TXChorusMusicPlayer.TXLyricLine): TXChorusMusicPlayer.TXLyricLine {
+    private fun parseLyricWords(
+        lineString: String?,
+        lineInfo: TXChorusMusicPlayer.TXLyricLine,
+    ): TXChorusMusicPlayer.TXLyricLine {
         lineString ?: return lineInfo
 
         val wordMatches = WORD_PATTERN.findAll(lineString).toList()

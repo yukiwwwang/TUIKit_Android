@@ -3,7 +3,6 @@
     android:id="@+id/root_view"
     android:layout_width="match_parent"
     android:layout_height="190dp"
-    android:background="@drawable/network_info_panel_bg"
     android:minHeight="190dp">
 
     <LinearLayout
@@ -20,14 +19,14 @@
             android:layout_height="24dp"
             android:src="@drawable/livekit_return_arrow" />
 
-        <TextView
+        <io.trtc.tuikit.atomicx.widget.basicwidget.label.AtomicLabel
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:gravity="center"
-            android:text="@string/common_setting_done"
-            android:textColor="@color/common_design_standard_flowkit_white"
-            android:textSize="16sp"
+            android:text="@string/common_template_layout"
+            android:textColor="@color/text_color_primary"
+            android:textSize="@dimen/text_size_16"
             android:textStyle="bold" />
 
         <View
@@ -58,7 +57,7 @@
                 android:layout_width="32dp"
                 android:layout_height="32dp"
                 android:layout_marginStart="10dp"
-                android:src="@drawable/livekit_voiceroom_voice_mode_layout" />
+                android:src="@drawable/livekit_karaoke_mode_voice" />
 
             <TextView
                 android:layout_width="wrap_content"
@@ -83,7 +82,7 @@
                 android:layout_width="32dp"
                 android:layout_height="32dp"
                 android:layout_marginStart="10dp"
-                android:src="@drawable/ktv_mode_icon" />
+                android:src="@drawable/livekit_karaoke_mode_ktv" />
 
             <TextView
                 android:layout_width="wrap_content"

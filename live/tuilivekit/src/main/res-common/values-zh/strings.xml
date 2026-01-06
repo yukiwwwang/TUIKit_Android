@@ -52,7 +52,7 @@
     <string name="common_end_pk_tips">当前处于PK状态，是否需要「结束PK」或「关闭直播间」</string>
     <string name="common_float_window_received_battle_invitation">收到PK邀请，可回到全屏模式后处理</string>
     <string name="common_float_window_received_connection_invitation">收到连线邀请，可回到全屏模式后处理</string>
-    <string name="common_kick_out_of_room">踢出房间</string>
+    <string name="common_kick_out_of_room">移除</string>
     <string name="common_kicked_out_of_room_by_owner">您已被踢出房间</string>
     <string name="common_more">更多</string>
     <string name="common_more_features">更多功能</string>
@@ -92,6 +92,7 @@
     <string name="live_barrage_text_hint">说点什么…</string>
     <string name="live_error_connection_notexit">邀请连线的房间不存在</string>
     <string name="live_error_connection_retry">内部错误，推荐重试一次。</string>
+    <string name="live_error_room_mismatch">房间类型不匹配，只能在相同类型房间发起连线。</string>
     <string name="livelist_loading">正在加载...</string>
     <string name="livelist_no_more_data">没有更多数据了</string>
     <string name="livelist_empty_data">请先开启一个直播间</string>
@@ -186,13 +187,14 @@
     <string name="common_set_cover">修改封面</string>
     <string name="common_end_link">断开连麦</string>
     <string name="common_end_live">结束直播</string>
+    <string name="common_exit_connect">退出连线</string>
     <string name="common_end_user">挂断</string>
     <string name="common_entered_room">进入房间</string>
     <string name="common_follow_anchor">关注</string>
     <string name="common_gift_give_gift">赠送</string>
     <string name="common_gift_title">礼物</string>
     <string name="common_hang_up">挂断</string>
-    <string name="common_kick_user_confirm_message">确认要删除%s吗?</string>
+    <string name="common_kick_user_confirm_message">确定要移除%s吗？</string>
     <string name="common_link_mic_manager">连麦管理</string>
     <string name="common_live_has_stop">直播已结束</string>
     <string name="common_more_settings">更多设置</string>
@@ -288,9 +290,14 @@
     <string name="common_video_settings_item_beauty">美颜</string>
     <string name="common_video_settings_item_flip">翻转</string>
     <string name="common_video_settings_item_mirror">镜像</string>
+    <string name="common_video_settings_item_pip">画中画</string>
+    <string name="common_pip_toggle">画中画开关</string>
+    <string name="common_pip_toggle_description">开启后，应用退后台时自动进入画中画模式</string>
     <string name="common_voiceroom_empty_view">麦位没有用户，去邀请</string>
     <string name="common_voiceroom_invite">邀请</string>
     <string name="common_voiceroom_invite_seat_canceled">上麦邀请已被取消</string>
+    <string name="common_voiceroom_invite_seat_rejected">上麦邀请已被拒绝</string>
+    <string name="common_voiceroom_invite_seat_timeout">上麦邀请超时</string>
     <string name="common_voiceroom_lock">锁定麦位</string>
     <string name="common_voiceroom_mute_seat">静音</string>
     <string name="common_voiceroom_need_agree">上麦需要房主同意</string>
@@ -382,4 +389,5 @@
     <string name="common_remove">移除</string>
     <string name="common_host_kick_user_after_connect">连线成功。前 6 个麦位以外的用户已被移除。如需互动，请重新邀请。</string>
     <string name="common_audience_kicked_re_apply">连线仅显示前 6 个麦位。您已被移除，如有需要请重新申请上麦。</string>
+    <string name="common_back_seats_occupied">后四个麦位已有用户，无法进行连线/PK</string>
 </resources>

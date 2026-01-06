@@ -7,7 +7,6 @@
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="718dp"
-        android:background="@drawable/livekit_dialog_background"
         android:orientation="vertical"
         android:paddingBottom="20dp"
         tools:ignore="UselessParent">
@@ -15,21 +14,20 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@drawable/livekit_dialog_background"
             android:orientation="vertical"
             android:paddingBottom="20dp">
 
             <include layout="@layout/livekit_panel_header" />
 
-            <TextView
+            <io.trtc.tuikit.atomicx.widget.basicwidget.label.AtomicLabel
                 android:id="@+id/seat_invitation_title"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="24dp"
                 android:layout_marginTop="20dp"
                 android:text="@string/common_anchor_audience_list_panel_title"
-                android:textColor="@color/common_design_standard_g7"
-                android:textSize="16sp" />
+                android:textColor="@color/text_color_primary"
+                android:textSize="@dimen/text_size_16" />
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/rv_seat_invitation"

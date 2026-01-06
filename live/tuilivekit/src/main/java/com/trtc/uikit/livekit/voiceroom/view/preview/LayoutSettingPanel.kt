@@ -5,9 +5,9 @@ import android.view.LayoutInflater
 import android.view.View
 import android.widget.LinearLayout
 import com.trtc.uikit.livekit.R
-import com.trtc.uikit.livekit.common.ui.PopupDialog
 import com.trtc.uikit.livekit.voiceroom.manager.VoiceRoomManager
 import com.trtc.uikit.livekit.voiceroom.store.LayoutType
+import io.trtc.tuikit.atomicx.widget.basicwidget.popover.AtomicPopover
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -16,7 +16,7 @@ import kotlinx.coroutines.launch
 class LayoutSettingPanel(
     private val context: Context,
     private val voiceRoomManager: VoiceRoomManager
-) : PopupDialog(context) {
+) : AtomicPopover(context) {
 
     private lateinit var layoutKTVRoom: LinearLayout
     private lateinit var layoutVoiceRoom: LinearLayout
@@ -32,7 +32,7 @@ class LayoutSettingPanel(
                 .inflate(R.layout.livekit_voiceroom_anchor_preview_layout, null)
         initChatRoomView(view)
         initKTVView(view)
-        setView(view)
+        setContent(view)
     }
 
     private fun initChatRoomView(view: View) {

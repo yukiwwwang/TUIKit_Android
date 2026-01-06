@@ -1,6 +1,7 @@
 package com.trtc.uikit.livekit.component.roominfo.service
 
 import android.text.TextUtils
+import com.tencent.cloud.tuikit.engine.common.ContextProvider
 import com.tencent.imsdk.v2.V2TIMFollowInfo
 import com.tencent.imsdk.v2.V2TIMFollowOperationResult
 import com.tencent.imsdk.v2.V2TIMFollowTypeCheckResult
@@ -8,11 +9,11 @@ import com.tencent.imsdk.v2.V2TIMFriendshipListener
 import com.tencent.imsdk.v2.V2TIMManager
 import com.tencent.imsdk.v2.V2TIMUserFullInfo
 import com.tencent.imsdk.v2.V2TIMValueCallback
-import com.tencent.qcloud.tuicore.TUILogin
-import com.tencent.qcloud.tuicore.util.ToastUtil
 import com.trtc.uikit.livekit.common.LiveKitLogger
 import com.trtc.uikit.livekit.component.roominfo.store.RoomInfoState
+import io.trtc.tuikit.atomicx.widget.basicwidget.toast.AtomicToast
 import io.trtc.tuikit.atomicxcore.api.live.LiveInfo
+import io.trtc.tuikit.atomicxcore.api.login.LoginStore
 
 class RoomInfoService {
     private val logger = LiveKitLogger.getComponentLogger("RoomInfoService")
@@ -20,7 +21,7 @@ class RoomInfoService {
 
     fun init(liveInfo: LiveInfo) {
         roomInfoState.roomId = liveInfo.liveID
-        roomInfoState.selfUserId = TUILogin.getUserId()
+        roomInfoState.selfUserId = LoginStore.shared.loginState.loginUserInfo.value?.userID ?: ""
         roomInfoState.ownerId.value = liveInfo.liveOwner.userID
         roomInfoState.ownerName.value = liveInfo.liveOwner.userName
         roomInfoState.ownerAvatarUrl.value = liveInfo.liveOwner.avatarURL
@@ -32,7 +33,7 @@ class RoomInfoService {
     }
 
     fun getFansNumber() {
-        val userIDList = listOf(roomInfoState.ownerId.value ?: "")
+        val userIDList = listOf(roomInfoState.ownerId.value)
 
         V2TIMManager.getFriendshipManager().getUserFollowInfo(
             userIDList,
@@ -40,15 +41,14 @@ class RoomInfoService {
                 override fun onSuccess(v2TIMFollowInfos: List<V2TIMFollowInfo>?) {
                     if (!v2TIMFollowInfos.isNullOrEmpty()) {
                         val result = v2TIMFollowInfos[0]
-                        result?.let {
-                            roomInfoState.fansNumber.value = it.followersCount.toLong()
-                        }
+                        roomInfoState.fansNumber.value = result.followersCount
                     }
                 }
 
                 override fun onError(code: Int, desc: String?) {
                     logger.error("getUserFollowInfo failed:errorCode:$code message:$desc")
-                    ToastUtil.toastShortMessage("$code,$desc")
+                    val context = ContextProvider.getApplicationContext()
+                    AtomicToast.show(context, "$code,$desc", AtomicToast.Style.ERROR)
                 }
             }
         )
@@ -60,16 +60,18 @@ class RoomInfoService {
             object : V2TIMValueCallback<List<V2TIMFollowTypeCheckResult>> {
                 override fun onSuccess(v2TIMFollowTypeCheckResults: List<V2TIMFollowTypeCheckResult>?) {
                     if (!v2TIMFollowTypeCheckResults.isNullOrEmpty()) {
-                        val result = v2TIMFollowTypeCheckResults[0] ?: return
-                        val isAdd = result.followType == V2TIMFollowTypeCheckResult.V2TIM_FOLLOW_TYPE_IN_MY_FOLLOWING_LIST ||
-                                   result.followType == V2TIMFollowTypeCheckResult.V2TIM_FOLLOW_TYPE_IN_BOTH_FOLLOWERS_LIST
+                        val result = v2TIMFollowTypeCheckResults[0]
+                        val isAdd =
+                            result.followType == V2TIMFollowTypeCheckResult.V2TIM_FOLLOW_TYPE_IN_MY_FOLLOWING_LIST ||
+                                    result.followType == V2TIMFollowTypeCheckResult.V2TIM_FOLLOW_TYPE_IN_BOTH_FOLLOWERS_LIST
                         updateFollowUserList(result.userID, isAdd)
                     }
                 }
 
                 override fun onError(code: Int, desc: String?) {
                     logger.error("checkFollowType failed:errorCode:$code message:$desc")
-                    ToastUtil.toastShortMessage("$code,$desc")
+                    val context = ContextProvider.getApplicationContext()
+                    AtomicToast.show(context, "$code,$desc", AtomicToast.Style.ERROR)
                 }
             }
         )
@@ -92,7 +94,8 @@ class RoomInfoService {
 
                 override fun onError(code: Int, desc: String?) {
                     logger.error("followUser failed:errorCode:$code message:$desc")
-                    ToastUtil.toastShortMessage("$code,$desc")
+                    val context = ContextProvider.getApplicationContext()
+                    AtomicToast.show(context, "$code,$desc", AtomicToast.Style.ERROR)
                 }
             }
         )
@@ -110,7 +113,8 @@ class RoomInfoService {
 
                 override fun onError(code: Int, desc: String?) {
                     logger.error("unfollowUser failed:errorCode:$code message:$desc")
-                    ToastUtil.toastShortMessage("$code,$desc")
+                    val context = ContextProvider.getApplicationContext()
+                    AtomicToast.show(context, "$code,$desc", AtomicToast.Style.ERROR)
                 }
             }
         )
@@ -120,15 +124,15 @@ class RoomInfoService {
         if (TextUtils.isEmpty(userId)) {
             return
         }
-        
-        val followingUserList = roomInfoState.followingList.value?.toMutableSet() ?: LinkedHashSet()
-        
+
+        val followingUserList = roomInfoState.followingList.value.toMutableSet()
+
         if (isAdd) {
             userId?.let { followingUserList.add(it) }
         } else {
             followingUserList.remove(userId)
         }
-        
+
         roomInfoState.followingList.value = followingUserList
     }
 

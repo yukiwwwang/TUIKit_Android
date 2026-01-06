@@ -8,18 +8,16 @@ import android.view.animation.AnimationUtils
 import android.view.animation.LinearInterpolator
 import android.widget.ImageView
 import android.widget.RelativeLayout
-import com.tencent.cloud.tuikit.engine.common.TUICommonDefine
 import com.tencent.cloud.tuikit.engine.room.TUIRoomEngine
-import com.tencent.qcloud.tuicore.util.ToastUtil
+import io.trtc.tuikit.atomicx.karaoke.view.KaraokeControlView
+import io.trtc.tuikit.atomicx.widget.basicwidget.toast.AtomicToast
 import com.trtc.uikit.livekit.R
 import com.trtc.uikit.livekit.common.ErrorLocalized
-import com.trtc.uikit.livekit.common.PackageService
 import com.trtc.uikit.livekit.common.completionHandler
 import com.trtc.uikit.livekit.component.gift.LikeButton
 import com.trtc.uikit.livekit.component.giftaccess.GiftButton
 import com.trtc.uikit.livekit.voiceroom.manager.VoiceRoomManager
 import com.trtc.uikit.livekit.voiceroom.view.basic.BasicView
-import io.trtc.tuikit.atomicx.karaoke.KaraokeControlView
 import io.trtc.tuikit.atomicxcore.api.live.CoGuestStore
 import io.trtc.tuikit.atomicxcore.api.live.CoHostStore
 import io.trtc.tuikit.atomicxcore.api.live.GuestListener
@@ -50,13 +48,13 @@ class AudienceFunctionView @JvmOverloads constructor(
         override fun onGuestApplicationResponded(isAccept: Boolean, hostUser: LiveUserInfo) {
             if (isAccept) return
             voiceRoomManager?.viewStore?.updateTakeSeatState(false)
-            ToastUtil.toastShortMessage(context.getString(R.string.common_voiceroom_take_seat_rejected))
+            AtomicToast.show(context, context.getString(R.string.common_voiceroom_take_seat_rejected), AtomicToast.Style.INFO)
         }
 
         override fun onGuestApplicationNoResponse(reason: NoResponseReason) {
             voiceRoomManager?.viewStore?.updateTakeSeatState(false)
             if (reason != NoResponseReason.TIMEOUT) return
-            ToastUtil.toastShortMessage(context.getString(R.string.common_voiceroom_take_seat_timeout))
+            AtomicToast.show(context, context.getString(R.string.common_voiceroom_take_seat_timeout), AtomicToast.Style.INFO)
         }
     }
 
@@ -99,12 +97,10 @@ class AudienceFunctionView @JvmOverloads constructor(
         val currentLiveId = liveID
         if (currentLiveId.isEmpty()) return
         val isConnected = connectedRoomList.any { it.liveID == currentLiveId }
-        if (!PackageService.isRTCubeOrTencentRTC) {
-            if (isConnected) {
-                imageKTV.visibility = GONE
-            } else {
-                imageKTV.visibility = VISIBLE
-            }
+        if (isConnected) {
+            imageKTV.visibility = GONE
+        } else {
+            imageKTV.visibility = VISIBLE
         }
     }
 
@@ -144,7 +140,6 @@ class AudienceFunctionView @JvmOverloads constructor(
 
     private fun initKTVView() {
         imageKTV = findViewById(R.id.iv_ktv)
-        imageKTV.setVisibility(if (PackageService.isRTCubeOrTencentRTC) GONE else VISIBLE)
         imageKTV.setOnClickListener {
             KaraokeControlView(context).apply {
                 init(
@@ -189,15 +184,24 @@ class AudienceFunctionView @JvmOverloads constructor(
         }
     }
 
+    private fun isBackSeatsOccupied(): Boolean {
+        val seatList = liveSeatStore.liveSeatState.seatList.value
+        return seatList.any { it.index >= 6 && it.userInfo.userID.isNotEmpty() }
+    }
+
     private fun takeSeat() {
         if (voiceRoomManager?.viewStore?.viewState?.isApplyingToTakeSeat?.value == true) return
         val currentLiveId = liveListStore.liveState.currentLive.value.liveID
         if (currentLiveId.isEmpty()) return
+        if (isBackSeatsOccupied()) {
+            AtomicToast.show(context, context.getString(R.string.common_back_seats_occupied), AtomicToast.Style.ERROR)
+            return
+        }
         val isConnected =
             mCoHostStore?.coHostState?.connected?.value?.any { it.liveID == currentLiveId }
         if (isConnected == true) {
             if (!hasAvailableSeat()) {
-                ToastUtil.toastShortMessage(context.getString(R.string.common_server_error_the_seats_are_all_taken))
+                AtomicToast.show(context, context.getString(R.string.common_server_error_the_seats_are_all_taken), AtomicToast.Style.ERROR)
                 return
             }
         }
@@ -207,7 +211,7 @@ class AudienceFunctionView @JvmOverloads constructor(
         if (liveInfo.seatMode == TakeSeatMode.FREE || isOwner) {
             liveSeatStore.takeSeat(-1, completionHandler {
                 onError { code, _ ->
-                    ErrorLocalized.onError(TUICommonDefine.Error.fromInt(code))
+                    ErrorLocalized.onError(code)
                 }
             })
             return
@@ -217,7 +221,7 @@ class AudienceFunctionView @JvmOverloads constructor(
         coGuestStore.applyForSeat(-1, 60, null, completionHandler {
             onError { code, _ ->
                 voiceRoomManager?.viewStore?.updateTakeSeatState(false)
-                ErrorLocalized.onError(TUICommonDefine.Error.fromInt(code))
+                ErrorLocalized.onError(code)
             }
         })
     }
@@ -225,7 +229,7 @@ class AudienceFunctionView @JvmOverloads constructor(
     private fun leaveSeat() {
         coGuestStore.disconnect(completionHandler {
             onError { code, _ ->
-                ErrorLocalized.onError(TUICommonDefine.Error.fromInt(code))
+                ErrorLocalized.onError(code)
             }
         })
     }
@@ -237,7 +241,7 @@ class AudienceFunctionView @JvmOverloads constructor(
             completionHandler {
                 onSuccess { view.isEnabled = true }
                 onError { code, _ ->
-                    ErrorLocalized.onError(TUICommonDefine.Error.fromInt(code))
+                    ErrorLocalized.onError(code)
                     view.isEnabled = true
                 }
             })

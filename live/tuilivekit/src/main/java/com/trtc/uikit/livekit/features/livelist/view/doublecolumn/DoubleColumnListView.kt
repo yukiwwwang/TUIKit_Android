@@ -15,13 +15,17 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.trtc.uikit.livekit.R
 import com.trtc.uikit.livekit.common.LiveKitLogger
-import com.trtc.uikit.livekit.component.pictureinpicture.PictureInPictureStore
+import com.trtc.uikit.livekit.component.pippanel.PIPPanelStore
 import com.trtc.uikit.livekit.features.livelist.LiveListViewAdapter
 import com.trtc.uikit.livekit.features.livelist.OnItemClickListener
-import com.trtc.uikit.livekit.features.livelist.manager.LiveInfoListService
+import com.trtc.uikit.livekit.features.livelist.store.LiveInfoListStore
 import io.trtc.tuikit.atomicxcore.api.CompletionHandler
 import io.trtc.tuikit.atomicxcore.api.live.LiveInfo
 import io.trtc.tuikit.atomicxcore.api.live.LiveListStore
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 
 class DoubleColumnListView @JvmOverloads constructor(
     context: Context,
@@ -40,7 +44,7 @@ class DoubleColumnListView @JvmOverloads constructor(
     private lateinit var adapter: DoubleColumnAdapter
     private lateinit var fragmentActivity: FragmentActivity
     private lateinit var liveListViewAdapter: LiveListViewAdapter
-    private lateinit var liveInfoListService: LiveInfoListService
+    private lateinit var liveInfoListStore: LiveInfoListStore
 
     private var onItemClickListener: OnItemClickListener? = null
     private var willEnterRoomView: DoubleColumnItemView? = null
@@ -50,6 +54,7 @@ class DoubleColumnListView @JvmOverloads constructor(
     private var isResumed = false
     private var loadingTime = 0L
     private var isInit = false
+    private var subscribeStateJob: Job? = null
 
     private val pictureInPictureRoomIdObserver = { roomId: String ->
         if (roomId.isEmpty()) {
@@ -90,11 +95,11 @@ class DoubleColumnListView @JvmOverloads constructor(
     fun init(
         activity: FragmentActivity,
         adapter: LiveListViewAdapter,
-        service: LiveInfoListService
+        service: LiveInfoListStore
     ) {
         fragmentActivity = activity
         liveListViewAdapter = adapter
-        liveInfoListService = service
+        liveInfoListStore = service
         initRecyclerView()
     }
 
@@ -111,14 +116,21 @@ class DoubleColumnListView @JvmOverloads constructor(
     override fun onAttachedToWindow() {
         super.onAttachedToWindow()
         fragmentActivity.lifecycle.addObserver(lifecycleObserver)
-        PictureInPictureStore.sharedInstance().state.roomId.observeForever(pictureInPictureRoomIdObserver)
+        subscribeStateJob = CoroutineScope(Dispatchers.Main).launch {
+            PIPPanelStore.sharedInstance().state.roomId.collect { roomId ->
+                if (roomId.isEmpty()) {
+                    playStreamViews.filter { it.isPauseByPictureInPicture() }
+                        .forEach { it.startPreviewLiveStreamDelay() }
+                }
+            }
+        }
     }
 
     override fun onDetachedFromWindow() {
         super.onDetachedFromWindow()
         fragmentActivity.lifecycle.removeObserver(lifecycleObserver)
         stopAllPreviewLiveStream()
-        PictureInPictureStore.sharedInstance().state.roomId.removeObserver(pictureInPictureRoomIdObserver)
+        subscribeStateJob?.cancel()
     }
 
     @SuppressLint("NotifyDataSetChanged")
@@ -138,7 +150,7 @@ class DoubleColumnListView @JvmOverloads constructor(
                     val lastItemPosition = gridLayoutManager.findLastVisibleItemPosition()
                     if (isSlidingUpward
                         && lastItemPosition == adapter.itemCount - 1
-                        && liveInfoListService.getLiveListDataCursor().isNotEmpty()
+                        && liveInfoListStore.getLiveListDataCursor().isNotEmpty()
                     ) {
                         loadMoreData()
                     }
@@ -155,7 +167,7 @@ class DoubleColumnListView @JvmOverloads constructor(
             }
         })
 
-        val list = liveInfoListService.getLiveList()
+        val list = liveInfoListStore.getLiveList()
         if (list.isEmpty()) {
             refreshData()
         } else {
@@ -192,7 +204,7 @@ class DoubleColumnListView @JvmOverloads constructor(
 
         loadingTime = System.currentTimeMillis()
         isLoading = true
-        liveInfoListService.refreshLiveList(object : CompletionHandler {
+        liveInfoListStore.refreshLiveList(object : CompletionHandler {
             @SuppressLint("NotifyDataSetChanged")
             override fun onSuccess() {
                 adapter.setData(LiveListStore.shared().liveState.liveList.value)
@@ -221,7 +233,7 @@ class DoubleColumnListView @JvmOverloads constructor(
         adapter.setLoadState(LOADING)
         isLoading = true
 
-        liveInfoListService.fetchLiveList(object : CompletionHandler {
+        liveInfoListStore.fetchLiveList(object : CompletionHandler {
 
             override fun onSuccess() {
                 val liveState = LiveListStore.shared().liveState

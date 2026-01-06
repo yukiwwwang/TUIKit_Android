@@ -12,14 +12,13 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
-import com.tencent.cloud.tuikit.engine.common.TUICommonDefine
 import com.trtc.uikit.livekit.R
 import com.trtc.uikit.livekit.common.BACKGROUND_THUMB_URL_LIST
 import com.trtc.uikit.livekit.common.ErrorLocalized
 import com.trtc.uikit.livekit.common.completionHandler
-import com.trtc.uikit.livekit.common.ui.PopupDialog
 import com.trtc.uikit.livekit.component.audioeffect.AudioEffectPanel
 import com.trtc.uikit.livekit.voiceroom.view.preview.StreamPresetImagePicker
+import io.trtc.tuikit.atomicx.widget.basicwidget.popover.AtomicPopover
 import io.trtc.tuikit.atomicxcore.api.live.LiveInfo
 import io.trtc.tuikit.atomicxcore.api.live.LiveListStore
 
@@ -28,7 +27,7 @@ class SettingsListAdapter(
 ) : RecyclerView.Adapter<SettingsListAdapter.ViewHolder>() {
     private val data = ArrayList<SettingsItem>()
 
-    private var audioEffectDialog: PopupDialog? = null
+    private var audioEffectDialog: AtomicPopover? = null
     private var streamPresetImagePicker: StreamPresetImagePicker? = null
     private var liveListStore = LiveListStore.shared()
 
@@ -81,7 +80,7 @@ class SettingsListAdapter(
 
     private fun showAudioEffectPanel() {
         if (audioEffectDialog == null) {
-            audioEffectDialog = PopupDialog(context)
+            audioEffectDialog = AtomicPopover(context)
             val audioEffectPanel = AudioEffectPanel(context)
             audioEffectPanel.init(liveListStore.liveState.currentLive.value.liveID)
             audioEffectPanel.setOnBackButtonClickListener(object :
@@ -90,7 +89,7 @@ class SettingsListAdapter(
                     audioEffectDialog?.dismiss()
                 }
             })
-            audioEffectDialog?.setView(audioEffectPanel)
+            audioEffectDialog?.setContent(audioEffectPanel)
         }
         audioEffectDialog?.show()
     }
@@ -121,7 +120,7 @@ class SettingsListAdapter(
                         ),
                         completionHandler {
                             onError { code, _ ->
-                                ErrorLocalized.onError(TUICommonDefine.Error.fromInt(code))
+                                ErrorLocalized.onError(code)
                             }
                         })
                 }

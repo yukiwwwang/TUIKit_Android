@@ -8,7 +8,7 @@ import android.widget.TextView
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.trtc.uikit.livekit.R
-import com.trtc.uikit.livekit.common.ui.PopupDialog
+import io.trtc.tuikit.atomicx.widget.basicwidget.popover.AtomicPopover
 import io.trtc.tuikit.atomicxcore.api.device.MirrorType
 import io.trtc.tuikit.atomicxcore.api.live.LiveEndedReason
 import io.trtc.tuikit.atomicxcore.api.live.LiveListListener
@@ -17,7 +17,7 @@ import io.trtc.tuikit.atomicxcore.api.live.LiveListStore
 class LocalMirrorSelectPanel(
     context: Context,
     private val mirrorTypeList: List<MirrorType>
-) : PopupDialog(context) {
+) : AtomicPopover(context) {
 
     private lateinit var recyclerView: RecyclerView
     private lateinit var cancelButton: TextView
@@ -59,7 +59,7 @@ class LocalMirrorSelectPanel(
         setupRecyclerView()
         setupCancelButton()
 
-        setView(view)
+        setContent(view)
     }
 
     private fun setupRecyclerView() {

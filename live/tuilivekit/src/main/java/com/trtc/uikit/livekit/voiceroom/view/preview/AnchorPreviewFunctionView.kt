@@ -4,16 +4,12 @@ import android.content.Context
 import android.text.TextUtils
 import android.util.AttributeSet
 import android.view.LayoutInflater
-import android.widget.RelativeLayout
-import com.trtc.tuikit.common.system.ContextProvider
 import com.trtc.uikit.livekit.R
 import com.trtc.uikit.livekit.common.BACKGROUND_THUMB_URL_LIST
 import com.trtc.uikit.livekit.common.DEFAULT_BACKGROUND_URL
-import com.trtc.uikit.livekit.common.PACKAGE_RT_CUBE
-import com.trtc.uikit.livekit.common.PACKAGE_TENCENT_RTC
-import com.trtc.uikit.livekit.common.ui.PopupDialog
 import com.trtc.uikit.livekit.component.audioeffect.AudioEffectPanel
 import com.trtc.uikit.livekit.voiceroom.view.basic.BasicView
+import io.trtc.tuikit.atomicx.widget.basicwidget.popover.AtomicPopover
 
 class AnchorPreviewFunctionView @JvmOverloads constructor(
     context: Context,
@@ -23,7 +19,7 @@ class AnchorPreviewFunctionView @JvmOverloads constructor(
 
     private var settingsDialog: SettingsDialog? = null
     private var layoutSettingPanel: LayoutSettingPanel? = null
-    private var audioEffectDialog: PopupDialog? = null
+    private var audioEffectDialog: AtomicPopover? = null
     private var streamPresetImagePicker: StreamPresetImagePicker? = null
 
     init {
@@ -62,7 +58,7 @@ class AnchorPreviewFunctionView @JvmOverloads constructor(
     private fun initAudioEffectButton() {
         findViewById<android.view.View>(R.id.iv_audio_effect).setOnClickListener {
             if (audioEffectDialog == null) {
-                audioEffectDialog = PopupDialog(context)
+                audioEffectDialog = AtomicPopover(context)
                 val audioEffectPanel = AudioEffectPanel(context)
                 audioEffectPanel.init(liveID)
                 audioEffectPanel.setOnBackButtonClickListener(object :
@@ -71,7 +67,9 @@ class AnchorPreviewFunctionView @JvmOverloads constructor(
                         audioEffectDialog?.dismiss()
                     }
                 })
-                audioEffectDialog?.setView(audioEffectPanel)
+                audioEffectDialog?.setContent(audioEffectPanel)
+                audioEffectDialog?.setPanelHeight(AtomicPopover.PanelHeight.WrapContent)
+
             }
             audioEffectDialog?.show()
         }
@@ -88,8 +86,6 @@ class AnchorPreviewFunctionView @JvmOverloads constructor(
     }
 
     private fun initLayoutButton() {
-        val layout = findViewById<RelativeLayout?>(R.id.rl_layout)
-        layout.visibility = if (isRTCubeOrTencentRTC()) GONE else VISIBLE
         findViewById<android.view.View>(R.id.iv_layout).setOnClickListener {
             if (voiceRoomManager == null) return@setOnClickListener
             if (layoutSettingPanel == null) {
@@ -134,16 +130,5 @@ class AnchorPreviewFunctionView @JvmOverloads constructor(
 
     override fun initStore() {
 
-    }
-
-    private fun isRTCubeOrTencentRTC(): Boolean {
-        return TextUtils.equals(
-            PACKAGE_RT_CUBE,
-            ContextProvider.getApplicationContext().packageName
-        ) ||
-               TextUtils.equals(
-                   PACKAGE_TENCENT_RTC,
-                   ContextProvider.getApplicationContext().packageName
-               )
     }
 }

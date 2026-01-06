@@ -8,9 +8,9 @@ import android.view.View
 import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.TextView
-import androidx.constraintlayout.utils.widget.ImageFilterView
-import com.trtc.tuikit.common.imageloader.ImageLoader
 import com.trtc.uikit.livekit.R
+import io.trtc.tuikit.atomicx.widget.basicwidget.avatar.AtomicAvatar
+import io.trtc.tuikit.atomicx.widget.basicwidget.avatar.AtomicAvatar.AvatarContent
 import com.trtc.uikit.livekit.common.convertToSeatInfo
 import com.trtc.uikit.livekit.voiceroomcore.impl.SeatGridViewObserverManager
 import io.trtc.tuikit.atomicxcore.api.device.DeviceStatus
@@ -30,7 +30,7 @@ class SeatInfoView @JvmOverloads constructor(
         private const val VOLUME_CAN_HEARD_MIN_LIMIT = 25
     }
 
-    private lateinit var imgHead: ImageFilterView
+    private lateinit var imgHead: AtomicAvatar
     private lateinit var emptyViewContainer: View
     private lateinit var ivEmptyView: ImageView
     private lateinit var textName: TextView
@@ -122,9 +122,13 @@ class SeatInfoView @JvmOverloads constructor(
 
     private fun updateUserAvatar(avatarUrl: String?) {
         imgHead.visibility = VISIBLE
-        imgHead.setImageResource(R.drawable.livekit_ic_avatar)
-        avatarUrl?.takeUnless { it.isEmpty() }?.let {
-            ImageLoader.load(context, imgHead, it, R.drawable.livekit_ic_avatar)
+        imgHead.apply {
+            setContent(
+                AvatarContent.URL(
+                    url = avatarUrl ?: "",
+                    placeImage = R.drawable.livekit_ic_avatar
+                )
+            )
         }
     }
 

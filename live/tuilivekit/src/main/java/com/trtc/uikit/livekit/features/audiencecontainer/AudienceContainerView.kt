@@ -12,7 +12,7 @@ import com.trtc.uikit.livekit.common.EVENT_KEY_LIVE_KIT
 import com.trtc.uikit.livekit.common.EVENT_PARAMS_IS_LINKING
 import com.trtc.uikit.livekit.common.EVENT_SUB_KEY_LINK_STATUS_CHANGE
 import com.trtc.uikit.livekit.common.LiveKitLogger
-import com.trtc.uikit.livekit.features.audiencecontainer.access.TUILiveListDataSource
+import com.trtc.uikit.livekit.features.audiencecontainer.store.access.TUILiveListDataSource
 import com.trtc.uikit.livekit.features.audiencecontainer.store.AudienceContainerConfig
 import com.trtc.uikit.livekit.features.audiencecontainer.store.AudienceContainerStore
 import com.trtc.uikit.livekit.features.audiencecontainer.store.LiveInfoListStore
@@ -77,10 +77,10 @@ class AudienceContainerView @JvmOverloads constructor(
         dataSource: AudienceContainerViewDefine.LiveListDataSource
     ) {
         this.fragmentActivity = fragmentActivity
-        val liveInfoListService = LiveInfoListStore(dataSource)
+        val liveInfoListStore = LiveInfoListStore(dataSource)
         liveListViewPagerAdapter = object : LiveListViewPagerAdapter(
             fragmentActivity,
-            liveInfoListService,
+            liveInfoListStore,
             liveInfo
         ) {
             override fun onCreateView(liveInfo: LiveInfo): View {

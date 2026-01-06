@@ -6,11 +6,13 @@ import android.os.Looper
 import android.text.TextUtils
 import android.util.AttributeSet
 import android.view.LayoutInflater
-import com.tencent.qcloud.tuicore.TUILogin
 import com.trtc.uikit.livekit.R
 import com.trtc.uikit.livekit.common.LiveKitLogger
 import com.trtc.uikit.livekit.common.LiveKitLogger.Companion.getComponentLogger
 import com.trtc.uikit.livekit.common.ui.BasicView
+import com.trtc.uikit.livekit.component.gift.service.GiftConstants.LANGUAGE_EN
+import com.trtc.uikit.livekit.component.gift.service.GiftConstants.LANGUAGE_ZH_HANS
+import com.trtc.uikit.livekit.component.gift.service.GiftConstants.LANGUAGE_ZH_HANT
 import com.trtc.uikit.livekit.component.gift.view.animation.AnimationView
 import com.trtc.uikit.livekit.component.gift.view.animation.ImageAnimationView
 import com.trtc.uikit.livekit.component.gift.view.animation.ImageAnimationView.GiftImageAnimationInfo
@@ -24,6 +26,8 @@ import io.trtc.tuikit.atomicxcore.api.gift.GiftStore
 import io.trtc.tuikit.atomicxcore.api.live.LikeListener
 import io.trtc.tuikit.atomicxcore.api.live.LikeStore
 import io.trtc.tuikit.atomicxcore.api.live.LiveUserInfo
+import io.trtc.tuikit.atomicxcore.api.login.LoginStore
+import java.util.Locale
 import kotlin.math.max
 import kotlin.math.min
 
@@ -31,7 +35,7 @@ import kotlin.math.min
 class GiftPlayView @JvmOverloads constructor(
     private val mContext: Context,
     attrs: AttributeSet? = null,
-    defStyleAttr: Int = 0
+    defStyleAttr: Int = 0,
 ) : BasicView(
     mContext, attrs, defStyleAttr
 ) {
@@ -56,6 +60,7 @@ class GiftPlayView @JvmOverloads constructor(
 
     override fun init(roomId: String) {
         super.init(roomId)
+        giftStore?.setLanguage(getLanguage())
         animationView?.roomId = roomId
     }
 
@@ -181,7 +186,7 @@ class GiftPlayView @JvmOverloads constructor(
         giftModel.gift = gift
         giftModel.giftCount = giftCount
         giftModel.sender = sender
-        giftModel.isFromSelf = TextUtils.equals(sender.userID, TUILogin.getUserId())
+        giftModel.isFromSelf = TextUtils.equals(sender.userID, LoginStore.shared.loginState.loginUserInfo.value?.userID)
         if (TextUtils.isEmpty(gift.resourceURL)) {
             giftImageAnimationManager.add(giftModel)
         } else {
@@ -212,6 +217,30 @@ class GiftPlayView @JvmOverloads constructor(
             }
         }
         post(task)
+    }
+
+    private fun getLanguage(): String {
+        val language = Locale.getDefault().getLanguage()
+        var languageTag = Locale.getDefault().toLanguageTag()
+        logger.info("getLanguage language:$language, languageTag:$languageTag")
+        if (TextUtils.isEmpty(language) || TextUtils.isEmpty(languageTag)) {
+            return LANGUAGE_EN
+        }
+        languageTag = languageTag.lowercase(Locale.getDefault())
+        if ("zh".equals(language, ignoreCase = true)) {
+            if (languageTag.contains("zh-hans")
+                || languageTag == "zh"
+                || languageTag == "zh-cn"
+                || languageTag == "zh-sg"
+                || languageTag == "zh-my"
+            ) {
+                return LANGUAGE_ZH_HANS
+            } else {
+                return LANGUAGE_ZH_HANT
+            }
+        } else {
+            return LANGUAGE_EN
+        }
     }
 
     inner class GiftListenerImpl : GiftListener() {

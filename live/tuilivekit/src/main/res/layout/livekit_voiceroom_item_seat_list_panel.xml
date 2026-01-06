@@ -14,12 +14,11 @@
         android:layout_centerVertical="true"
         android:layout_marginStart="24dp">
 
-        <androidx.constraintlayout.utils.widget.ImageFilterView
+        <io.trtc.tuikit.atomicx.widget.basicwidget.avatar.AtomicAvatar
             android:id="@+id/iv_head"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:src="@drawable/livekit_ic_avatar"
-            app:round="20dp" />
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:avatarSize="m" />
 
         <TextView
             android:id="@+id/tv_seat_index"
@@ -61,16 +60,17 @@
         android:textSize="11sp"
         android:visibility="gone" />
 
-    <TextView
-        android:id="@+id/tv_hang_up"
-        android:layout_width="60dp"
-        android:layout_height="24dp"
+    <io.trtc.tuikit.atomicx.widget.basicwidget.button.AtomicButton
+        android:id="@+id/atomic_btn_hang_up"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:layout_alignParentEnd="true"
         android:layout_centerVertical="true"
         android:layout_marginEnd="24dp"
-        android:background="@drawable/livekit_link_mic_hang_up_background"
-        android:gravity="center"
+        app:customButtonSize="xs"
+        app:buttonVariant="outlined"
+        app:buttonColorType="danger"
         android:text="@string/common_hang_up"
-        android:textColor="@color/common_not_standard_red"
-        android:textSize="12sp" />
+        app:buttonTextSize="12sp" />
+
 </RelativeLayout>

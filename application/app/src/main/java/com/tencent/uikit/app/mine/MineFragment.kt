@@ -19,14 +19,15 @@ import com.tencent.uikit.app.R
 import com.tencent.uikit.app.common.utils.FileUtil
 import com.tencent.uikit.app.common.widget.ConfirmDialogFragment
 import com.tencent.uikit.app.login.LoginActivity
-import com.trtc.tuikit.common.imageloader.ImageLoader
-import de.hdodenhof.circleimageview.CircleImageView
+import io.trtc.tuikit.atomicx.widget.basicwidget.avatar.AtomicAvatar
+import io.trtc.tuikit.atomicx.widget.basicwidget.avatar.AtomicAvatar.AvatarContent
+import io.trtc.tuikit.atomicxcore.api.login.LoginStore
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 class MineFragment : Fragment() {
-    private var imageAvatar: CircleImageView? = null
+    private var imageAvatar: AtomicAvatar? = null
     private var textNickName: TextView? = null
     private var textUserId: TextView? = null
 
@@ -35,17 +36,12 @@ class MineFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
         val rootView: View = inflater.inflate(R.layout.app_fragment_my_info, container, false)
-        imageAvatar = rootView.findViewById<View?>(R.id.iv_avatar) as? CircleImageView?
+        imageAvatar = rootView.findViewById<View?>(R.id.iv_avatar) as? AtomicAvatar?
         textNickName = rootView.findViewById<View?>(R.id.tv_show_name) as? TextView
         textUserId = rootView.findViewById<View?>(R.id.tv_userid) as? TextView
-        ImageLoader.load(requireActivity(), imageAvatar, TUILogin.getFaceUrl(), R.drawable.app_ic_avatar)
+        imageAvatar?.setContent(AvatarContent.URL(TUILogin.getFaceUrl(), R.drawable.app_ic_avatar))
         textNickName?.text = TUILogin.getNickName()
         textUserId?.text = TUILogin.getUserId()
-        imageAvatar?.setOnClickListener {
-            val intent = Intent(Intent.ACTION_PICK)
-            intent.type = "image/*"
-            startActivityForResult(intent, 100)
-        }
         rootView.findViewById<LinearLayout>(R.id.ll_settings).setOnClickListener {
             val intent = Intent(requireContext(), SettingsActivity::class.java)
             startActivity(intent)
@@ -84,7 +80,7 @@ class MineFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
-        ImageLoader.load(requireContext(), imageAvatar, TUILogin.getFaceUrl(), R.drawable.app_ic_avatar)
+        imageAvatar?.setContent(AvatarContent.URL(TUILogin.getFaceUrl(), R.drawable.app_ic_avatar))
         textNickName?.text = TUILogin.getNickName()
         textUserId?.text = TUILogin.getUserId()
     }
@@ -100,6 +96,7 @@ class MineFragment : Fragment() {
         logoutDialog.setPositiveClickListener(object : ConfirmDialogFragment.PositiveClickListener {
             override fun onClick() {
                 logoutDialog.dismiss()
+                LoginStore.shared.logout(null)
                 TUILogin.logout(object : TUICallback() {
                     override fun onSuccess() {
                         activity?.let {

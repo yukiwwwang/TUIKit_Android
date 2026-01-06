@@ -8,8 +8,6 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import android.widget.ImageView
-import androidx.lifecycle.Observer
-import com.tencent.cloud.tuikit.engine.common.TUICommonDefine
 import com.tencent.qcloud.tuicore.util.ScreenUtil
 import com.trtc.uikit.livekit.R
 import com.trtc.uikit.livekit.common.ErrorLocalized
@@ -17,17 +15,25 @@ import com.trtc.uikit.livekit.common.LiveKitLogger
 import com.trtc.uikit.livekit.common.ui.RoundFrameLayout
 import com.trtc.uikit.livekit.component.beauty.BeautyUtils.resetBeauty
 import com.trtc.uikit.livekit.component.beauty.tebeauty.store.TEBeautyStore
-import com.trtc.uikit.livekit.features.anchorprepare.manager.AnchorPrepareManager
-import com.trtc.uikit.livekit.features.anchorprepare.state.AnchorPrepareConfig
-import com.trtc.uikit.livekit.features.anchorprepare.state.AnchorPrepareState
+import com.trtc.uikit.livekit.features.anchorprepare.store.AnchorPrepareStore
+import com.trtc.uikit.livekit.features.anchorprepare.store.AnchorPrepareConfig
+import com.trtc.uikit.livekit.features.anchorprepare.store.AnchorPrepareState
 import com.trtc.uikit.livekit.features.anchorprepare.view.function.PrepareFunctionView
 import com.trtc.uikit.livekit.features.anchorprepare.view.liveinfoedit.LiveInfoEditView
-import com.trtc.uikit.livekit.features.anchorprepare.view.startlive.StartLiveButton
+import io.trtc.tuikit.atomicx.widget.basicwidget.button.AtomicButton
+import io.trtc.tuikit.atomicx.widget.basicwidget.button.ButtonColorType
+import io.trtc.tuikit.atomicx.widget.basicwidget.button.ButtonIconPosition
+import io.trtc.tuikit.atomicx.widget.basicwidget.button.ButtonSize
+import io.trtc.tuikit.atomicx.widget.basicwidget.button.ButtonVariant
 import io.trtc.tuikit.atomicxcore.api.CompletionHandler
 import io.trtc.tuikit.atomicxcore.api.device.AudioEffectStore
 import io.trtc.tuikit.atomicxcore.api.device.DeviceStore
 import io.trtc.tuikit.atomicxcore.api.view.CoreViewType
 import io.trtc.tuikit.atomicxcore.api.view.LiveCoreView
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 
 class AnchorPrepareView @JvmOverloads constructor(
     context: Context,
@@ -36,14 +42,12 @@ class AnchorPrepareView @JvmOverloads constructor(
 ) : FrameLayout(context, attrs, defStyleAttr) {
     private val logger = LiveKitLogger.getFeaturesLogger("AnchorPrepareView")
     private lateinit var layoutRoot: FrameLayout
-    private var manager: AnchorPrepareManager? = null
+    private var prepareStore: AnchorPrepareStore? = null
     private var state: AnchorPrepareState? = null
     private var liveCoreView: LiveCoreView? = null
     private var functionView: PrepareFunctionView? = null
     private lateinit var imageBack: ImageView
-    private var isDestroy = false
-
-    private val disableMenuObserver = Observer<Boolean> { onFeatureMenuDisable(it) }
+    private var subscribeStateJob: Job? = null
 
     init {
         logger.info("AnchorPrepareView Constructor.")
@@ -62,18 +66,18 @@ class AnchorPrepareView @JvmOverloads constructor(
             ?: LiveCoreView(context, null, 0, CoreViewType.PUSH_VIEW).apply {
                 setLiveId(roomId)
             }
-        initManager(roomId)
+        initPrepareStore(roomId)
         initComponent()
     }
 
     fun getCoreView(): LiveCoreView? = liveCoreView
 
     fun addAnchorPrepareViewListener(listener: AnchorPrepareViewListener) {
-        manager?.addAnchorPrepareViewListener(listener)
+        prepareStore?.addAnchorPrepareViewListener(listener)
     }
 
     fun removeAnchorPrepareViewListener(listener: AnchorPrepareViewListener) {
-        manager?.removeAnchorPrepareViewListener(listener)
+        prepareStore?.removeAnchorPrepareViewListener(listener)
     }
 
     override fun onAttachedToWindow() {
@@ -87,17 +91,21 @@ class AnchorPrepareView @JvmOverloads constructor(
     }
 
     private fun addObserver() {
-        AnchorPrepareConfig.disableFeatureMenu.observeForever(disableMenuObserver)
+        subscribeStateJob = CoroutineScope(Dispatchers.Main).launch {
+            AnchorPrepareConfig.disableFeatureMenu.collect {
+                onFeatureMenuDisable()
+            }
+        }
     }
 
     private fun removeObserver() {
-        AnchorPrepareConfig.disableFeatureMenu.removeObserver(disableMenuObserver)
+        subscribeStateJob?.cancel()
     }
 
-    private fun initManager(roomId: String) {
-        liveCoreView?.let { coreView ->
-            manager = AnchorPrepareManager()
-            state = manager?.getState()
+    private fun initPrepareStore(roomId: String) {
+        liveCoreView?.let {
+            prepareStore = AnchorPrepareStore()
+            state = prepareStore?.getState()
             state?.roomId = roomId
         }
     }
@@ -112,7 +120,7 @@ class AnchorPrepareView @JvmOverloads constructor(
 
     private fun initBackView() {
         imageBack.setOnClickListener {
-            manager?.stopPreview()
+            prepareStore?.stopPreview()
             resetBeauty()
             TEBeautyStore.unInit()
             AudioEffectStore.shared().reset()
@@ -130,9 +138,9 @@ class AnchorPrepareView @JvmOverloads constructor(
         val frameLayout = findViewById<RoundFrameLayout>(R.id.fl_video_view_container)
         if (coreView.parent == null) {
             frameLayout.setRadius(com.trtc.tuikit.common.util.ScreenUtil.dip2px(16.0f))
-            val layoutParams = FrameLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.MATCH_PARENT
+            val layoutParams = LayoutParams(
+                LayoutParams.MATCH_PARENT,
+                LayoutParams.MATCH_PARENT
             )
             frameLayout.addView(coreView, layoutParams)
             layoutRoot.setBackgroundColor(resources.getColor(R.color.common_black))
@@ -142,11 +150,11 @@ class AnchorPrepareView @JvmOverloads constructor(
         }
 
         state?.useFrontCamera?.value = DeviceStore.shared().deviceState.isFrontCamera.value
-        manager?.startPreview(object : CompletionHandler {
+        prepareStore?.startPreview(object : CompletionHandler {
             override fun onSuccess() {}
 
             override fun onFailure(code: Int, desc: String) {
-                ErrorLocalized.onError(TUICommonDefine.Error.fromInt(code))
+                ErrorLocalized.onError(code)
                 val context = this@AnchorPrepareView.context
                 if (context is Activity) {
                     context.finish()
@@ -156,11 +164,11 @@ class AnchorPrepareView @JvmOverloads constructor(
     }
 
     private fun initLiveInfoEditView() {
-        manager?.let { mgr ->
+        prepareStore?.let { mgr ->
             val liveInfoEditView = LiveInfoEditView(context)
             liveInfoEditView.init(mgr)
 
-            val layoutParams = FrameLayout.LayoutParams(
+            val layoutParams = LayoutParams(
                 ScreenUtil.dip2px(343.0f),
                 ScreenUtil.dip2px(112.0f)
             ).apply {
@@ -173,7 +181,7 @@ class AnchorPrepareView @JvmOverloads constructor(
     }
 
     private fun initFunctionView() {
-        if (AnchorPrepareConfig.disableFeatureMenu.value == true) {
+        if (AnchorPrepareConfig.disableFeatureMenu.value) {
             functionView?.let { view ->
                 (view.parent as? ViewGroup)?.removeView(view)
             }
@@ -182,13 +190,13 @@ class AnchorPrepareView @JvmOverloads constructor(
                 return
             }
 
-            manager?.let { mgr ->
+            prepareStore?.let { mgr ->
                 liveCoreView?.let { coreView ->
                     functionView = PrepareFunctionView(context)
                     functionView?.init(mgr, coreView)
 
-                    val layoutParams = FrameLayout.LayoutParams(
-                        ViewGroup.LayoutParams.MATCH_PARENT,
+                    val layoutParams = LayoutParams(
+                        LayoutParams.MATCH_PARENT,
                         ScreenUtil.dip2px(56.0f)
                     ).apply {
                         marginStart = ScreenUtil.dip2px(22.0f)
@@ -203,12 +211,22 @@ class AnchorPrepareView @JvmOverloads constructor(
     }
 
     private fun initStartLiveButton() {
-        manager?.let { mgr ->
-            val startLiveButton = StartLiveButton(context)
-            startLiveButton.init(mgr)
+        prepareStore?.let { mgr ->
+            val startLiveButton = AtomicButton(context).apply {
+                text = context.getString(R.string.common_start_live)
+                variant = ButtonVariant.FILLED
+                colorType = ButtonColorType.PRIMARY
+                size = ButtonSize.L
+                iconPosition = ButtonIconPosition.NONE
+                isBold = true
 
-            val layoutParams = FrameLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
+                setOnClickListener {
+                    mgr.startLive()
+                }
+            }
+
+            val layoutParams = LayoutParams(
+                LayoutParams.MATCH_PARENT,
                 ScreenUtil.dip2px(52.0f)
             ).apply {
                 marginStart = ScreenUtil.dip2px(24.0f)
@@ -221,49 +239,49 @@ class AnchorPrepareView @JvmOverloads constructor(
         }
     }
 
-    private fun onFeatureMenuDisable(disable: Boolean?) {
+    private fun onFeatureMenuDisable() {
         initFunctionView()
     }
 
     fun getState(): PrepareState? {
-        return manager?.getExternalState()
+        return prepareStore?.getExternalState()
     }
 
     fun disableFeatureMenu(disable: Boolean) {
         logger.info("disableFeatureMenu: disable = $disable")
-        AnchorPrepareManager.disableFeatureMenu(disable)
+        AnchorPrepareStore.disableFeatureMenu(disable)
     }
 
     @Deprecated("Use disableMenuSwitchCamera instead")
     fun disableMenuSwitchButton(disable: Boolean) {
         logger.info("disableMenuSwitchButton: disable = $disable")
-        AnchorPrepareManager.disableMenuSwitchButton(disable)
+        AnchorPrepareStore.disableMenuSwitchButton(disable)
     }
 
     @Deprecated("Use disableMenuBeauty instead")
     fun disableMenuBeautyButton(disable: Boolean) {
         logger.info("disableMenuBeautyButton: disable = $disable")
-        AnchorPrepareManager.disableMenuBeautyButton(disable)
+        AnchorPrepareStore.disableMenuBeautyButton(disable)
     }
 
     @Deprecated("Use disableMenuAudioEffect instead")
     fun disableMenuAudioEffectButton(disable: Boolean) {
         logger.info("disableMenuAudioEffectButton: disable = $disable")
-        AnchorPrepareManager.disableMenuAudioEffectButton(disable)
+        AnchorPrepareStore.disableMenuAudioEffectButton(disable)
     }
 
     fun disableMenuSwitchCamera(disable: Boolean) {
         logger.info("disableMenuSwitchButton: disable = $disable")
-        AnchorPrepareManager.disableMenuSwitchButton(disable)
+        AnchorPrepareStore.disableMenuSwitchButton(disable)
     }
 
     fun disableMenuBeauty(disable: Boolean) {
         logger.info("disableMenuBeautyButton: disable = $disable")
-        AnchorPrepareManager.disableMenuBeautyButton(disable)
+        AnchorPrepareStore.disableMenuBeautyButton(disable)
     }
 
     fun disableMenuAudioEffect(disable: Boolean) {
         logger.info("disableMenuAudioEffectButton: disable = $disable")
-        AnchorPrepareManager.disableMenuAudioEffectButton(disable)
+        AnchorPrepareStore.disableMenuAudioEffectButton(disable)
     }
 }

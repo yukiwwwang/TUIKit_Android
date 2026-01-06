@@ -88,11 +88,10 @@
         android:id="@+id/rl_high_performance"
         android:layout_width="200dp"
         android:layout_height="45dp"
-        android:layout_marginBottom="24dp"
         android:paddingEnd="24dp"
-        android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
+        android:layout_marginBottom="24dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent">
 
         <TextView
             android:layout_width="wrap_content"
@@ -119,11 +118,10 @@
         android:id="@+id/rl_disable_feature"
         android:layout_width="200dp"
         android:layout_height="45dp"
-        android:layout_marginBottom="4dp"
         android:paddingEnd="24dp"
-        android:visibility="gone"
-        app:layout_constraintBottom_toTopOf="@+id/rl_high_performance"
-        app:layout_constraintEnd_toEndOf="parent">
+        android:layout_marginBottom="4dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/rl_high_performance">
 
         <TextView
             android:layout_width="wrap_content"
@@ -149,11 +147,10 @@
     <RelativeLayout
         android:layout_width="200dp"
         android:layout_height="45dp"
-        android:layout_marginBottom="4dp"
         android:paddingEnd="24dp"
-        android:visibility="gone"
-        app:layout_constraintBottom_toTopOf="@+id/rl_disable_feature"
-        app:layout_constraintEnd_toEndOf="parent">
+        android:layout_marginBottom="4dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/rl_disable_feature">
 
         <TextView
             android:layout_width="wrap_content"

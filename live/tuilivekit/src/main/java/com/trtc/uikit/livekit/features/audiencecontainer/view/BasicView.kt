@@ -3,7 +3,7 @@ package com.trtc.uikit.livekit.features.audiencecontainer.view
 import android.content.Context
 import android.util.AttributeSet
 import android.widget.FrameLayout
-import com.trtc.uikit.livekit.features.audiencecontainer.manager.AudienceManager
+import com.trtc.uikit.livekit.features.audiencecontainer.store.AudienceStore
 import com.trtc.uikit.livekit.features.audiencecontainer.store.IMState
 import com.trtc.uikit.livekit.features.audiencecontainer.store.IMStore
 import com.trtc.uikit.livekit.features.audiencecontainer.store.MediaState
@@ -13,6 +13,7 @@ import io.trtc.tuikit.atomicxcore.api.live.BattleStore
 import io.trtc.tuikit.atomicxcore.api.live.CoGuestState
 import io.trtc.tuikit.atomicxcore.api.live.CoGuestStore
 import io.trtc.tuikit.atomicxcore.api.live.CoHostState
+import io.trtc.tuikit.atomicxcore.api.live.LiveAudienceStore
 import io.trtc.tuikit.atomicxcore.api.live.LiveListState
 import io.trtc.tuikit.atomicxcore.api.live.LiveListStore
 import io.trtc.tuikit.atomicxcore.api.live.LiveSeatState
@@ -25,9 +26,10 @@ abstract class BasicView @JvmOverloads constructor(
     defStyleAttr: Int = 0
 ) : FrameLayout(context, attrs, defStyleAttr) {
 
-    protected lateinit var audienceManager: AudienceManager
+    protected lateinit var audienceStore: AudienceStore
     protected lateinit var liveListStore: LiveListStore
     protected lateinit var liveSeatStore: LiveSeatStore
+    protected lateinit var liveAudienceStore: LiveAudienceStore
     protected lateinit var coGuestStore: CoGuestStore
     protected lateinit var battleStore: BattleStore
     protected lateinit var imStore: IMStore
@@ -46,21 +48,22 @@ abstract class BasicView @JvmOverloads constructor(
         initView()
     }
 
-    open fun init(audienceManager: AudienceManager) {
-        this.audienceManager = audienceManager
-        liveListStore = audienceManager.getLiveListStore()
-        liveListState = audienceManager.getLiveListState()
-        liveSeatStore = audienceManager.getLiveSeatStore()
-        battleStore = audienceManager.getBattleStore()
-        liveSeatState = audienceManager.getLiveSeatState()
-        coGuestStore = audienceManager.getCoGuestStore()
-        coHostState = audienceManager.getCoHostState()
-        imStore = audienceManager.getIMStore()
-        mediaStore = audienceManager.getMediaStore()
-        coGuestState = audienceManager.getCoGuestState()
-        imState = audienceManager.getIMState()
-        mediaState = audienceManager.getMediaState()
-        viewState = audienceManager.getViewState()
+    open fun init(store: AudienceStore) {
+        this.audienceStore = store
+        liveListStore = store.getLiveListStore()
+        liveListState = store.getLiveListState()
+        liveSeatStore = store.getLiveSeatStore()
+        liveAudienceStore = store.getLiveAudienceStore()
+        battleStore = store.getBattleStore()
+        liveSeatState = store.getLiveSeatState()
+        coGuestStore = store.getCoGuestStore()
+        coHostState = store.getCoHostState()
+        imStore = store.getIMStore()
+        mediaStore = store.getMediaStore()
+        coGuestState = store.getCoGuestState()
+        imState = store.getIMState()
+        mediaState = store.getMediaState()
+        viewState = store.getViewState()
         refreshView()
         if (!isAddObserver) {
             addObserver()
@@ -70,7 +73,7 @@ abstract class BasicView @JvmOverloads constructor(
 
     override fun onAttachedToWindow() {
         super.onAttachedToWindow()
-        if (!::audienceManager.isInitialized) {
+        if (!::audienceStore.isInitialized) {
             return
         }
         if (!isAddObserver) {

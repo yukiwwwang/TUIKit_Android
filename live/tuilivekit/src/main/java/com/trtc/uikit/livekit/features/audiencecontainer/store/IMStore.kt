@@ -2,7 +2,6 @@ package com.trtc.uikit.livekit.features.audiencecontainer.store
 
 import android.text.TextUtils
 import com.tencent.cloud.tuikit.engine.room.TUIRoomEngine
-import com.tencent.cloud.tuikit.engine.room.TUIRoomObserver
 import com.tencent.imsdk.v2.V2TIMFollowOperationResult
 import com.tencent.imsdk.v2.V2TIMFollowTypeCheckResult
 import com.tencent.imsdk.v2.V2TIMFollowTypeCheckResult.V2TIM_FOLLOW_TYPE_IN_BOTH_FOLLOWERS_LIST
@@ -11,15 +10,17 @@ import com.tencent.imsdk.v2.V2TIMFriendshipListener
 import com.tencent.imsdk.v2.V2TIMManager
 import com.tencent.imsdk.v2.V2TIMUserFullInfo
 import com.tencent.imsdk.v2.V2TIMValueCallback
-import com.tencent.qcloud.tuicore.util.ToastUtil
 import com.trtc.tuikit.common.system.ContextProvider
 import com.trtc.uikit.livekit.R
 import com.trtc.uikit.livekit.common.LiveKitLogger
+import io.trtc.tuikit.atomicx.widget.basicwidget.toast.AtomicToast
+import io.trtc.tuikit.atomicxcore.api.login.LoginStore
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.update
 
 data class IMState(
-    val followingUserList: StateFlow<MutableSet<String>>
+    val followingUserList: StateFlow<MutableSet<String>>,
 )
 
 class IMStore() {
@@ -31,28 +32,17 @@ class IMStore() {
     private val imFriendshipListener = object : V2TIMFriendshipListener() {
         override fun onMyFollowingListChanged(
             userInfoList: List<V2TIMUserFullInfo>,
-            isAdd: Boolean
+            isAdd: Boolean,
         ) {
             onFollowingListChanged(userInfoList.toMutableList(), isAdd)
         }
     }
-    private val roomEngineObserver = object : TUIRoomObserver() {
-        override fun onSendMessageForUserDisableChanged(
-            roomId: String,
-            userId: String,
-            isDisable: Boolean
-        ) {
-            this@IMStore.onSendMessageForUserDisableChanged(userId, isDisable)
-        }
-    }
 
     init {
-        roomEngine.addObserver(roomEngineObserver)
         imFriendshipManager.addFriendListener(imFriendshipListener)
     }
 
     fun destroy() {
-        roomEngine.removeObserver(roomEngineObserver)
         imFriendshipManager.removeFriendListener(imFriendshipListener)
         _followingUserList.value = mutableSetOf()
     }
@@ -69,7 +59,8 @@ class IMStore() {
 
                 override fun onError(code: Int, desc: String) {
                     LOGGER.error("followUser failed:errorCode:message:$desc")
-                    ToastUtil.toastShortMessage("$code,$desc")
+                    val context = ContextProvider.getApplicationContext()
+                    AtomicToast.show(context, "$code,$desc", AtomicToast.Style.ERROR)
                 }
             })
     }
@@ -86,7 +77,8 @@ class IMStore() {
 
                 override fun onError(code: Int, desc: String) {
                     LOGGER.error("unfollowUser failed:errorCode:message:$desc")
-                    ToastUtil.toastShortMessage("$code,$desc")
+                    val context = ContextProvider.getApplicationContext()
+                    AtomicToast.show(context, "$code,$desc", AtomicToast.Style.ERROR)
                 }
             })
     }
@@ -97,6 +89,26 @@ class IMStore() {
         checkFollowUserList(userIDList)
     }
 
+    fun onAudienceMessageDisabled(userId: String, isDisable: Boolean) {
+        if (userId != LoginStore.shared.loginState.loginUserInfo.value?.userID) {
+            return
+        }
+        val context = ContextProvider.getApplicationContext()
+        if (isDisable) {
+            AtomicToast.show(
+                context,
+                context.resources.getString(R.string.common_send_message_disabled),
+                AtomicToast.Style.INFO
+            )
+        } else {
+            AtomicToast.show(
+                context,
+                context.resources.getString(R.string.common_send_message_enable),
+                AtomicToast.Style.INFO
+            )
+        }
+    }
+
     private fun checkFollowUserList(userIDList: List<String>) {
         imFriendshipManager.checkFollowType(
             userIDList,
@@ -105,14 +117,15 @@ class IMStore() {
                     if (v2TIMFollowTypeCheckResults != null && v2TIMFollowTypeCheckResults.isNotEmpty()) {
                         val result = v2TIMFollowTypeCheckResults[0] ?: return
                         val isAdd = V2TIM_FOLLOW_TYPE_IN_MY_FOLLOWING_LIST == result.followType ||
-                                    V2TIM_FOLLOW_TYPE_IN_BOTH_FOLLOWERS_LIST == result.followType
+                                V2TIM_FOLLOW_TYPE_IN_BOTH_FOLLOWERS_LIST == result.followType
                         updateFollowUserList(result.userID, isAdd)
                     }
                 }
 
                 override fun onError(code: Int, desc: String) {
                     LOGGER.error("checkFollowType failed:errorCode:message:$desc")
-                    ToastUtil.toastShortMessage("$code,$desc")
+                    val context = ContextProvider.getApplicationContext()
+                    AtomicToast.show(context, "$code,$desc", AtomicToast.Style.ERROR)
                 }
             })
     }
@@ -126,34 +139,19 @@ class IMStore() {
         checkFollowUserList(userIdList)
     }
 
-    private fun onSendMessageForUserDisableChanged(userId: String, isDisable: Boolean) {
-        if (userId != TUIRoomEngine.getSelfInfo().userId) {
-            return
-        }
-        if (isDisable) {
-            ToastUtil.toastShortMessage(
-                ContextProvider.getApplicationContext().resources
-                    .getString(R.string.common_send_message_disabled)
-            )
-        } else {
-            ToastUtil.toastShortMessage(
-                ContextProvider.getApplicationContext().resources
-                    .getString(R.string.common_send_message_enable)
-            )
-        }
-    }
-
     private fun updateFollowUserList(userId: String, isAdd: Boolean) {
         if (TextUtils.isEmpty(userId)) {
             return
         }
-        var followingUserList = _followingUserList.value
-        if (isAdd) {
-            followingUserList.add(userId)
-        } else {
-            followingUserList.remove(userId)
+        _followingUserList.update { currentSet ->
+            val newSet = currentSet.toMutableSet()
+            if (isAdd) {
+                newSet.add(userId)
+            } else {
+                newSet.remove(userId)
+            }
+            newSet
         }
-        _followingUserList.value = followingUserList
     }
 
     companion object {

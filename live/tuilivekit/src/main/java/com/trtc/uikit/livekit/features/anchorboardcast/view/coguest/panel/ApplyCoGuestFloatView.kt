@@ -4,14 +4,14 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.util.AttributeSet
 import android.view.LayoutInflater
-import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.RelativeLayout
 import android.widget.TextView
-import com.trtc.tuikit.common.imageloader.ImageLoader
 import com.trtc.uikit.livekit.R
-import com.trtc.uikit.livekit.features.anchorboardcast.manager.AnchorManager
+import com.trtc.uikit.livekit.features.anchorboardcast.store.AnchorStore
 import com.trtc.uikit.livekit.features.anchorboardcast.view.BasicView
+import io.trtc.tuikit.atomicx.widget.basicwidget.avatar.AtomicAvatar
+import io.trtc.tuikit.atomicx.widget.basicwidget.avatar.AtomicAvatar.AvatarContent
 import io.trtc.tuikit.atomicxcore.api.live.CoGuestStore
 import io.trtc.tuikit.atomicxcore.api.live.LiveListStore
 import io.trtc.tuikit.atomicxcore.api.view.LiveCoreView
@@ -29,15 +29,15 @@ class ApplyCoGuestFloatView @JvmOverloads constructor(
 ) : BasicView(context, attrs, defStyleAttr) {
 
     private lateinit var layoutRoot: LinearLayout
-    private lateinit var imageFirstApplyLinkAudience: ImageView
-    private lateinit var imageSecondApplyLinkAudience: ImageView
+    private lateinit var imageFirstApplyLinkAudience: AtomicAvatar
+    private lateinit var imageSecondApplyLinkAudience: AtomicAvatar
     private lateinit var layoutSecondApplyLinkAudience: RelativeLayout
     private lateinit var layoutEllipsis: RelativeLayout
     private lateinit var textApplyLinkAudienceCount: TextView
     private lateinit var liveStream: LiveCoreView
     private var subscribeStateJob: Job? = null
 
-    fun init(manager: AnchorManager, liveStream: LiveCoreView) {
+    fun init(manager: AnchorStore, liveStream: LiveCoreView) {
         this.liveStream = liveStream
         super.init(manager)
     }
@@ -63,7 +63,7 @@ class ApplyCoGuestFloatView @JvmOverloads constructor(
                 return@setOnClickListener
             }
             view.isEnabled = false
-            val dialog = AnchorCoGuestManageDialog(baseContext, anchorManager, liveStream)
+            val dialog = AnchorCoGuestManageDialog(baseContext, anchorStore, liveStream)
             dialog.setOnDismissListener { view.isEnabled = true }
             dialog.show()
         }
@@ -94,36 +94,27 @@ class ApplyCoGuestFloatView @JvmOverloads constructor(
             seatApplicationList.size == 1 -> {
                 layoutSecondApplyLinkAudience.visibility = GONE
                 layoutEllipsis.visibility = GONE
-                ImageLoader.load(
-                    baseContext, imageFirstApplyLinkAudience,
-                    applyLinkAudienceList[0].avatarURL, R.drawable.livekit_ic_avatar
+
+                imageFirstApplyLinkAudience.setContent(
+                    AvatarContent.URL(
+                        applyLinkAudienceList[0].avatarURL,
+                        R.drawable.livekit_ic_avatar
+                    )
                 )
             }
 
             seatApplicationList.size == 2 -> {
                 layoutSecondApplyLinkAudience.visibility = VISIBLE
                 layoutEllipsis.visibility = GONE
-                ImageLoader.load(
-                    baseContext, imageFirstApplyLinkAudience,
-                    applyLinkAudienceList[0].avatarURL, R.drawable.livekit_ic_avatar
-                )
-                ImageLoader.load(
-                    baseContext, imageSecondApplyLinkAudience,
-                    applyLinkAudienceList[1].avatarURL, R.drawable.livekit_ic_avatar
-                )
+                imageFirstApplyLinkAudience.setContent(AvatarContent.URL(applyLinkAudienceList[0].avatarURL, R.drawable.livekit_ic_avatar))
+                imageSecondApplyLinkAudience.setContent(AvatarContent.URL(applyLinkAudienceList[1].avatarURL, R.drawable.livekit_ic_avatar))
             }
 
             seatApplicationList.size > 2 -> {
                 layoutSecondApplyLinkAudience.visibility = VISIBLE
                 layoutEllipsis.visibility = VISIBLE
-                ImageLoader.load(
-                    baseContext, imageFirstApplyLinkAudience,
-                    applyLinkAudienceList[0].avatarURL, R.drawable.livekit_ic_avatar
-                )
-                ImageLoader.load(
-                    baseContext, imageSecondApplyLinkAudience,
-                    applyLinkAudienceList[1].avatarURL, R.drawable.livekit_ic_avatar
-                )
+                imageFirstApplyLinkAudience.setContent(AvatarContent.URL(applyLinkAudienceList[0].avatarURL, R.drawable.livekit_ic_avatar))
+                imageSecondApplyLinkAudience.setContent(AvatarContent.URL(applyLinkAudienceList[1].avatarURL, R.drawable.livekit_ic_avatar))
             }
 
             else -> {

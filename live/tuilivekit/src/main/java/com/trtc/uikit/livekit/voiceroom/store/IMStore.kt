@@ -1,13 +1,14 @@
 package com.trtc.uikit.livekit.voiceroom.store
 
 import android.text.TextUtils
+import com.tencent.cloud.tuikit.engine.common.ContextProvider
 import com.tencent.imsdk.v2.V2TIMFollowOperationResult
 import com.tencent.imsdk.v2.V2TIMFollowTypeCheckResult
 import com.tencent.imsdk.v2.V2TIMFriendshipListener
 import com.tencent.imsdk.v2.V2TIMManager
 import com.tencent.imsdk.v2.V2TIMUserFullInfo
 import com.tencent.imsdk.v2.V2TIMValueCallback
-import com.tencent.qcloud.tuicore.util.ToastUtil
+import io.trtc.tuikit.atomicx.widget.basicwidget.toast.AtomicToast
 import com.trtc.uikit.livekit.common.LiveKitLogger
 import com.trtc.uikit.livekit.common.LiveKitLogger.Companion.getVoiceRoomLogger
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -58,7 +59,8 @@ open class IMStore() {
 
                 override fun onError(code: Int, desc: String?) {
                     logger.error("followUser failed:errorCode:message:$desc")
-                    ToastUtil.toastShortMessage("$code,$desc")
+                    val context = ContextProvider.getApplicationContext()
+                    AtomicToast.show(context, "$code,$desc", AtomicToast.Style.ERROR)
                 }
             })
     }
@@ -75,7 +77,8 @@ open class IMStore() {
 
                 override fun onError(code: Int, desc: String?) {
                     logger.error("unfollowUser failed:errorCode:message:$desc")
-                    ToastUtil.toastShortMessage("$code,$desc")
+                    val context = ContextProvider.getApplicationContext()
+                    AtomicToast.show(context, "$code,$desc", AtomicToast.Style.ERROR)
                 }
             })
     }
@@ -110,7 +113,8 @@ open class IMStore() {
 
                 override fun onError(code: Int, desc: String?) {
                     logger.error("checkFollowType failed:errorCode:message:$desc")
-                    ToastUtil.toastShortMessage("$code,$desc")
+                    val context = ContextProvider.getApplicationContext()
+                    AtomicToast.show(context, "$code,$desc", AtomicToast.Style.ERROR)
                 }
             })
     }

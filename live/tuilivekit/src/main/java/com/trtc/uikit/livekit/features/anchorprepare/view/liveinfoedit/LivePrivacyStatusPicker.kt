@@ -5,11 +5,11 @@ import android.widget.ArrayAdapter
 import android.widget.ListView
 import androidx.core.content.res.ResourcesCompat
 import com.trtc.uikit.livekit.R
-import com.trtc.uikit.livekit.common.ui.PopupDialog
 import com.trtc.uikit.livekit.features.anchorprepare.LiveStreamPrivacyStatus
-import com.trtc.uikit.livekit.features.anchorprepare.manager.AnchorPrepareManager
+import com.trtc.uikit.livekit.features.anchorprepare.store.AnchorPrepareStore
+import io.trtc.tuikit.atomicx.widget.basicwidget.popover.AtomicPopover
 
-class LivePrivacyStatusPicker(context: Context, private val manager: AnchorPrepareManager) : PopupDialog(context) {
+class LivePrivacyStatusPicker(context: Context, private val store: AnchorPrepareStore) : AtomicPopover(context) {
 
     private lateinit var listView: ListView
 
@@ -20,7 +20,6 @@ class LivePrivacyStatusPicker(context: Context, private val manager: AnchorPrepa
 
     private fun initView(context: Context) {
         listView = ListView(context)
-        listView.setBackgroundResource(R.drawable.anchor_prepare_dialog_background)
 
         val dataList = getDataList(context)
         val adapter = ArrayAdapter(
@@ -35,12 +34,12 @@ class LivePrivacyStatusPicker(context: Context, private val manager: AnchorPrepa
             null
         )
         listView.dividerHeight = 1
-        setView(listView)
+        setContent(listView)
     }
 
     private fun initListItemClickListener() {
         listView.setOnItemClickListener { _, _, position, _ ->
-            manager.setLiveMode(LiveStreamPrivacyStatus.entries[position])
+            store.setLiveMode(LiveStreamPrivacyStatus.values()[position])
             dismiss()
         }
     }

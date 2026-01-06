@@ -15,7 +15,7 @@ import io.trtc.tuikit.atomicxcore.api.live.LiveInfo
 
 abstract class LiveListViewPagerAdapter(
     fragmentActivity: FragmentActivity,
-    private val liveInfoListService: LiveInfoListStore,
+    private val liveInfoListStore: LiveInfoListStore,
     liveInfo: LiveInfo?
 ) : FragmentStateAdapter(fragmentActivity) {
 
@@ -30,13 +30,13 @@ abstract class LiveListViewPagerAdapter(
     private var isLoading = false
 
     init {
-        val liveInfoList = liveInfoListService.getLiveList()
+        val liveInfoList = liveInfoListStore.getLiveList()
         if (liveInfoList.isNotEmpty()) {
             addData(liveInfoList)
             isDataLoaded = true
         } else {
             if (liveInfo != null) {
-                liveInfoListService.setFirstData(liveInfo)
+                liveInfoListStore.setFirstData(liveInfo)
                 val firstLiveInfoList = ArrayList<LiveInfo>()
                 firstLiveInfoList.add(liveInfo)
                 addData(firstLiveInfoList)
@@ -69,12 +69,12 @@ abstract class LiveListViewPagerAdapter(
             LOGGER.info("is start fetch data, waiting")
             return
         }
-        if (isDataLoaded && TextUtils.isEmpty(liveInfoListService.getLiveListDataCursor())) {
+        if (isDataLoaded && TextUtils.isEmpty(liveInfoListStore.getLiveListDataCursor())) {
             LOGGER.info("there is no more data")
             return
         }
         isLoading = true
-        liveInfoListService.fetchLiveList(object : AudienceContainerViewDefine.LiveListCallback {
+        liveInfoListStore.fetchLiveList(object : AudienceContainerViewDefine.LiveListCallback {
             override fun onSuccess(cursor: String, liveInfoList: List<LiveInfo>) {
                 if (AudienceContainerConfig.disableSliding.value == false) {
                     val startPosition = this@LiveListViewPagerAdapter.liveInfoList.size
@@ -103,7 +103,7 @@ abstract class LiveListViewPagerAdapter(
             return
         }
         isLoading = true
-        liveInfoListService.refreshLiveList(object : AudienceContainerViewDefine.LiveListCallback {
+        liveInfoListStore.refreshLiveList(object : AudienceContainerViewDefine.LiveListCallback {
             @SuppressLint("NotifyDataSetChanged")
             override fun onSuccess(cursor: String, liveInfoList: List<LiveInfo>) {
                 this@LiveListViewPagerAdapter.liveInfoList.clear()

@@ -6,10 +6,10 @@ import android.util.AttributeSet
 import android.view.LayoutInflater
 import android.widget.FrameLayout
 import android.widget.ImageView
-import com.tencent.cloud.tuikit.engine.room.TUIRoomDefine
-import com.tencent.cloud.tuikit.engine.room.TUIRoomEngine
-import com.tencent.cloud.tuikit.engine.room.TUIRoomObserver
 import com.trtc.uikit.livekit.R
+import io.trtc.tuikit.atomicxcore.api.live.LiveEndedReason
+import io.trtc.tuikit.atomicxcore.api.live.LiveListListener
+import io.trtc.tuikit.atomicxcore.api.live.LiveListStore
 
 @SuppressLint("ViewConstructor")
 class GiftButton @JvmOverloads constructor(
@@ -24,8 +24,8 @@ class GiftButton @JvmOverloads constructor(
     private lateinit var imageButton: ImageView
     private var giftSendDialog: GiftSendDialog? = null
 
-    private val roomObserver = object : TUIRoomObserver() {
-        override fun onRoomDismissed(roomId: String, reason: TUIRoomDefine.RoomDismissedReason) {
+    private val liveListListener = object : LiveListListener() {
+        override fun onLiveEnded(liveID: String, reason: LiveEndedReason, message: String) {
             giftSendDialog?.dismiss()
         }
     }
@@ -44,12 +44,12 @@ class GiftButton @JvmOverloads constructor(
 
     override fun onAttachedToWindow() {
         super.onAttachedToWindow()
-        TUIRoomEngine.sharedInstance().addObserver(roomObserver)
+        LiveListStore.shared().addLiveListListener(liveListListener)
     }
 
     override fun onDetachedFromWindow() {
         super.onDetachedFromWindow()
-        TUIRoomEngine.sharedInstance().removeObserver(roomObserver)
+        LiveListStore.shared().removeLiveListListener(liveListListener)
     }
 
     private fun initView() {

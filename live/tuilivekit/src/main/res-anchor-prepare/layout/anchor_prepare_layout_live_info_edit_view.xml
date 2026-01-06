@@ -22,15 +22,15 @@
             android:scaleType="fitXY"
             app:round="4dp" />
 
-        <TextView
+        <io.trtc.tuikit.atomicx.widget.basicwidget.label.AtomicLabel
             android:layout_width="match_parent"
             android:layout_height="21dp"
             android:layout_gravity="bottom|center_horizontal"
             android:background="@drawable/anchor_prepare_live_info_edit_modify_cover_background"
             android:gravity="center"
             android:text="@string/common_set_cover"
-            android:textColor="@color/common_design_standard_g7"
-            android:textSize="12sp" />
+            android:textColor="@color/text_color_primary"
+            android:textSize="@dimen/text_size_12" />
 
     </FrameLayout>
 
@@ -102,15 +102,15 @@
                 android:background="@drawable/anchor_prepare_live_stream_privacy_mode"
                 android:importantForAccessibility="no" />
 
-            <TextView
+            <io.trtc.tuikit.atomicx.widget.basicwidget.label.AtomicLabel
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_vertical"
                 android:layout_marginLeft="4dp"
                 android:gravity="center"
                 android:text="@string/common_stream_privacy_status"
-                android:textColor="@color/common_design_standard_g7"
-                android:textSize="14sp" />
+                android:textColor="@color/text_color_primary"
+                android:textSize="@dimen/text_size_14" />
 
             <TextView
                 android:id="@+id/tv_stream_privacy_status"

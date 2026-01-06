@@ -4,17 +4,17 @@ import android.content.Context
 import android.view.View
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.trtc.tuikit.common.util.ToastUtil
+import io.trtc.tuikit.atomicx.widget.basicwidget.toast.AtomicToast
 import com.trtc.uikit.livekit.R
-import com.trtc.uikit.livekit.common.ui.PopupDialog
-import com.trtc.uikit.livekit.features.anchorprepare.manager.AnchorPrepareManager
+import io.trtc.tuikit.atomicx.widget.basicwidget.popover.AtomicPopover
+import com.trtc.uikit.livekit.features.anchorprepare.store.AnchorPrepareStore
 import io.trtc.tuikit.atomicxcore.api.view.LiveCoreView
 
 class LiveTemplatePicker(
     context: Context,
-    private val manager: AnchorPrepareManager,
+    private val store: AnchorPrepareStore,
     private val coreView: LiveCoreView
-) : PopupDialog(context) {
+) : AtomicPopover(context) {
 
     init {
         initView()
@@ -24,25 +24,24 @@ class LiveTemplatePicker(
         val view = View.inflate(context, R.layout.anchor_prepare_layout_select_template, null)
         initCoGuestTemplateView(view)
         initCoHostTemplateView(view)
-        setView(view)
+        setContent(view)
     }
 
     private fun initCoHostTemplateView(view: View) {
         val recyclerCoHost = view.findViewById<RecyclerView>(R.id.rv_template_co_host)
         recyclerCoHost.layoutManager = GridLayoutManager(context, 2)
-        recyclerCoHost.setBackgroundResource(R.drawable.anchor_prepare_dialog_background)
 
         val adapter = CoHostTemplatePickAdapter(
             context,
-            manager,
+            store,
             listOf(TemplateType.VERTICAL_DYNAMIC_GRID_CO_HOST)
         ) { type ->
             val viewRatio = coreView.width / coreView.height.toDouble()
             val canvasRatio = 9 / 16.0
             if (type == TemplateType.VERTICAL_DYNAMIC_FLOAT_CO_HOST && viewRatio > canvasRatio) {
-                ToastUtil.toastShortMessage(context.getString(R.string.common_template_601_ui_exception_toast))
+                AtomicToast.show(context, context.getString(R.string.common_template_601_ui_exception_toast), AtomicToast.Style.WARNING)
             }
-            manager.setCoHostTemplate(type.id)
+            store.setCoHostTemplate(type.id)
             dismiss()
         }
         recyclerCoHost.adapter = adapter
@@ -51,11 +50,10 @@ class LiveTemplatePicker(
     private fun initCoGuestTemplateView(view: View) {
         val recyclerCoGuest = view.findViewById<RecyclerView>(R.id.rv_template)
         recyclerCoGuest.layoutManager = GridLayoutManager(context, 2)
-        recyclerCoGuest.setBackgroundResource(R.drawable.anchor_prepare_dialog_background)
 
         val adapter = CoGuestTemplatePickAdapter(
             context,
-            manager,
+            store,
             listOf(
                 TemplateType.VERTICAL_DYNAMIC_GRID,
                 TemplateType.VERTICAL_DYNAMIC_FLOAT,
@@ -66,9 +64,9 @@ class LiveTemplatePicker(
             val viewRatio = coreView.width / coreView.height.toDouble()
             val canvasRatio = 9 / 16.0
             if (type == TemplateType.VERTICAL_DYNAMIC_FLOAT && viewRatio > canvasRatio) {
-                ToastUtil.toastShortMessage(context.getString(R.string.common_template_601_ui_exception_toast))
+                AtomicToast.show(context, context.getString(R.string.common_template_601_ui_exception_toast), AtomicToast.Style.WARNING)
             }
-            manager.setCoGuestTemplate(type.id)
+            store.setCoGuestTemplate(type.id)
             dismiss()
         }
         recyclerCoGuest.adapter = adapter
@@ -95,7 +93,7 @@ class LiveTemplatePicker(
                 if (id == null) {
                     return context.resources.getString(R.string.common_template_dynamic_grid)
                 }
-                for (type in TemplateType.entries) {
+                for (type in TemplateType.values()) {
                     if (type.id == id) {
                         return context.resources.getString(type.desc)
                     }

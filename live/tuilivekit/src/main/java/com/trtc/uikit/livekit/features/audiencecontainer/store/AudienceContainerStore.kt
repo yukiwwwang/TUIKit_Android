@@ -1,7 +1,7 @@
 package com.trtc.uikit.livekit.features.audiencecontainer.store
 
 import com.trtc.uikit.livekit.features.audiencecontainer.AudienceContainerViewDefine
-import com.trtc.uikit.livekit.features.audiencecontainer.manager.observer.AudienceContainerViewListenerList
+import com.trtc.uikit.livekit.features.audiencecontainer.store.observer.AudienceContainerViewListenerList
 
 class AudienceContainerStore {
     private val viewListenerList: AudienceContainerViewListenerList =

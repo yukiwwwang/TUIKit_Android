@@ -5,9 +5,10 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import androidx.constraintlayout.widget.ConstraintLayout
-import com.tencent.cloud.tuikit.engine.call.TUICallDefine
 import com.tencent.qcloud.tuikit.tuicallkit.manager.CallManager.Companion.instance
 import com.tencent.qcloud.tuikit.tuicallkit.view.CallAdapter
+import io.trtc.tuikit.atomicxcore.api.call.CallStore
+import io.trtc.tuikit.atomicxcore.api.call.CallParticipantStatus
 
 class CustomUIAdapter {
     val streamViewAdapter: CallAdapter = object : CallAdapter() {
@@ -16,9 +17,10 @@ class CustomUIAdapter {
             buttonHangup.text = "Hangup"
             buttonHangup.setBackgroundColor(Color.CYAN)
             buttonHangup.setOnClickListener(View.OnClickListener { v: View? ->
-                val selfUser = instance.userState.selfUser.get()
-                if (selfUser.callRole == TUICallDefine.Role.Called
-                    && selfUser.callStatus.get() == TUICallDefine.Status.Waiting
+                val selfUser = CallStore.shared.observerState.selfInfo.value
+                val callerId = CallStore.shared.observerState.activeCall.value.inviterId
+                if (selfUser.id == callerId
+                    && selfUser.status == CallParticipantStatus.Waiting
                 ) {
                     instance.reject(null)
                 } else {

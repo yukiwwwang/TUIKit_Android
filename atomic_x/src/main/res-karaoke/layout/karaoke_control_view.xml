@@ -197,13 +197,13 @@
             android:layout_marginVertical="15dp"
             android:orientation="horizontal">
 
-            <com.google.android.material.imageview.ShapeableImageView
+            <io.trtc.tuikit.atomicx.widget.basicwidget.avatar.AtomicAvatar
                 android:id="@+id/iv_user_avatar"
-                android:layout_width="14dp"
-                android:layout_height="14dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
                 android:layout_gravity="center"
                 android:src="@drawable/karaoke_song_cover"
-                app:shapeAppearanceOverlay="@style/ClickRoundedImageView" />
+                app:avatarSize="xxs" />
 
             <TextView
                 android:id="@+id/tv_requester_name"

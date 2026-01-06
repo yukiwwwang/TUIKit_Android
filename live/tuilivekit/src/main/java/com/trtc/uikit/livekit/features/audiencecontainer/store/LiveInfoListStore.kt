@@ -8,7 +8,7 @@ import io.trtc.tuikit.atomicxcore.api.live.LiveInfo
 class LiveInfoListStore(private val liveListDataSource: AudienceContainerViewDefine.LiveListDataSource) {
 
     companion object {
-        private val LOGGER = LiveKitLogger.getComponentLogger("LiveInfoListService")
+        private val LOGGER = LiveKitLogger.getComponentLogger("LiveInfoListStore")
     }
 
     private var cursor: String = ""

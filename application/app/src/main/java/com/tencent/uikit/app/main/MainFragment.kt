@@ -10,7 +10,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
-import androidx.constraintlayout.utils.widget.ImageFilterView
 import androidx.fragment.app.Fragment
 import androidx.navigation.Navigation
 import androidx.recyclerview.widget.GridLayoutManager
@@ -21,17 +20,18 @@ import com.tencent.qcloud.tuicore.TUILogin
 import com.tencent.qcloud.tuicore.TUIThemeManager
 import com.tencent.qcloud.tuicore.interfaces.ITUINotification
 import com.tencent.uikit.app.R
-import com.trtc.tuikit.common.imageloader.ImageLoader
+import io.trtc.tuikit.atomicx.widget.basicwidget.avatar.AtomicAvatar
+import io.trtc.tuikit.atomicx.widget.basicwidget.avatar.AtomicAvatar.AvatarContent
 
 class MainFragment : Fragment() {
-    private var userCenter: ImageFilterView? = null
+    private var userCenter: AtomicAvatar? = null
     private var recyclerMain: RecyclerView? = null
     private var trtcMainAdapter: TRTCMainAdapter? = null
     private val notification: ITUINotification = object : ITUINotification {
         override fun onNotifyEvent(key: String?, subKey: String?, param: MutableMap<String?, Any?>) {
             Log.i(TAG, "key=$key,subKey=$subKey,param=$param")
             if (TextUtils.equals(param[TUIConstants.TUILogin.SELF_ID] as String?, TUILogin.getLoginUser())) {
-                ImageLoader.load(activity, userCenter, TUILogin.getFaceUrl(), R.drawable.app_ic_avatar)
+                userCenter?.setContent(AvatarContent.URL(TUILogin.getFaceUrl(),  R.drawable.app_ic_avatar))
             }
         }
     }
@@ -55,8 +55,8 @@ class MainFragment : Fragment() {
         if (TextUtils.equals(TUIThemeManager.getInstance().currentLanguage, "en")) {
             mainTitle?.setBackgroundResource(R.drawable.app_title_en)
         }
-        userCenter = rootView.findViewById<ImageFilterView?>(R.id.img_user_center)
-        ImageLoader.load(activity, userCenter, TUILogin.getFaceUrl(), R.drawable.app_ic_avatar)
+        userCenter = rootView.findViewById<AtomicAvatar>(R.id.img_user_center)
+        userCenter?.setContent(AvatarContent.URL(TUILogin.getFaceUrl(),  R.drawable.app_ic_avatar))
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -85,7 +85,7 @@ class MainFragment : Fragment() {
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        ImageLoader.load(getActivity(), userCenter, TUILogin.getFaceUrl(), R.drawable.app_ic_avatar)
+        userCenter?.setContent(AvatarContent.URL(TUILogin.getFaceUrl(),  R.drawable.app_ic_avatar))
     }
 
     private val isSmallScreenDevice: Boolean

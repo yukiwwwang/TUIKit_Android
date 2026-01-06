@@ -19,19 +19,19 @@ import android.widget.Button
 import android.widget.ImageView
 import com.tencent.qcloud.tuicore.util.SPUtils
 import com.tencent.qcloud.tuicore.util.ScreenUtil
-import com.tencent.qcloud.tuicore.util.ToastUtil
+import io.trtc.tuikit.atomicx.widget.basicwidget.toast.AtomicToast
 import com.trtc.uikit.livekit.R
 import com.trtc.uikit.livekit.common.ErrorLocalized
-import com.trtc.uikit.livekit.common.completionHandler
 import com.trtc.uikit.livekit.common.reportEventData
 import com.trtc.uikit.livekit.component.barrage.store.model.DefaultEmojiResource
 import com.trtc.uikit.livekit.component.barrage.view.util.OnDecorViewListener
 import com.trtc.uikit.livekit.component.barrage.viewmodel.BarrageConstants
+import io.trtc.tuikit.atomicxcore.api.CompletionHandler
 import io.trtc.tuikit.atomicxcore.api.barrage.BarrageStore
 
 class BarrageSendView(
     context: Context,
-    private val liveId: String
+    private val liveId: String,
 ) : Dialog(context, R.style.LiveKitBarrageInputDialog), OnDecorViewListener.OnKeyboardCallback {
 
     companion object {
@@ -167,15 +167,20 @@ class BarrageSendView(
     private fun sendText() {
         val message = editText.text?.toString()?.trim() ?: return
         if (TextUtils.isEmpty(message)) {
-            ToastUtil.toastLongMessage(context.getString(R.string.live_barrage_warning_not_empty))
+            AtomicToast.show(
+                context,
+                context.getString(R.string.live_barrage_warning_not_empty),
+                AtomicToast.Style.WARNING,
+                duration = AtomicToast.Duration.LONG
+            )
         } else {
             barrageStore.sendTextMessage(
-                message, null, completionHandler {
-                    onSuccess {
+                message, null, object : CompletionHandler {
+                    override fun onSuccess() {
                         editText.text = null
                     }
 
-                    onError { code: Int, desc: String ->
+                    override fun onFailure(code: Int, desc: String) {
                         ErrorLocalized.onError(code)
                     }
                 })

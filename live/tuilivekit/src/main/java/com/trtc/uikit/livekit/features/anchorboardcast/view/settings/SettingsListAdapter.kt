@@ -9,20 +9,21 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.trtc.uikit.livekit.R
-import com.trtc.uikit.livekit.common.ui.PopupDialog
 import com.trtc.uikit.livekit.component.audioeffect.AudioEffectPanel
 import com.trtc.uikit.livekit.component.beauty.BeautyUtils
 import com.trtc.uikit.livekit.component.dashboard.StreamDashboardDialog
+import com.trtc.uikit.livekit.component.pippanel.PIPTogglePanel
 import com.trtc.uikit.livekit.component.videoquality.LocalMirrorSelectPanel
-import com.trtc.uikit.livekit.features.anchorboardcast.manager.AnchorManager
-import com.trtc.uikit.livekit.features.anchorboardcast.state.AnchorConfig
+import com.trtc.uikit.livekit.features.anchorboardcast.store.AnchorConfig
+import com.trtc.uikit.livekit.features.anchorboardcast.store.AnchorStore
+import io.trtc.tuikit.atomicx.widget.basicwidget.popover.AtomicPopover
 import io.trtc.tuikit.atomicxcore.api.device.DeviceStore
 import io.trtc.tuikit.atomicxcore.api.device.MirrorType
 import io.trtc.tuikit.atomicxcore.api.view.LiveCoreView
 
 class SettingsListAdapter(
     private val context: Context,
-    private val liveStreamManager: AnchorManager,
+    private val liveStreamManager: AnchorStore,
     private val liveCoreView: LiveCoreView,
     private val settingsDialog: SettingsPanelDialog
 ) : RecyclerView.Adapter<SettingsListAdapter.ViewHolder>() {
@@ -33,10 +34,11 @@ class SettingsListAdapter(
         private const val ITEM_TYPE_FLIP = 2
         private const val ITEM_TYPE_MIRROR = 3
         private const val ITEM_TYPE_DASHBOARD = 4
+        private const val ITEM_TYPE_PIP = 5
     }
 
     private val data = mutableListOf<SettingsItem>()
-    private var audioEffectDialog: PopupDialog? = null
+    private var audioEffectDialog: AtomicPopover? = null
 
     init {
         initData()
@@ -84,6 +86,14 @@ class SettingsListAdapter(
                 ITEM_TYPE_DASHBOARD
             )
         )
+
+        data.add(
+            SettingsItem(
+                context.getString(R.string.common_video_settings_item_pip),
+                R.drawable.livekit_pip_icon,
+                ITEM_TYPE_PIP
+            )
+        )
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -106,6 +116,7 @@ class SettingsListAdapter(
                 ITEM_TYPE_FLIP -> handleCameraFlip()
                 ITEM_TYPE_MIRROR -> switchMirror()
                 ITEM_TYPE_DASHBOARD -> showMediaDashboardDialog()
+                ITEM_TYPE_PIP -> showPipPanel()
             }
         }
     }
@@ -116,6 +127,7 @@ class SettingsListAdapter(
     }
 
     private fun switchMirror() {
+        settingsDialog.dismiss()
         val videoQualityList = listOf(MirrorType.AUTO, MirrorType.ENABLE, MirrorType.DISABLE)
         val mirrorTypePanel = LocalMirrorSelectPanel(context, videoQualityList)
         mirrorTypePanel.setOnMirrorTypeSelectedListener(object :
@@ -129,14 +141,14 @@ class SettingsListAdapter(
 
     private fun showMediaDashboardDialog() {
         settingsDialog.dismiss()
-        val streamDashboardDialog = StreamDashboardDialog(context)
+        val streamDashboardDialog = StreamDashboardDialog(context, liveStreamManager.getState().roomId)
         streamDashboardDialog.show()
     }
 
     private fun showAudioEffectPanel() {
         settingsDialog.dismiss()
         if (audioEffectDialog == null) {
-            audioEffectDialog = PopupDialog(context)
+            audioEffectDialog = AtomicPopover(context)
             val audioEffectPanel = AudioEffectPanel(context)
             audioEffectPanel.init(liveStreamManager.getState().roomId)
             audioEffectPanel.setOnBackButtonClickListener(object : AudioEffectPanel.OnBackButtonClickListener {
@@ -145,7 +157,7 @@ class SettingsListAdapter(
                 }
 
             })
-            audioEffectDialog?.setView(audioEffectPanel)
+            audioEffectDialog?.setContent(audioEffectPanel)
         }
         audioEffectDialog?.show()
     }
@@ -153,6 +165,12 @@ class SettingsListAdapter(
     private fun showBeautyPanel() {
         settingsDialog.dismiss()
         BeautyUtils.showBeautyDialog(context)
+    }
+
+    private fun showPipPanel() {
+        settingsDialog.dismiss()
+        val pictureInPictureTogglePanel = PIPTogglePanel(context, liveStreamManager.getState().roomId)
+        pictureInPictureTogglePanel.show()
     }
 
     override fun getItemCount(): Int = data.size

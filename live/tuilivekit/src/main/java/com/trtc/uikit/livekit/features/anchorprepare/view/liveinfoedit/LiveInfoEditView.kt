@@ -11,15 +11,18 @@ import android.widget.EditText
 import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.TextView
-import androidx.lifecycle.Observer
 import com.trtc.tuikit.common.imageloader.ImageLoader
 import com.trtc.uikit.livekit.R
 import com.trtc.uikit.livekit.features.anchorprepare.LiveStreamPrivacyStatus
-import com.trtc.uikit.livekit.features.anchorprepare.manager.AnchorPrepareManager
-import com.trtc.uikit.livekit.features.anchorprepare.state.AnchorPrepareState
-import com.trtc.uikit.livekit.features.anchorprepare.state.AnchorPrepareState.Companion.COVER_URL_LIST
-import com.trtc.uikit.livekit.features.anchorprepare.state.AnchorPrepareState.Companion.MAX_INPUT_BYTE_LENGTH
+import com.trtc.uikit.livekit.features.anchorprepare.store.AnchorPrepareStore
+import com.trtc.uikit.livekit.features.anchorprepare.store.AnchorPrepareState
+import com.trtc.uikit.livekit.features.anchorprepare.store.AnchorPrepareState.Companion.COVER_URL_LIST
+import com.trtc.uikit.livekit.features.anchorprepare.store.AnchorPrepareState.Companion.MAX_INPUT_BYTE_LENGTH
 import com.trtc.uikit.livekit.features.anchorprepare.view.liveinfoedit.livecoverpicker.LiveCoverPicker
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import java.nio.charset.Charset
 
 class LiveInfoEditView @JvmOverloads constructor(
@@ -28,28 +31,26 @@ class LiveInfoEditView @JvmOverloads constructor(
     defStyleAttr: Int = 0
 ) : FrameLayout(context, attrs, defStyleAttr) {
 
-    private var manager: AnchorPrepareManager? = null
+    private var store: AnchorPrepareStore? = null
     private var state: AnchorPrepareState? = null
     private lateinit var editRoomName: EditText
     private lateinit var textStreamPrivacyStatus: TextView
     private lateinit var imageStreamCover: ImageView
     private var liveCoverPicker: LiveCoverPicker? = null
-    
-    private val liveCoverObserver = Observer<String> { onLiveCoverChange(it) }
-    private val livePrivacyStatusObserver = Observer<LiveStreamPrivacyStatus> { onLivePrivacyStatusChange(it) }
+    private var subscribeStateJob: Job? = null
 
     init {
         LayoutInflater.from(context).inflate(R.layout.anchor_prepare_layout_live_info_edit_view, this, true)
     }
 
-    fun init(manager: AnchorPrepareManager) {
-        initManager(manager)
+    fun init(store: AnchorPrepareStore) {
+        initStore(store)
         initView()
     }
 
-    private fun initManager(manager: AnchorPrepareManager) {
-        this.manager = manager
-        this.state = manager.getState()
+    private fun initStore(s: AnchorPrepareStore) {
+        this.store = s
+        this.state = s.getState()
     }
 
     private fun initView() {
@@ -62,17 +63,25 @@ class LiveInfoEditView @JvmOverloads constructor(
     @Synchronized
     private fun addObserver() {
         state?.let { s ->
-            s.coverURL.observeForever(liveCoverObserver)
-            s.liveMode.observeForever(livePrivacyStatusObserver)
+            subscribeStateJob = CoroutineScope(Dispatchers.Main).launch {
+                launch {
+                    s.coverURL.collect {
+                        onLiveCoverChange(it)
+                    }
+                }
+
+                launch {
+                    s.liveMode.collect {
+                        onLivePrivacyStatusChange(it)
+                    }
+                }
+            }
         }
     }
 
     @Synchronized
     fun removeObserver() {
-        state?.let { s ->
-            s.coverURL.removeObserver(liveCoverObserver)
-            s.liveMode.removeObserver(livePrivacyStatusObserver)
-        }
+        subscribeStateJob?.cancel()
     }
 
     override fun onAttachedToWindow() {
@@ -94,12 +103,12 @@ class LiveInfoEditView @JvmOverloads constructor(
     private fun initLiveCoverPicker() {
         val coverSettingsLayout = findViewById<View>(R.id.fl_cover_edit)
         ImageLoader.load(
-            context, 
-            imageStreamCover, 
+            context,
+            imageStreamCover,
             state?.coverURL?.value,
             R.drawable.anchor_prepare_live_stream_default_cover
         )
-        
+
         coverSettingsLayout.setOnClickListener {
             if (liveCoverPicker == null) {
                 val config = LiveCoverPicker.Config().apply {
@@ -110,7 +119,7 @@ class LiveInfoEditView @JvmOverloads constructor(
                 }
                 liveCoverPicker = LiveCoverPicker(context, config)
                 liveCoverPicker?.setOnItemClickListener { imageUrl ->
-                    manager?.setCoverURL(imageUrl)
+                    store?.setCoverURL(imageUrl)
                 }
             }
             liveCoverPicker?.show()
@@ -118,10 +127,10 @@ class LiveInfoEditView @JvmOverloads constructor(
     }
 
     private fun initLiveNameEditText() {
-        val roomName = manager?.getDefaultRoomName() ?: ""
+        val roomName = store?.getDefaultRoomName() ?: ""
         editRoomName.setText(roomName)
-        manager?.setRoomName(roomName)
-        
+        store?.setRoomName(roomName)
+
         editRoomName.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
 
@@ -131,7 +140,7 @@ class LiveInfoEditView @JvmOverloads constructor(
                 if (TextUtils.isEmpty(editable)) {
                     return
                 }
-                
+
                 var newString = editable.toString()
                 if (!checkLength(editable.toString())) {
                     for (i in editable!!.length downTo 1) {
@@ -144,7 +153,7 @@ class LiveInfoEditView @JvmOverloads constructor(
                         }
                     }
                 }
-                manager?.setRoomName(newString)
+                store?.setRoomName(newString)
             }
 
             private fun checkLength(s: String): Boolean {
@@ -155,7 +164,7 @@ class LiveInfoEditView @JvmOverloads constructor(
 
     private fun initLivePrivacyStatusPicker() {
         findViewById<View>(R.id.ll_stream_privacy_status).setOnClickListener {
-            manager?.let { mgr ->
+            store?.let { mgr ->
                 val picker = LivePrivacyStatusPicker(context, mgr)
                 picker.show()
             }
@@ -164,8 +173,8 @@ class LiveInfoEditView @JvmOverloads constructor(
 
     private fun onLiveCoverChange(coverURL: String?) {
         ImageLoader.load(
-            context, 
-            imageStreamCover, 
+            context,
+            imageStreamCover,
             coverURL,
             R.drawable.anchor_prepare_live_stream_default_cover
         )

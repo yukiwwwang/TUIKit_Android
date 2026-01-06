@@ -68,12 +68,12 @@
             android:paddingTop="10dp"
             android:paddingBottom="4dp">
 
-            <androidx.constraintlayout.utils.widget.ImageFilterView
+            <io.trtc.tuikit.atomicx.widget.basicwidget.avatar.AtomicAvatar
                 android:id="@+id/iv_avatar"
-                android:layout_width="20dp"
-                android:layout_height="20dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
                 android:scaleType="centerCrop"
-                app:round="10dp" />
+                app:avatarSize="xs" />
 
             <TextView
                 android:id="@+id/tv_anchor_name"

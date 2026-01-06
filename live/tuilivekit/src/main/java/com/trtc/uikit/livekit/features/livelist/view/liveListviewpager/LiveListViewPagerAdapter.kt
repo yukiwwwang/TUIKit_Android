@@ -8,14 +8,14 @@ import androidx.fragment.app.FragmentActivity
 import androidx.fragment.app.FragmentManager
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import com.trtc.uikit.livekit.common.LiveKitLogger
-import com.trtc.uikit.livekit.features.livelist.manager.LiveInfoListService
+import com.trtc.uikit.livekit.features.livelist.store.LiveInfoListStore
 import io.trtc.tuikit.atomicxcore.api.CompletionHandler
 import io.trtc.tuikit.atomicxcore.api.live.LiveInfo
 import io.trtc.tuikit.atomicxcore.api.live.LiveListStore
 
 abstract class LiveListViewPagerAdapter(
     fragmentActivity: FragmentActivity,
-    private val liveInfoListService: LiveInfoListService,
+    private val liveInfoListStore: LiveInfoListStore,
 ) : FragmentStateAdapter(fragmentActivity) {
 
     companion object {
@@ -29,7 +29,7 @@ abstract class LiveListViewPagerAdapter(
     private var onDataChangedListener: OnDataChangedListener? = null
 
     init {
-        val liveInfoList = liveInfoListService.getLiveList()
+        val liveInfoList = liveInfoListStore.getLiveList()
         if (liveInfoList.isNotEmpty()) {
             addData(liveInfoList)
             isDataLoaded = true
@@ -48,12 +48,12 @@ abstract class LiveListViewPagerAdapter(
             LOGGER.info("is start fetch data, waiting")
             return
         }
-        if (isDataLoaded && TextUtils.isEmpty(liveInfoListService.getLiveListDataCursor())) {
+        if (isDataLoaded && TextUtils.isEmpty(liveInfoListStore.getLiveListDataCursor())) {
             LOGGER.info("there is no more data")
             return
         }
         isLoading = true
-        liveInfoListService.fetchLiveList(object : CompletionHandler {
+        liveInfoListStore.fetchLiveList(object : CompletionHandler {
             override fun onSuccess() {
                 val startPosition = this@LiveListViewPagerAdapter.liveInfoList.size
                 this@LiveListViewPagerAdapter.liveInfoList.clear()
@@ -73,7 +73,7 @@ abstract class LiveListViewPagerAdapter(
     fun refreshData(callback: ActionCallback?) {
         LOGGER.info("refreshData enableSliding:")
         isLoading = true
-        liveInfoListService.refreshLiveList(object : CompletionHandler {
+        liveInfoListStore.refreshLiveList(object : CompletionHandler {
             override fun onSuccess() {
                 this@LiveListViewPagerAdapter.liveInfoList.clear()
                 this@LiveListViewPagerAdapter.liveInfoList.addAll(LiveListStore.shared().liveState.liveList.value)

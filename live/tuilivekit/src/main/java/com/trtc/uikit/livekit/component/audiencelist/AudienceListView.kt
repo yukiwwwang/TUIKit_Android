@@ -13,7 +13,6 @@ import android.widget.RelativeLayout
 import android.widget.TextView
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.tencent.cloud.tuikit.engine.room.TUIRoomDefine
 import com.tencent.qcloud.tuicore.util.ScreenUtil
 import com.trtc.uikit.livekit.R
 import com.trtc.uikit.livekit.common.LiveKitLogger
@@ -230,6 +229,6 @@ class AudienceListView @JvmOverloads constructor(
     }
 
     interface OnUserItemClickListener {
-        fun onUserItemClick(userInfo: TUIRoomDefine.UserInfo)
+        fun onUserItemClick(userInfo: LiveUserInfo)
     }
 }

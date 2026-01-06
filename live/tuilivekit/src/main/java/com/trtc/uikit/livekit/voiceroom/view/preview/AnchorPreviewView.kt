@@ -6,8 +6,6 @@ import android.util.AttributeSet
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.ImageView
-import com.tencent.cloud.tuikit.engine.common.TUICommonDefine
-import com.tencent.cloud.tuikit.engine.extension.TUILiveListManager
 import com.tencent.qcloud.tuicore.TUIConstants
 import com.tencent.qcloud.tuicore.TUICore
 import com.tencent.qcloud.tuicore.TUIThemeManager
@@ -18,8 +16,6 @@ import com.trtc.uikit.livekit.common.ErrorLocalized
 import com.trtc.uikit.livekit.common.LiveKitLogger
 import com.trtc.uikit.livekit.common.TEMPLATE_ID_VOICE_ROOM
 import com.trtc.uikit.livekit.common.completionHandler
-import com.trtc.uikit.livekit.common.liveInfoFromEngineLiveInfo
-import com.trtc.uikit.livekit.common.seatModeToEngineSeatMode
 import com.trtc.uikit.livekit.voiceroom.manager.VoiceRoomManager
 import com.trtc.uikit.livekit.voiceroom.store.LayoutType
 import com.trtc.uikit.livekit.voiceroom.store.LiveStatus
@@ -38,7 +34,7 @@ import java.util.Locale
 class AnchorPreviewView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
-    defStyleAttr: Int = 0
+    defStyleAttr: Int = 0,
 ) : BasicView(context, attrs, defStyleAttr) {
 
     private var isExit = false
@@ -120,22 +116,19 @@ class AnchorPreviewView @JvmOverloads constructor(
         }
         view.isEnabled = false
         val prepareState = voiceRoomManager?.prepareStore?.prepareState
-        val liveInfo = TUILiveListManager.LiveInfo()
+        val liveInfo = LiveInfo()
         liveInfo.isSeatEnabled = true
         liveInfo.keepOwnerOnSeat = true
-        liveInfo.seatLayoutTemplateId = TEMPLATE_ID_VOICE_ROOM
-        liveInfo.roomId = prepareState?.liveInfo?.value?.liveID ?: ""
-        liveInfo.name = prepareState?.liveInfo?.value?.liveName ?: ""
+        liveInfo.seatLayoutTemplateID = TEMPLATE_ID_VOICE_ROOM
+        liveInfo.liveID = prepareState?.liveInfo?.value?.liveID ?: ""
+        liveInfo.liveName = prepareState?.liveInfo?.value?.liveName ?: ""
         liveInfo.maxSeatCount = prepareState?.liveInfo?.value?.maxSeatCount ?: 9
-        liveInfo.seatMode =
-            seatModeToEngineSeatMode(prepareState?.liveInfo?.value?.seatMode ?: TakeSeatMode.FREE)
-        liveInfo.backgroundUrl =
-            prepareState?.liveInfo?.value?.backgroundURL ?: DEFAULT_BACKGROUND_URL
-        liveInfo.coverUrl = prepareState?.liveInfo?.value?.coverURL ?: DEFAULT_COVER_URL
-        liveInfo.isPublicVisible =
-            prepareState?.liveExtraInfo?.value?.liveMode == LiveStreamPrivacyStatus.PUBLIC
+        liveInfo.seatMode = prepareState?.liveInfo?.value?.seatMode ?: TakeSeatMode.FREE
+        liveInfo.backgroundURL = prepareState?.liveInfo?.value?.backgroundURL ?: DEFAULT_BACKGROUND_URL
+        liveInfo.coverURL = prepareState?.liveInfo?.value?.coverURL ?: DEFAULT_COVER_URL
+        liveInfo.isPublicVisible = prepareState?.liveExtraInfo?.value?.liveMode == LiveStreamPrivacyStatus.PUBLIC
         liveListStore.createLive(
-            liveInfoFromEngineLiveInfo(liveInfo),
+            liveInfo,
             object : LiveInfoCompletionHandler {
                 override fun onSuccess(liveInfo: LiveInfo) {
                     if (isExit) {
@@ -152,7 +145,7 @@ class AnchorPreviewView @JvmOverloads constructor(
 
                 override fun onFailure(code: Int, desc: String) {
                     LOGGER.error(" create room failed, error: $code, message: $desc")
-                    ErrorLocalized.onError(TUICommonDefine.Error.fromInt(code))
+                    ErrorLocalized.onError(code)
                     view.isEnabled = true
                 }
             })
@@ -181,7 +174,7 @@ class AnchorPreviewView @JvmOverloads constructor(
         liveAudienceStore.fetchAudienceList(completionHandler {
             onError { code, desc ->
                 LOGGER.error("fetchAudienceList,error:$code,message:$desc")
-                ErrorLocalized.onError(TUICommonDefine.Error.fromInt(code))
+                ErrorLocalized.onError(code)
             }
         })
     }

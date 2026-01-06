@@ -1,12 +1,13 @@
 package com.trtc.uikit.livekit.livestream
 
 import android.content.Context
-import com.tencent.cloud.tuikit.engine.room.TUIRoomDefine
 import com.trtc.uikit.livekit.livestream.impl.VideoLiveKitImpl
+import io.trtc.tuikit.atomicxcore.api.CompletionHandler
 import io.trtc.tuikit.atomicxcore.api.live.LiveInfo
+import io.trtc.tuikit.atomicxcore.api.live.StopLiveCompletionHandler
 
 interface VideoLiveKit {
-    
+
     companion object {
         fun createInstance(context: Context): VideoLiveKit {
             return VideoLiveKitImpl.createInstance(context)
@@ -15,11 +16,11 @@ interface VideoLiveKit {
 
     fun startLive(roomId: String)
 
-    fun stopLive(callback: TUIRoomDefine.ActionCallback?)
+    fun stopLive(callback: StopLiveCompletionHandler?)
 
     fun joinLive(roomId: String)
 
     fun joinLive(liveInfo: LiveInfo)
 
-    fun leaveLive(callback: TUIRoomDefine.ActionCallback?)
+    fun leaveLive(callback: CompletionHandler?)
 }

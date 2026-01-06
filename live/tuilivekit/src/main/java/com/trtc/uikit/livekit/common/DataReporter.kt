@@ -3,6 +3,9 @@ package com.trtc.uikit.livekit.common
 import android.util.Log
 import com.google.gson.Gson
 import com.tencent.cloud.tuikit.engine.room.TUIRoomEngine
+import io.trtc.tuikit.atomicxcore.api.live.deprecated.LiveCoreViewDeprecated
+import org.json.JSONException
+import org.json.JSONObject
 
 const val LIVEKIT_METRICS_PANEL_SHOW_SEAT_GRID_VIEW = 191026
 const val LIVEKIT_METRICS_PANEL_HIDE_SEAT_GRID_VIEW = 191027
@@ -25,6 +28,8 @@ const val LIVEKIT_METRICS_METHOD_CALL_SEAT_GRID_VIEW_KICK_USER_OFF_SEAT = 191043
 const val LIVEKIT_METRICS_METHOD_CALL_SEAT_GRID_VIEW_LOCK_SEAT = 191044
 const val LIVEKIT_METRICS_METHOD_CALL_SEAT_GRID_VIEW_SET_LAYOUT_MODE = 191045
 const val LIVEKIT_METRICS_METHOD_CALL_SEAT_GRID_VIEW_SET_SEAT_VIEW_ADAPTER = 191046
+const val COMPONENT_VOICE_ROOM = 22
+const val COMPONENT_LIVE_STREAM = 21
 
 fun reportEventData(eventKey: Int) {
     val gson = Gson()
@@ -38,4 +43,16 @@ fun reportEventData(eventKey: Int) {
     )
     TUIRoomEngine.sharedInstance().callExperimentalAPI(json, null)
     Log.i("DataReporter", "reportEventData:[json:$json]");
+}
+
+fun setComponent(component: Int) {
+    try {
+        val jsonObject = JSONObject().apply {
+            put("api", "component")
+            put("component", component)
+        }
+        LiveCoreViewDeprecated.callExperimentalAPI(jsonObject.toString())
+    } catch (e: JSONException) {
+        Log.e("DataReporter", "dataReport:${e.message}")
+    }
 }

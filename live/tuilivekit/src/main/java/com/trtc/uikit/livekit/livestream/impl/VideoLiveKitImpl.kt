@@ -16,13 +16,7 @@ import android.text.TextUtils
 import android.util.Rational
 import androidx.annotation.RequiresApi
 import com.google.gson.Gson
-import com.tencent.cloud.tuikit.engine.common.TUICommonDefine
-import com.tencent.cloud.tuikit.engine.extension.TUILiveListManager
-import com.tencent.cloud.tuikit.engine.extension.TUILiveListManager.LiveInfo
-import com.tencent.cloud.tuikit.engine.room.TUIRoomDefine
 import com.tencent.cloud.tuikit.engine.room.TUIRoomEngine
-import com.tencent.qcloud.tuicore.TUILogin
-import com.trtc.tuikit.common.util.ToastUtil
 import com.trtc.uikit.livekit.R
 import com.trtc.uikit.livekit.common.DEFAULT_BACKGROUND_URL
 import com.trtc.uikit.livekit.common.DEFAULT_COVER_URL
@@ -30,17 +24,23 @@ import com.trtc.uikit.livekit.common.LiveKitLogger
 import com.trtc.uikit.livekit.livestream.VideoLiveAnchorActivity
 import com.trtc.uikit.livekit.livestream.VideoLiveAudienceActivity
 import com.trtc.uikit.livekit.livestream.VideoLiveKit
-import com.trtc.uikit.livekit.livestream.impl.LiveInfoUtils.asStoreLiveInfo
+import io.trtc.tuikit.atomicx.widget.basicwidget.toast.AtomicToast
+import io.trtc.tuikit.atomicxcore.api.CompletionHandler
+import io.trtc.tuikit.atomicxcore.api.live.LiveInfo
+import io.trtc.tuikit.atomicxcore.api.live.LiveInfoCompletionHandler
+import io.trtc.tuikit.atomicxcore.api.live.LiveListStore
+import io.trtc.tuikit.atomicxcore.api.live.StopLiveCompletionHandler
+import io.trtc.tuikit.atomicxcore.api.login.LoginStore
 import java.lang.ref.WeakReference
 import java.util.concurrent.CopyOnWriteArrayList
 
 class VideoLiveKitImpl private constructor(context: Context) : VideoLiveKit {
-    
+
     companion object {
         @SuppressLint("StaticFieldLeak")
         @Volatile
         private var sInstance: VideoLiveKitImpl? = null
-        
+
         @JvmStatic
         fun createInstance(context: Context): VideoLiveKitImpl {
             return sInstance ?: synchronized(VideoLiveKitImpl::class.java) {
@@ -79,7 +79,7 @@ class VideoLiveKitImpl private constructor(context: Context) : VideoLiveKit {
 
     override fun startLive(roomId: String) {
         logger.info("startLive, roomId:$roomId")
-        
+
         val startTask = Runnable {
             val intent = Intent(context, VideoLiveAnchorActivity::class.java).apply {
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
@@ -87,22 +87,19 @@ class VideoLiveKitImpl private constructor(context: Context) : VideoLiveKit {
             }
             context.startActivity(intent)
         }
-        
-        val liveListManager = TUIRoomEngine.sharedInstance()
-            .getExtension(TUICommonDefine.ExtensionType.LIVE_LIST_MANAGER) as TUILiveListManager
-            
-        liveListManager.getLiveInfo(roomId, object : TUILiveListManager.LiveInfoCallback {
+
+        LiveListStore.shared().fetchLiveInfo(roomId, object : LiveInfoCompletionHandler {
             override fun onSuccess(liveInfo: LiveInfo) {
-                logger.info("getLiveInfo, onSuccess, liveInfo:${Gson().toJson(liveInfo)}")
+                logger.info("fetchLiveInfo, onSuccess, liveInfo:${Gson().toJson(liveInfo)}")
                 if (liveInfo.keepOwnerOnSeat) {
                     startTask.run()
                 } else {
-                    joinLive(liveInfo.asStoreLiveInfo())
+                    joinLive(liveInfo)
                 }
             }
 
-            override fun onError(error: TUICommonDefine.Error, message: String) {
-                logger.warn("getLiveInfo onError:$message")
+            override fun onFailure(code: Int, desc: String) {
+                logger.warn("fetchLiveInfo onError: code:$code, desc:$desc")
                 startTask.run()
             }
         })
@@ -115,7 +112,7 @@ class VideoLiveKitImpl private constructor(context: Context) : VideoLiveKit {
             coverURL = DEFAULT_COVER_URL
             isPublicVisible = true
         }
-        
+
         val intent = Intent(context, VideoLiveAudienceActivity::class.java).apply {
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             putExtras(LiveInfoUtils.convertLiveInfoToBundle(liveInfo))
@@ -123,12 +120,12 @@ class VideoLiveKitImpl private constructor(context: Context) : VideoLiveKit {
         context.startActivity(intent)
     }
 
-    override fun joinLive(liveInfo: io.trtc.tuikit.atomicxcore.api.live.LiveInfo) {
+    override fun joinLive(liveInfo: LiveInfo) {
         if (TextUtils.isEmpty(liveInfo.liveID)) {
             return
         }
 
-        val intent = if (liveInfo.liveOwner.userID == TUILogin.getUserId()) {
+        val intent = if (liveInfo.liveOwner.userID == LoginStore.shared.loginState.loginUserInfo.value?.userID) {
             Intent(context, VideoLiveAnchorActivity::class.java).apply {
                 putExtra(VideoLiveAnchorActivity.INTENT_KEY_NEED_CREATE, false)
             }
@@ -143,13 +140,13 @@ class VideoLiveKitImpl private constructor(context: Context) : VideoLiveKit {
         context.startActivity(intent)
     }
 
-    override fun leaveLive(callback: TUIRoomDefine.ActionCallback?) {
-        TUIRoomEngine.sharedInstance().exitRoom(true, callback)
+    override fun leaveLive(callback: CompletionHandler?) {
+        LiveListStore.shared().leaveLive(callback)
         notifyLeaveLive()
     }
 
-    override fun stopLive(callback: TUIRoomDefine.ActionCallback?) {
-        TUIRoomEngine.sharedInstance().destroyRoom(callback)
+    override fun stopLive(callback: StopLiveCompletionHandler?) {
+        LiveListStore.shared().endLive(callback)
         notifyStopLive()
     }
 
@@ -158,9 +155,10 @@ class VideoLiveKitImpl private constructor(context: Context) : VideoLiveKit {
             val appOpsManager = activity.getSystemService(Context.APP_OPS_SERVICE) as AppOpsManager
             if (AppOpsManager.MODE_ALLOWED == appOpsManager.checkOpNoThrow(
                     AppOpsManager.OPSTR_PICTURE_IN_PICTURE,
-                    activity.applicationInfo.uid, 
+                    activity.applicationInfo.uid,
                     activity.packageName
-                )) {
+                )
+            ) {
                 val aspectRatio = Rational(9, 16)
                 val params = PictureInPictureParams.Builder()
                     .setAspectRatio(aspectRatio)
@@ -179,7 +177,11 @@ class VideoLiveKitImpl private constructor(context: Context) : VideoLiveKit {
                 false
             }
         } else {
-            ToastUtil.toastShortMessage(activity.getString(R.string.common_picture_in_picture_android_system_tips))
+            AtomicToast.show(
+                activity,
+                activity.getString(R.string.common_picture_in_picture_android_system_tips),
+                AtomicToast.Style.WARNING
+            )
             logger.warn("Picture-in-picture mode is not supported under android 8.0 lower version")
             false
         }

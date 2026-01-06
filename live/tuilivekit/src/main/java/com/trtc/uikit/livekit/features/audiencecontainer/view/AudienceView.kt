@@ -7,7 +7,6 @@ import android.content.pm.ActivityInfo
 import android.graphics.Point
 import android.text.TextUtils
 import android.util.AttributeSet
-import android.util.Log
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.MotionEvent
@@ -16,28 +15,21 @@ import android.view.ViewConfiguration
 import android.view.WindowManager
 import android.widget.FrameLayout
 import android.widget.ImageView
-import android.widget.TextView
-import android.widget.Toast
-import com.tencent.cloud.tuikit.engine.common.TUICommonDefine
-import com.tencent.cloud.tuikit.engine.extension.TUILiveBattleManager
-import com.tencent.cloud.tuikit.engine.room.TUIRoomDefine
-import com.tencent.cloud.tuikit.engine.room.TUIRoomEngine
 import com.tencent.qcloud.tuicore.TUICore
 import com.tencent.qcloud.tuicore.TUIThemeManager
 import com.tencent.qcloud.tuicore.util.ScreenUtil.dip2px
 import com.trtc.tuikit.common.imageloader.ImageLoader
 import com.trtc.tuikit.common.imageloader.ImageOptions
 import com.trtc.tuikit.common.system.ContextProvider
-import com.trtc.tuikit.common.util.ToastUtil
 import com.trtc.uikit.livekit.R
+import com.trtc.uikit.livekit.common.COMPONENT_LIVE_STREAM
 import com.trtc.uikit.livekit.common.EVENT_KEY_LIVE_KIT
 import com.trtc.uikit.livekit.common.EVENT_PARAMS_IS_LINKING
 import com.trtc.uikit.livekit.common.EVENT_SUB_KEY_DESTROY_LIVE_VIEW
 import com.trtc.uikit.livekit.common.EVENT_SUB_KEY_LINK_STATUS_CHANGE
 import com.trtc.uikit.livekit.common.ErrorLocalized
 import com.trtc.uikit.livekit.common.LiveKitLogger
-import com.trtc.uikit.livekit.common.convertToSeatInfo
-import com.trtc.uikit.livekit.common.ui.StandardDialog
+import com.trtc.uikit.livekit.common.setComponent
 import com.trtc.uikit.livekit.component.audiencelist.AudienceListView
 import com.trtc.uikit.livekit.component.barrage.BarrageInputView
 import com.trtc.uikit.livekit.component.barrage.BarrageStreamView
@@ -58,9 +50,9 @@ import com.trtc.uikit.livekit.component.giftaccess.view.BarrageViewTypeDelegate
 import com.trtc.uikit.livekit.component.giftaccess.view.GiftBarrageAdapter
 import com.trtc.uikit.livekit.component.networkInfo.NetworkInfoView
 import com.trtc.uikit.livekit.component.roominfo.LiveInfoView
-import com.trtc.uikit.livekit.features.audiencecontainer.manager.AudienceManager
-import com.trtc.uikit.livekit.features.audiencecontainer.manager.observer.AudienceContainerViewListenerList
 import com.trtc.uikit.livekit.features.audiencecontainer.store.AudienceContainerConfig
+import com.trtc.uikit.livekit.features.audiencecontainer.store.AudienceStore
+import com.trtc.uikit.livekit.features.audiencecontainer.store.observer.AudienceContainerViewListenerList
 import com.trtc.uikit.livekit.features.audiencecontainer.view.battle.widgets.BattleInfoView
 import com.trtc.uikit.livekit.features.audiencecontainer.view.battle.widgets.BattleMemberInfoView
 import com.trtc.uikit.livekit.features.audiencecontainer.view.coguest.panel.AnchorManagerDialog
@@ -75,12 +67,16 @@ import com.trtc.uikit.livekit.features.audiencecontainer.view.cohost.widgets.CoH
 import com.trtc.uikit.livekit.features.audiencecontainer.view.cohost.widgets.CoHostForegroundWidgetsView
 import com.trtc.uikit.livekit.features.audiencecontainer.view.settings.AudienceSettingsPanelDialog
 import com.trtc.uikit.livekit.features.audiencecontainer.view.userinfo.UserInfoDialog
+import io.trtc.tuikit.atomicx.widget.basicwidget.alertdialog.AtomicAlertDialog
+import io.trtc.tuikit.atomicx.widget.basicwidget.alertdialog.items
+import io.trtc.tuikit.atomicx.widget.basicwidget.toast.AtomicToast
 import io.trtc.tuikit.atomicxcore.api.barrage.Barrage
 import io.trtc.tuikit.atomicxcore.api.device.VideoQuality
 import io.trtc.tuikit.atomicxcore.api.gift.Gift
 import io.trtc.tuikit.atomicxcore.api.live.BattleListener
 import io.trtc.tuikit.atomicxcore.api.live.DeviceControlPolicy
 import io.trtc.tuikit.atomicxcore.api.live.GuestListener
+import io.trtc.tuikit.atomicxcore.api.live.LiveAudienceListener
 import io.trtc.tuikit.atomicxcore.api.live.LiveInfo
 import io.trtc.tuikit.atomicxcore.api.live.LiveInfoCompletionHandler
 import io.trtc.tuikit.atomicxcore.api.live.LiveKickedOutReason
@@ -88,16 +84,15 @@ import io.trtc.tuikit.atomicxcore.api.live.LiveListListener
 import io.trtc.tuikit.atomicxcore.api.live.LiveSeatListener
 import io.trtc.tuikit.atomicxcore.api.live.LiveUserInfo
 import io.trtc.tuikit.atomicxcore.api.live.NoResponseReason
+import io.trtc.tuikit.atomicxcore.api.live.SeatInfo
 import io.trtc.tuikit.atomicxcore.api.live.SeatUserInfo
-import io.trtc.tuikit.atomicxcore.api.live.deprecated.LiveCoreViewDeprecated
+import io.trtc.tuikit.atomicxcore.api.login.LoginStore
 import io.trtc.tuikit.atomicxcore.api.view.LiveCoreView
 import io.trtc.tuikit.atomicxcore.api.view.VideoViewAdapter
 import io.trtc.tuikit.atomicxcore.api.view.ViewLayer
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import org.json.JSONException
-import org.json.JSONObject
 import java.lang.ref.WeakReference
 import java.util.Locale
 
@@ -105,8 +100,8 @@ import java.util.Locale
 class AudienceView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
-    defStyleAttr: Int = 0
-) : BasicView(context, attrs, defStyleAttr), AudienceManager.AudienceViewListener {
+    defStyleAttr: Int = 0,
+) : BasicView(context, attrs, defStyleAttr), AudienceStore.AudienceViewListener {
 
     private lateinit var liveInfo: LiveInfo
     private lateinit var liveCoreView: LiveCoreView
@@ -132,7 +127,7 @@ class AudienceView @JvmOverloads constructor(
     private lateinit var imageSwitchOrientationIcon: ImageView
     private lateinit var waitingCoGuestPassView: CoGuestRequestFloatView
     private lateinit var audiencePlayingRootView: AudiencePlayingRootView
-    private var endLiveDialog: StandardDialog? = null
+    private var endLiveDialog: AtomicAlertDialog? = null
     private var userInfoDialog: UserInfoDialog? = null
     private var anchorManagerDialog: AnchorManagerDialog? = null
     private var viewObserver: ViewObserver? = null
@@ -155,18 +150,18 @@ class AudienceView @JvmOverloads constructor(
     }
 
     fun initStore() {
-        audienceManager = AudienceManager(liveInfo.liveID)
-        init(audienceManager)
-        audienceManager.getMediaStore().setCustomVideoProcess()
+        audienceStore = AudienceStore(liveInfo.liveID)
+        init(audienceStore)
+        this@AudienceView.audienceStore.getMediaStore().setCustomVideoProcess()
         if (liveCoreView.parent != null && liveCoreView.parent == layoutLiveCoreView) {
             layoutLiveCoreView.removeView(liveCoreView)
         }
         layoutLiveCoreView.addView(liveCoreView)
         liveCoreViewMaskBackgroundView = LiveCoreViewMaskBackgroundView(context)
-        liveCoreViewMaskBackgroundView.init(audienceManager)
+        liveCoreViewMaskBackgroundView.init(audienceStore)
         layoutLiveCoreViewMask.addView(liveCoreViewMaskBackgroundView)
         createVideoMuteBitmap()
-        setComponent()
+        setComponent(COMPONENT_LIVE_STREAM)
         setLayoutBackground(liveInfo.coverURL)
     }
 
@@ -175,7 +170,7 @@ class AudienceView @JvmOverloads constructor(
     }
 
     fun setAudienceContainerViewListenerList(viewListenerList: AudienceContainerViewListenerList) {
-        audienceManager.setAudienceContainerViewListenerList(viewListenerList)
+        audienceStore.setAudienceContainerViewListenerList(viewListenerList)
     }
 
     override fun initView() {
@@ -204,12 +199,18 @@ class AudienceView @JvmOverloads constructor(
         initFloatWindowView()
     }
 
+    override fun addObserver() {
+    }
+
+    override fun removeObserver() {
+    }
+
     private fun initFloatWindowView() {
         imageFloatWindow.setOnClickListener {
             if ((context as Activity).requestedOrientation == ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE) {
                 setScreenOrientation(true)
             }
-            audienceManager.notifyPictureInPictureClick()
+            audienceStore.notifyPictureInPictureClick()
         }
     }
 
@@ -255,11 +256,12 @@ class AudienceView @JvmOverloads constructor(
     }
 
     fun joinRoom() {
+        subscribeObserver()
         isLiveStreaming = true
-        audienceManager.addObserver()
+        audienceStore.addObserver()
         layoutPlaying.visibility = GONE
         onViewLoading()
-        audienceManager.getMediaStore().setCustomVideoProcess()
+        this@AudienceView.audienceStore.getMediaStore().setCustomVideoProcess()
         liveCoreView.setLocalVideoMuteImage(
             mediaState.bigMuteBitmap.value,
             mediaState.smallMuteBitmap.value
@@ -270,7 +272,7 @@ class AudienceView @JvmOverloads constructor(
                 val activity = context as Activity
                 if (activity.isFinishing || activity.isDestroyed) {
                     LOGGER.warn("activity is exit, leaveLiveStream")
-                    audienceManager.getLiveListStore().leaveLive(null)
+                    audienceStore.getLiveListStore().leaveLive(null)
                     liveCoreView.setLocalVideoMuteImage(null, null)
                     isLiveStreaming = false
                     return
@@ -280,6 +282,7 @@ class AudienceView @JvmOverloads constructor(
                 )
                 liveCoreView.setBackgroundColor(resources.getColor(android.R.color.black))
                 mediaStore.getMultiPlaybackQuality(liveInfo.liveID)
+                audienceStore.updateLiveInfo(liveInfo)
                 initComponentView(liveInfo)
                 initCoGuestVisibility()
                 onViewFinished()
@@ -288,21 +291,23 @@ class AudienceView @JvmOverloads constructor(
             override fun onFailure(code: Int, desc: String) {
                 isLiveStreaming = false
                 onViewFinished()
-                ErrorLocalized.onError(TUICommonDefine.Error.fromInt(code))
+                ErrorLocalized.onError(code)
                 TUICore.notifyEvent(EVENT_KEY_LIVE_KIT, EVENT_SUB_KEY_DESTROY_LIVE_VIEW, null)
             }
         })
     }
 
     fun leaveRoom() {
+        unsubscribeObserver()
         liveCoreView.setBackgroundColor(resources.getColor(android.R.color.transparent))
         if (!isLiveStreaming) {
             return
         }
         isLiveStreaming = false
         stopPreviewLiveStream()
-        audienceManager.removeObserver()
-        audienceManager.getLiveListStore().leaveLive(null)
+        audienceStore.removeObserver()
+        audienceStore.getLiveListStore().leaveLive(null)
+        audienceStore.updateLiveInfo(LiveInfo())
         liveCoreView.setLocalVideoMuteImage(null, null)
         mediaStore.releaseVideoMuteBitmap()
         roomInfoView.unInit()
@@ -427,17 +432,6 @@ class AudienceView @JvmOverloads constructor(
         viewObserver?.onFinished()
     }
 
-    private fun setComponent() {
-        try {
-            val jsonObject = JSONObject()
-            jsonObject.put("api", "component")
-            jsonObject.put("component", 21)
-            LiveCoreViewDeprecated.callExperimentalAPI(jsonObject.toString())
-        } catch (e: JSONException) {
-            LOGGER.error("dataReport:" + Log.getStackTraceString(e))
-        }
-    }
-
     private fun showCoGuestManageDialog(userInfo: LiveUserInfo?) {
         if (userInfo == null) {
             return
@@ -448,7 +442,7 @@ class AudienceView @JvmOverloads constructor(
         if (coGuestState.connected.value.size <= 1) {
             return
         }
-        if (userInfo.userID == TUIRoomEngine.getSelfInfo().userId) {
+        if (userInfo.userID == LoginStore.shared.loginState.loginUserInfo.value?.userID) {
             showAnchorManagerDialog(userInfo)
         } else {
             showUserInfoDialog(userInfo)
@@ -457,7 +451,7 @@ class AudienceView @JvmOverloads constructor(
 
     private fun showAnchorManagerDialog(userInfo: LiveUserInfo) {
         if (anchorManagerDialog == null) {
-            anchorManagerDialog = AnchorManagerDialog(context, audienceManager)
+            anchorManagerDialog = AnchorManagerDialog(context, audienceStore)
         }
         anchorManagerDialog?.init(userInfo)
         anchorManagerDialog?.show()
@@ -465,7 +459,7 @@ class AudienceView @JvmOverloads constructor(
 
     private fun showUserInfoDialog(userInfo: LiveUserInfo) {
         if (userInfoDialog == null) {
-            userInfoDialog = UserInfoDialog(context, audienceManager)
+            userInfoDialog = UserInfoDialog(context, audienceStore)
         }
         userInfoDialog?.init(userInfo)
         userInfoDialog?.show()
@@ -513,13 +507,13 @@ class AudienceView @JvmOverloads constructor(
 
     private fun initMoreIcon() {
         imageMore.setOnClickListener {
-            val audienceSettingsPanelDialog = AudienceSettingsPanelDialog(context, audienceManager)
+            val audienceSettingsPanelDialog = AudienceSettingsPanelDialog(context, audienceStore)
             audienceSettingsPanelDialog.show()
         }
     }
 
     private fun initCoGuestVisibility() {
-        val canvas = audienceManager.getLiveSeatState().canvas.value
+        val canvas = audienceStore.getLiveSeatState().canvas.value
         if (liveListState.currentLive.value.liveID != liveInfo.liveID) return
         if (canvas.w == 0 || canvas.h == 0) return
         val isLandscape = canvas.w >= canvas.h
@@ -532,7 +526,7 @@ class AudienceView @JvmOverloads constructor(
     }
 
     private fun initNetworkView(liveInfo: LiveInfo) {
-        networkInfoView.init(liveInfo.createTime)
+        networkInfoView.init(liveInfo)
     }
 
     private fun initExitRoomView() {
@@ -550,16 +544,16 @@ class AudienceView @JvmOverloads constructor(
         barrageStreamView.setItemAdapter(GIFT_VIEW_TYPE_1, GiftBarrageAdapter(context))
         barrageStreamView.setOnMessageClickListener(object :
             BarrageStreamView.OnMessageClickListener {
-            override fun onMessageClick(userInfo: TUIRoomDefine.UserInfo) {
-                if (TextUtils.isEmpty(userInfo.userId)) {
+            override fun onMessageClick(userInfo: LiveUserInfo) {
+                if (TextUtils.isEmpty(userInfo.userID)) {
                     return@onMessageClick
                 }
-                if (userInfo.userId == TUIRoomEngine.getSelfInfo().userId) {
+                if (userInfo.userID == LoginStore.shared.loginState.loginUserInfo.value?.userID) {
                     return@onMessageClick
                 }
 
                 if (userInfoDialog == null) {
-                    userInfoDialog = UserInfoDialog(context, audienceManager)
+                    userInfoDialog = UserInfoDialog(context, audienceStore)
                 }
                 userInfoDialog?.init(userInfo)
                 userInfoDialog?.show()
@@ -592,7 +586,7 @@ class AudienceView @JvmOverloads constructor(
                 view: GiftPlayView?,
                 gift: Gift,
                 giftCount: Int,
-                sender: LiveUserInfo
+                sender: LiveUserInfo,
             ) {
                 val barrage = Barrage()
                 barrage.textContent = "gift"
@@ -630,13 +624,13 @@ class AudienceView @JvmOverloads constructor(
         imageCoGuest.setImageResource(R.drawable.livekit_function_link_default)
         imageCoGuest.setOnClickListener {
             if (viewState.isApplyingToTakeSeat.value
-                || !coGuestState.connected.value.none { it.userID == TUIRoomEngine.getSelfInfo().userId }
+                || !coGuestState.connected.value.none { it.userID == LoginStore.shared.loginState.loginUserInfo.value?.userID }
                 || isClickEmptySeat
             ) {
                 return@setOnClickListener
             }
             isClickEmptySeat = true
-            val typeSelectDialog = TypeSelectDialog(context, audienceManager, -1)
+            val typeSelectDialog = TypeSelectDialog(context, audienceStore, -1)
             typeSelectDialog.setOnDismissListener { isClickEmptySeat = false }
             typeSelectDialog.show()
         }
@@ -659,17 +653,17 @@ class AudienceView @JvmOverloads constructor(
     }
 
     private fun showStopCoGuestDialog() {
-        val stopCoGuestDialog = StopCoGuestDialog(context, audienceManager)
+        val stopCoGuestDialog = StopCoGuestDialog(context, audienceStore)
         stopCoGuestDialog.show()
     }
 
     private fun showCancelCoGuestRequestDialog() {
-        val linkMicDialog = CancelRequestDialog(context, audienceManager)
+        val linkMicDialog = CancelRequestDialog(context, audienceStore)
         linkMicDialog.show()
     }
 
-    override fun addObserver() {
-        audienceManager.addAudienceViewListener(this)
+    fun subscribeObserver() {
+        audienceStore.addAudienceViewListener(this)
         subscribeStateJob = CoroutineScope(Dispatchers.Main).launch {
             launch {
                 liveSeatState.canvas.collect {
@@ -724,15 +718,17 @@ class AudienceView @JvmOverloads constructor(
         liveSeatStore.addLiveSeatEventListener(seatListener)
         coGuestStore.addGuestListener(conGuestListener)
         battleStore.addBattleListener(battleListener)
+        liveAudienceStore.addLiveAudienceListener(liveAudienceListener)
     }
 
-    override fun removeObserver() {
-        audienceManager.removeAudienceViewListener(this)
+    fun unsubscribeObserver() {
+        audienceStore.removeAudienceViewListener(this)
         subscribeStateJob?.cancel()
         liveListStore.removeLiveListListener(liveListListener)
         liveSeatStore.removeLiveSeatEventListener(seatListener)
         coGuestStore.removeGuestListener(conGuestListener)
         battleStore.removeBattleListener(battleListener)
+        liveAudienceStore.removeLiveAudienceListener(liveAudienceListener)
     }
 
     fun onExitButtonClick() {
@@ -740,7 +736,7 @@ class AudienceView @JvmOverloads constructor(
         if (isLoading) {
             return
         }
-        if (!coGuestState.connected.value.none { it.userID == TUIRoomEngine.getSelfInfo().userId }) {
+        if (!coGuestState.connected.value.none { it.userID == LoginStore.shared.loginState.loginUserInfo.value?.userID }) {
             showLiveStreamEndDialog()
         } else {
             TUICore.notifyEvent(EVENT_KEY_LIVE_KIT, EVENT_SUB_KEY_DESTROY_LIVE_VIEW, null)
@@ -749,7 +745,7 @@ class AudienceView @JvmOverloads constructor(
 
     private fun onLinkStatusChange() {
         val params = HashMap<String, Any>()
-        if (!coGuestState.connected.value.none { it.userID == TUIRoomEngine.getSelfInfo().userId }) {
+        if (!coGuestState.connected.value.none { it.userID == LoginStore.shared.loginState.loginUserInfo.value?.userID }) {
             waitingCoGuestPassView.visibility = GONE
             stopCoGuest()
             params[EVENT_PARAMS_IS_LINKING] = true
@@ -810,10 +806,12 @@ class AudienceView @JvmOverloads constructor(
 
     private fun onPlaybackQualityChanged(videoQuality: VideoQuality?) {
         if (playbackQuality != null && playbackQuality != videoQuality) {
-            ToastUtil.toastShortMessage(
+            AtomicToast.show(
+                context,
                 context.getString(R.string.live_video_resolution_changed) + videoQualityToString(
                     videoQuality!!
-                )
+                ),
+                AtomicToast.Style.INFO
             )
         }
 
@@ -826,68 +824,112 @@ class AudienceView @JvmOverloads constructor(
     }
 
     private fun showLiveStreamEndDialog() {
-        endLiveDialog = StandardDialog(context)
-        endLiveDialog?.setContent(resources.getString(R.string.common_audience_end_link_tips))
-        val options: MutableList<StandardDialog.Option> = ArrayList()
-        options.add(
-            StandardDialog.Option(
-                resources.getString(R.string.common_end_link),
-                resources.getColor(R.color.common_not_standard_red)
-            ) { _ ->
-                coGuestStore.disconnect(null)
-                audienceManager.getViewStore().updateTakeSeatState(false)
-                endLiveDialog?.dismiss()
+        val atomicEndLiveDialog = AtomicAlertDialog(context)
+
+        atomicEndLiveDialog.init {
+            title = resources.getString(R.string.common_audience_end_link_tips)
+            items(
+                listOf(
+                    Pair(
+                        resources.getString(R.string.common_end_link),
+                        AtomicAlertDialog.TextColorPreset.RED
+                    ),
+                    Pair(
+                        resources.getString(R.string.common_exit_live),
+                        AtomicAlertDialog.TextColorPreset.PRIMARY
+                    ),
+                    Pair(
+                        resources.getString(R.string.common_cancel),
+                        AtomicAlertDialog.TextColorPreset.PRIMARY
+                    )
+                ),
+                isBold = false
+            ) { dialog, index, text ->
+                when (index) {
+                    0 -> {
+                        coGuestStore.disconnect(null)
+                        audienceStore.getViewStore().updateTakeSeatState(false)
+                    }
+
+                    1 -> { // common_exit_live
+                        TUICore.notifyEvent(EVENT_KEY_LIVE_KIT, EVENT_SUB_KEY_DESTROY_LIVE_VIEW, null)
+                    }
+
+                    2 -> {
+                    }
+                }
             }
-        )
-        options.add(
-            StandardDialog.Option(
-                resources.getString(R.string.common_exit_live),
-                resources.getColor(R.color.common_color_white_e5)
-            ) { _ ->
-                TUICore.notifyEvent(EVENT_KEY_LIVE_KIT, EVENT_SUB_KEY_DESTROY_LIVE_VIEW, null)
-                endLiveDialog?.dismiss()
-            }
-        )
-        options.add(
-            StandardDialog.Option(
-                resources.getString(R.string.common_cancel),
-                resources.getColor(R.color.common_color_white_e5)
-            ) { _ -> endLiveDialog?.dismiss() })
-        endLiveDialog?.setOptions(options)
+        }
+        endLiveDialog = atomicEndLiveDialog
         endLiveDialog?.show()
     }
+
+// 假设 endLiveDialog 变量的类型从 StandardDialog 变更为 Dialog?
+// private var endLiveDialog: Dialog? = null
+//
+//    private fun showLiveStreamEndDialog1() {
+//        endLiveDialog = StandardDialog(context)
+//        endLiveDialog?.setContent(resources.getString(R.string.common_audience_end_link_tips))
+//        val options: MutableList<StandardDialog.Option> = ArrayList()
+//        options.add(
+//            StandardDialog.Option(
+//                resources.getString(R.string.common_end_link),
+//                resources.getColor(R.color.common_not_standard_red)
+//            ) { _ ->
+//                coGuestStore.disconnect(null)
+//                audienceStore.getViewStore().updateTakeSeatState(false)
+//                endLiveDialog?.dismiss()
+//            }
+//        )
+//        options.add(
+//            StandardDialog.Option(
+//                resources.getString(R.string.common_exit_live),
+//                resources.getColor(R.color.common_color_white_e5)
+//            ) { _ ->
+//                TUICore.notifyEvent(EVENT_KEY_LIVE_KIT, EVENT_SUB_KEY_DESTROY_LIVE_VIEW, null)
+//                endLiveDialog?.dismiss()
+//            }
+//        )
+//        options.add(
+//            StandardDialog.Option(
+//                resources.getString(R.string.common_cancel),
+//                resources.getColor(R.color.common_color_white_e5)
+//            ) { _ -> endLiveDialog?.dismiss() })
+//        endLiveDialog?.setOptions(options)
+//        endLiveDialog?.show()
+//    }
 
     inner class VideoViewAdapterImpl(context: Context) : VideoViewAdapter {
 
         private val weakContext = WeakReference(context)
 
         override fun createCoGuestView(
-            seatInfo: TUIRoomDefine.SeatFullInfo?,
-            viewLayer: ViewLayer?
+            seatInfo: SeatInfo?,
+            viewLayer: ViewLayer?,
         ): View? {
             val context = weakContext.get()
             if (context == null) {
                 LOGGER.error("createCoGuestView: context is null")
                 return null
             }
-            if (TextUtils.isEmpty(seatInfo?.userId)) {
+            if (TextUtils.isEmpty(seatInfo?.userInfo?.userID)) {
                 return if (viewLayer == ViewLayer.BACKGROUND) {
                     val emptySeatView = AudienceEmptySeatView(getContext())
-                    emptySeatView.init(audienceManager)
+                    emptySeatView.init(audienceStore)
                     emptySeatView.tag = seatInfo
                     emptySeatView.setOnClickListener { v ->
-                        if (audienceManager.getViewState().isApplyingToTakeSeat.value
-                            || !coGuestState.connected.value.none { it.userID == TUIRoomEngine.getSelfInfo().userId }
+                        if (audienceStore.getViewState().isApplyingToTakeSeat.value
+                            || !coGuestState.connected.value.none { it.userID == LoginStore.shared.loginState.loginUserInfo.value?.userID }
                             || isClickEmptySeat
                         ) {
                             return@setOnClickListener
                         }
                         isClickEmptySeat = true
-                        val seat = v.tag as TUIRoomDefine.SeatFullInfo
+                        val seat = v.tag as SeatInfo
                         val typeSelectDialog = TypeSelectDialog(
                             this@AudienceView.context,
-                            audienceManager,
-                            seat.seatIndex
+                            audienceStore,
+                            seat.index
                         )
                         typeSelectDialog.setOnDismissListener { isClickEmptySeat = false }
                         typeSelectDialog.show()
@@ -899,23 +941,17 @@ class AudienceView @JvmOverloads constructor(
             }
             return if (ViewLayer.BACKGROUND == viewLayer) {
                 val backgroundWidgetsView = CoGuestBackgroundWidgetsView(context)
-                backgroundWidgetsView.init(
-                    audienceManager,
-                    convertToSeatInfo(seatInfo ?: TUIRoomDefine.SeatFullInfo()).userInfo
-                )
+                backgroundWidgetsView.init(audienceStore, seatInfo?.userInfo ?: SeatUserInfo())
                 backgroundWidgetsView
             } else {
                 val foregroundWidgetsView = CoGuestForegroundWidgetsView(context)
-                foregroundWidgetsView.init(
-                    audienceManager,
-                    convertToSeatInfo(seatInfo ?: TUIRoomDefine.SeatFullInfo()).userInfo
-                )
+                foregroundWidgetsView.init(audienceStore, seatInfo?.userInfo ?: SeatUserInfo())
                 foregroundWidgetsView.setOnClickListener {
                     showCoGuestManageDialog(
                         LiveUserInfo(
-                            userID = seatInfo?.userId ?: "",
-                            userName = seatInfo?.userName ?: "",
-                            avatarURL = seatInfo?.userAvatar ?: "",
+                            userID = seatInfo?.userInfo?.userID ?: "",
+                            userName = seatInfo?.userInfo?.userName ?: "",
+                            avatarURL = seatInfo?.userInfo?.avatarURL ?: "",
                         )
                     )
                 }
@@ -924,8 +960,8 @@ class AudienceView @JvmOverloads constructor(
         }
 
         override fun createCoHostView(
-            seatInfo: TUIRoomDefine.SeatFullInfo?,
-            viewLayer: ViewLayer?
+            seatInfo: SeatInfo?,
+            viewLayer: ViewLayer?,
         ): View? {
             val context = weakContext.get()
             if (context == null) {
@@ -934,29 +970,23 @@ class AudienceView @JvmOverloads constructor(
             }
             return if (ViewLayer.BACKGROUND == viewLayer) {
                 val backgroundWidgetsView = CoHostBackgroundWidgetsView(context)
-                backgroundWidgetsView.init(
-                    audienceManager,
-                    convertToSeatInfo(seatInfo ?: TUIRoomDefine.SeatFullInfo()).userInfo
-                )
+                backgroundWidgetsView.init(audienceStore, seatInfo?.userInfo ?: SeatUserInfo())
                 backgroundWidgetsView
             } else {
                 val foregroundWidgetsView = CoHostForegroundWidgetsView(context)
-                foregroundWidgetsView.init(
-                    audienceManager,
-                    convertToSeatInfo(seatInfo ?: TUIRoomDefine.SeatFullInfo()).userInfo
-                )
+                foregroundWidgetsView.init(audienceStore, seatInfo?.userInfo ?: SeatUserInfo())
                 foregroundWidgetsView
             }
         }
 
-        override fun createBattleView(battleUser: TUILiveBattleManager.BattleUser?): View? {
+        override fun createBattleView(seatInfo: SeatInfo?): View? {
             val context = weakContext.get()
             if (context == null) {
                 LOGGER.error("createBattleView: context is null")
                 return null
             }
             val battleMemberInfoView = BattleMemberInfoView(context)
-            battleMemberInfoView.init(audienceManager, battleUser?.userId ?: "")
+            battleMemberInfoView.init(audienceStore, seatInfo?.userInfo?.userID ?: "")
             return battleMemberInfoView
         }
 
@@ -967,7 +997,7 @@ class AudienceView @JvmOverloads constructor(
                 return null
             }
             val battleInfoView = BattleInfoView(context)
-            battleInfoView.init(audienceManager)
+            battleInfoView.init(audienceStore)
             return battleInfoView
         }
     }
@@ -991,14 +1021,16 @@ class AudienceView @JvmOverloads constructor(
         override fun onKickedOutOfLive(
             liveID: String,
             reason: LiveKickedOutReason,
-            message: String
+            message: String,
         ) {
-            if (liveListState.currentLive.value.liveOwner.userID == TUIRoomEngine.getSelfInfo().userId) {
+            if (liveListState.currentLive.value.liveOwner.userID == LoginStore.shared.loginState.loginUserInfo.value?.userID) {
                 return
             }
             if (LiveKickedOutReason.BY_LOGGED_ON_OTHER_DEVICE != reason) {
-                ToastUtil.toastShortMessage(
-                    context.resources.getString(R.string.common_kicked_out_of_room_by_owner)
+                AtomicToast.show(
+                    context,
+                    context.resources.getString(R.string.common_kicked_out_of_room_by_owner),
+                    AtomicToast.Style.INFO
                 )
                 TUICore.notifyEvent(EVENT_KEY_LIVE_KIT, EVENT_SUB_KEY_DESTROY_LIVE_VIEW, null)
             }
@@ -1007,66 +1039,80 @@ class AudienceView @JvmOverloads constructor(
     private val seatListener = object : LiveSeatListener() {
         override fun onLocalCameraOpenedByAdmin(policy: DeviceControlPolicy) {
             if (policy == DeviceControlPolicy.UNLOCK_ONLY) {
-                ToastUtil.toastShortMessage(
-                    context.resources.getString(R.string.common_un_mute_video_by_master)
+                AtomicToast.show(
+                    context,
+                    context.resources.getString(R.string.common_un_mute_video_by_master),
+                    AtomicToast.Style.INFO
                 )
             }
         }
 
         override fun onLocalCameraClosedByAdmin() {
-            ToastUtil.toastShortMessage(
-                context.resources.getString(R.string.common_mute_video_by_owner)
+            AtomicToast.show(
+                context,
+                context.resources.getString(R.string.common_mute_video_by_owner),
+                AtomicToast.Style.INFO
             )
         }
 
         override fun onLocalMicrophoneOpenedByAdmin(policy: DeviceControlPolicy) {
             if (policy == DeviceControlPolicy.UNLOCK_ONLY) {
-                ToastUtil.toastShortMessage(
-                    context.resources.getString(R.string.common_un_mute_audio_by_master)
+                AtomicToast.show(
+                    context,
+                    context.resources.getString(R.string.common_un_mute_audio_by_master),
+                    AtomicToast.Style.INFO
                 )
             }
 
         }
 
         override fun onLocalMicrophoneClosedByAdmin() {
-            ToastUtil.toastShortMessage(
-                context.resources.getString(R.string.common_mute_audio_by_master)
+            AtomicToast.show(
+                context,
+                context.resources.getString(R.string.common_mute_audio_by_master),
+                AtomicToast.Style.INFO
             )
         }
     }
     private val conGuestListener = object : GuestListener() {
         override fun onGuestApplicationResponded(isAccept: Boolean, hostUser: LiveUserInfo) {
-            audienceManager.getViewStore()
+            audienceStore.getViewStore()
                 .updateTakeSeatState(false)
             if (isAccept) {
 
                 if (viewState.openCameraAfterTakeSeat.value) {
-                    audienceManager.getDeviceStore().openLocalCamera(
-                        audienceManager.getDeviceStore().deviceState.isFrontCamera.value,
+                    audienceStore.getDeviceStore().openLocalCamera(
+                        audienceStore.getDeviceStore().deviceState.isFrontCamera.value,
                         null
                     )
                 }
-                audienceManager.getDeviceStore().openLocalMicrophone(null)
+                audienceStore.getDeviceStore().openLocalMicrophone(null)
                 return
             }
-            ToastUtil.toastShortMessage(
-                context.resources.getString(R.string.common_voiceroom_take_seat_rejected)
+            AtomicToast.show(
+                context,
+                context.resources.getString(R.string.common_voiceroom_take_seat_rejected),
+                AtomicToast.Style.INFO
             )
         }
 
         override fun onGuestApplicationNoResponse(reason: NoResponseReason) {
             if (reason == NoResponseReason.TIMEOUT) {
-                ToastUtil.toastShortMessage(
-                    context.resources.getString(R.string.common_voiceroom_take_seat_timeout)
+                AtomicToast.show(
+                    context,
+                    context.resources.getString(R.string.common_voiceroom_take_seat_timeout),
+                    AtomicToast.Style.INFO
                 )
             }
-            audienceManager.getViewStore()
+            audienceStore.getViewStore()
                 .updateTakeSeatState(false)
         }
 
         override fun onKickedOffSeat(seatIndex: Int, hostUser: LiveUserInfo) {
-            ToastUtil.toastShortMessage(
-                context.resources.getString(R.string.common_voiceroom_kicked_out_of_seat)
+            AtomicToast.show(
+                context,
+                context.resources.getString(R.string.common_voiceroom_kicked_out_of_seat),
+                AtomicToast.Style.INFO
             )
         }
     }
@@ -1074,7 +1120,7 @@ class AudienceView @JvmOverloads constructor(
         override fun onBattleRequestCancelled(
             battleID: String,
             inviter: SeatUserInfo,
-            invitee: SeatUserInfo
+            invitee: SeatUserInfo,
         ) {
             val toast =
                 inviter.userName + " " + context.getString(R.string.common_battle_inviter_cancel)
@@ -1084,7 +1130,7 @@ class AudienceView @JvmOverloads constructor(
         override fun onBattleRequestReject(
             battleID: String,
             inviter: SeatUserInfo,
-            invitee: SeatUserInfo
+            invitee: SeatUserInfo,
         ) {
             val toast =
                 invitee.userName + " " + context.getString(R.string.common_battle_invitee_reject)
@@ -1094,9 +1140,15 @@ class AudienceView @JvmOverloads constructor(
         override fun onBattleRequestTimeout(
             battleID: String,
             inviter: SeatUserInfo,
-            invitee: SeatUserInfo
+            invitee: SeatUserInfo,
         ) {
             showBattleToast(context.getString(R.string.common_battle_invitation_timeout))
+        }
+    }
+
+    private val liveAudienceListener = object : LiveAudienceListener() {
+        override fun onAudienceMessageDisabled(audience: LiveUserInfo, isDisable: Boolean) {
+            audienceStore.getIMStore().onAudienceMessageDisabled(audience.userID, isDisable)
         }
     }
 
@@ -1110,20 +1162,14 @@ class AudienceView @JvmOverloads constructor(
         private const val DEFAULT_COVER_URL =
             "https://liteav-test-1252463788.cos.ap-guangzhou.myqcloud.com/voice_room/voice_room_cover1.png"
 
-        fun showBattleToast(tips: String?) {
+        fun showBattleToast(tips: String) {
             val context = ContextProvider.getApplicationContext()
-            val view =
-                LayoutInflater.from(context).inflate(R.layout.livekit_connection_toast, null, false)
-
-            val text: TextView = view.findViewById(R.id.tv_toast_text)
-            text.text = tips
-            val image = view.findViewById<ImageView?>(R.id.iv_toast_image)
-            image.setImageResource(R.drawable.livekit_connection_toast_icon)
-
-            val toast: Toast = Toast(view.context)
-            toast.setDuration(Toast.LENGTH_SHORT)
-            toast.setView(view)
-            toast.show()
+            AtomicToast.show(
+                context,
+                tips,
+                customIcon = R.drawable.livekit_connection_toast_icon,
+                style = AtomicToast.Style.INFO
+            )
         }
     }
 }

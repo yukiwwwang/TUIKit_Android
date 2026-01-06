@@ -7,7 +7,6 @@ import android.os.Looper
 import android.util.AttributeSet
 import android.widget.ImageView
 import android.widget.TextView
-import com.tencent.cloud.tuikit.engine.room.TUIRoomEngine
 import com.tencent.rtmp.TXLiveBase
 import com.trtc.uikit.livekit.R
 import com.trtc.uikit.livekit.common.LiveKitLogger
@@ -16,6 +15,7 @@ import io.trtc.tuikit.atomicxcore.api.live.BattleEndedReason
 import io.trtc.tuikit.atomicxcore.api.live.BattleInfo
 import io.trtc.tuikit.atomicxcore.api.live.BattleListener
 import io.trtc.tuikit.atomicxcore.api.live.SeatUserInfo
+import io.trtc.tuikit.atomicxcore.api.login.LoginStore
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -23,7 +23,7 @@ import kotlinx.coroutines.launch
 @SuppressLint("ViewConstructor")
 class BattleInfoView @JvmOverloads constructor(
     context: Context,
-    attrs: AttributeSet? = null
+    attrs: AttributeSet? = null,
 ) : BasicView(context, attrs) {
 
     private enum class BattleResultType {
@@ -63,17 +63,17 @@ class BattleInfoView @JvmOverloads constructor(
         logger.info("addObserver:" + hashCode())
         subscribeStateJob = CoroutineScope(Dispatchers.Main).launch {
             launch {
-                audienceManager.getCoHostState().connected.collect {
+                audienceStore.getCoHostState().connected.collect {
                     onConnectedListChange()
                 }
             }
             launch {
-                audienceManager.getBattleState().battleUsers.collect {
+                audienceStore.getBattleState().battleUsers.collect {
                     onBattleScoreChanged()
                 }
             }
             launch {
-                audienceManager.getViewState().isOnDisplayResult.collect {
+                audienceStore.getViewState().isOnDisplayResult.collect {
                     onResultDisplay(it)
                 }
             }
@@ -90,13 +90,13 @@ class BattleInfoView @JvmOverloads constructor(
                 }
             }
         }
-        audienceManager.getBattleStore().addBattleListener(battleListener)
+        audienceStore.getBattleStore().addBattleListener(battleListener)
     }
 
     override fun removeObserver() {
         logger.info("removeObserver:" + hashCode())
         subscribeStateJob?.cancel()
-        audienceManager.getBattleStore().removeBattleListener(battleListener)
+        audienceStore.getBattleStore().removeBattleListener(battleListener)
     }
 
     private fun onBattleStart(battleInfo: BattleInfo) {
@@ -106,10 +106,8 @@ class BattleInfoView @JvmOverloads constructor(
         } else {
             battle1V1ScoreView.visibility = GONE
         }
-        if (audienceManager.getLiveListState().currentLive.value.liveOwner.userID == TUIRoomEngine.getSelfInfo().userId) {
-            battleStartView.visibility = VISIBLE
-            postDelayed({ battleStartView.visibility = GONE }, 1000)
-        }
+        battleStartView.visibility = VISIBLE
+        postDelayed({ battleStartView.visibility = GONE }, 1000)
         var duration =
             (battleInfo.config.duration + battleInfo.startTime - getCurrentTimestamp() / 1000).toInt()
         duration = duration.coerceAtMost(battleInfo.config.duration)
@@ -131,14 +129,14 @@ class BattleInfoView @JvmOverloads constructor(
         logger.info("onBattleEnd:" + hashCode())
         visibility = if (mediaState.isPictureInPictureMode.value) GONE else VISIBLE
 
-        audienceManager.getViewState().isOnDisplayResult.value = true
+        audienceStore.getViewState().isOnDisplayResult.value = true
         viewState.durationCountDown.value = 0
         updateTime(0L)
         mainHandler.postDelayed({
             post {
-                audienceManager.getViewState().isOnDisplayResult.value = false
+                audienceStore.getViewState().isOnDisplayResult.value = false
                 mainHandler.postDelayed({
-                    audienceManager.getViewState().isOnDisplayResult.value = null
+                    audienceStore.getViewState().isOnDisplayResult.value = null
                 }, 200L)
             }
         }, (BATTLE_END_INFO_DURATION * 1000).toLong())
@@ -146,12 +144,12 @@ class BattleInfoView @JvmOverloads constructor(
 
     private fun onBattleScoreChanged() {
         val singleBattleUserMap = HashMap<String, SeatUserInfo>()
-        if (audienceManager.getCoHostState().connected.value.size == 2) {
-            for (connectionUser in audienceManager.getCoHostState().connected.value) {
+        if (audienceStore.getCoHostState().connected.value.size == 2) {
+            for (connectionUser in audienceStore.getCoHostState().connected.value) {
                 singleBattleUserMap[connectionUser.userID] = connectionUser
             }
         }
-        val is1V1Battle = audienceManager.getCoHostState().connected.value.size == 2
+        val is1V1Battle = audienceStore.getCoHostState().connected.value.size == 2
         if (is1V1Battle) {
             val userList = ArrayList(singleBattleUserMap.values)
             updateData(userList[1], userList[0])
@@ -163,8 +161,8 @@ class BattleInfoView @JvmOverloads constructor(
     private fun updateData(inviter: SeatUserInfo, invitee: SeatUserInfo) {
         battle1V1ScoreView.visibility = VISIBLE
         battle1V1ScoreView.updateScores(
-            audienceManager.getBattleState().battleScore.value[inviter.userID] ?: 0,
-            audienceManager.getBattleState().battleScore.value[invitee.userID] ?: 0
+            audienceStore.getBattleState().battleScore.value[inviter.userID] ?: 0,
+            audienceStore.getBattleState().battleScore.value[invitee.userID] ?: 0
         )
     }
 
@@ -197,14 +195,14 @@ class BattleInfoView @JvmOverloads constructor(
     }
 
     private fun getBattleResult(): BattleResultType {
-        val list = audienceManager.getBattleState().battleUsers.value
+        val list = audienceStore.getBattleState().battleUsers.value
         if (list.isEmpty()) {
             return BattleResultType.DRAW
         }
         val firstUser = list[0]
         val lastUser = list[list.size - 1]
-        val firstScore = getRankingFromMap(firstUser.userID, audienceManager.getBattleState().battleScore.value)
-        val secondScore = getRankingFromMap(lastUser.userID, audienceManager.getBattleState().battleScore.value)
+        val firstScore = getRankingFromMap(firstUser.userID, audienceStore.getBattleState().battleScore.value)
+        val secondScore = getRankingFromMap(lastUser.userID, audienceStore.getBattleState().battleScore.value)
         if (firstScore > secondScore) {
             return BattleResultType.VICTORY
         } else if (firstScore < secondScore) {
@@ -240,8 +238,8 @@ class BattleInfoView @JvmOverloads constructor(
     }
 
     private fun onConnectedListChange() {
-        if (audienceManager.getCoHostState().connected.value.size <= 1) {
-            audienceManager.getViewStore().resetOnDisplayResult()
+        if (audienceStore.getCoHostState().connected.value.size <= 1) {
+            audienceStore.getViewStore().resetOnDisplayResult()
             return
         }
         onBattleScoreChanged()
@@ -251,7 +249,7 @@ class BattleInfoView @JvmOverloads constructor(
         if (java.lang.Boolean.TRUE == isPipMode) {
             visibility = GONE
         } else {
-            if (!audienceManager.getBattleStore().battleState.currentBattleInfo.value?.battleID.isNullOrBlank()) {
+            if (!audienceStore.getBattleStore().battleState.currentBattleInfo.value?.battleID.isNullOrBlank()) {
                 visibility = VISIBLE
             }
         }

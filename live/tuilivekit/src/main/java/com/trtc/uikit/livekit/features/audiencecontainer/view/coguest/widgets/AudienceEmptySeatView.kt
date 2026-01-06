@@ -4,7 +4,7 @@ import android.content.Context
 import android.util.AttributeSet
 import android.view.LayoutInflater
 import com.trtc.uikit.livekit.R
-import com.trtc.uikit.livekit.features.audiencecontainer.manager.AudienceManager
+import com.trtc.uikit.livekit.features.audiencecontainer.store.AudienceStore
 import com.trtc.uikit.livekit.features.audiencecontainer.view.BasicView
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -16,7 +16,7 @@ class AudienceEmptySeatView @JvmOverloads constructor(
     defStyleAttr: Int = 0
 ) : BasicView(context, attrs, defStyleAttr) {
 
-    override fun init(manager: AudienceManager) {
+    override fun init(manager: AudienceStore) {
         super.init(manager)
     }
 

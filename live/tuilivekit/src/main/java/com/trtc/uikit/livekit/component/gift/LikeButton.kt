@@ -9,7 +9,6 @@ import android.util.AttributeSet
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.ImageView
-import com.tencent.cloud.tuikit.engine.common.TUICommonDefine
 import com.trtc.uikit.livekit.R
 import com.trtc.uikit.livekit.common.ErrorLocalized.Companion.onError
 import com.trtc.uikit.livekit.common.LiveKitLogger.Companion.getComponentLogger
@@ -80,7 +79,7 @@ class LikeButton @JvmOverloads constructor(context: Context, attrs: AttributeSet
             override fun onSuccess() {}
 
             override fun onFailure(code: Int, desc: String) {
-                onError(TUICommonDefine.Error.fromInt(code))
+                onError(code)
                 likePendingCount += count
             }
         })

@@ -17,8 +17,8 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.PopupWindow
 import android.widget.TextView
-import com.tencent.qcloud.tuicore.util.ToastUtil
 import com.tencent.uikit.app.R
+import io.trtc.tuikit.atomicx.widget.basicwidget.toast.AtomicToast
 import com.tencent.uikit.app.common.utils.SoftKeyBoardUtil
 import java.util.regex.Pattern
 
@@ -84,12 +84,12 @@ class PopupInputCard(private val activity: Activity) {
             val result = editText.text.toString()
 
             if (result.length < minLimit || result.length > maxLimit) {
-                ToastUtil.toastShortMessage(notMachRuleTip)
+                AtomicToast.show(activity, notMachRuleTip ?: "", AtomicToast.Style.ERROR)
                 return@setOnClickListener
             }
 
             if (!TextUtils.isEmpty(rule) && !Pattern.matches(rule, result)) {
-                ToastUtil.toastShortMessage(notMachRuleTip)
+                AtomicToast.show(activity, notMachRuleTip ?: "", AtomicToast.Style.ERROR)
                 return@setOnClickListener
             }
 

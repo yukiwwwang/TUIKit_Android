@@ -7,18 +7,18 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
-import androidx.constraintlayout.utils.widget.ImageFilterView
 import androidx.recyclerview.widget.RecyclerView
-import com.tencent.qcloud.tuicore.TUILogin
-import com.trtc.tuikit.common.imageloader.ImageLoader
 import com.trtc.uikit.livekit.R
-import com.trtc.uikit.livekit.features.anchorboardcast.manager.AnchorManager
+import com.trtc.uikit.livekit.features.anchorboardcast.store.AnchorStore
+import io.trtc.tuikit.atomicx.widget.basicwidget.avatar.AtomicAvatar
+import io.trtc.tuikit.atomicx.widget.basicwidget.avatar.AtomicAvatar.AvatarContent
 import io.trtc.tuikit.atomicxcore.api.live.SeatUserInfo
+import io.trtc.tuikit.atomicxcore.api.login.LoginStore
 import java.util.concurrent.CopyOnWriteArrayList
 
 class AnchorConnectingAdapter(
     private val context: Context,
-    private val anchorManager: AnchorManager
+    private val anchorStore: AnchorStore,
 ) : RecyclerView.Adapter<AnchorConnectingAdapter.LinkMicViewHolder>() {
 
     private val data = CopyOnWriteArrayList<SeatUserInfo>()
@@ -36,18 +36,19 @@ class AnchorConnectingAdapter(
 
     override fun onBindViewHolder(holder: LinkMicViewHolder, position: Int) {
         val connectionUser = data[position]
-        
+
         if (TextUtils.isEmpty(connectionUser.userName)) {
             holder.textName.text = connectionUser.userID
         } else {
             holder.textName.text = connectionUser.userName
         }
-        
-        if (TextUtils.isEmpty(connectionUser.avatarURL)) {
-            holder.imageHead.setImageResource(R.drawable.livekit_ic_avatar)
-        } else {
-            ImageLoader.load(context, holder.imageHead, connectionUser.avatarURL, R.drawable.livekit_ic_avatar)
-        }
+
+        holder.imageHead.setContent(
+            AvatarContent.URL(
+                data[position].avatarURL,
+                R.drawable.livekit_ic_avatar
+            )
+        )
     }
 
     private fun initData() {
@@ -57,7 +58,7 @@ class AnchorConnectingAdapter(
     @SuppressLint("NotifyDataSetChanged")
     fun updateData(connectionUsers: List<SeatUserInfo>) {
         data.clear()
-        val selfUserId = TUILogin.getUserId()
+        val selfUserId = LoginStore.shared.loginState.loginUserInfo.value?.userID
         for (user in connectionUsers) {
             if (!TextUtils.equals(user.userID, selfUserId)) {
                 data.add(user)
@@ -70,7 +71,7 @@ class AnchorConnectingAdapter(
     }
 
     class LinkMicViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        val imageHead: ImageFilterView = itemView.findViewById(R.id.iv_head)
+        val imageHead: AtomicAvatar = itemView.findViewById(R.id.iv_head)
         val textName: TextView = itemView.findViewById(R.id.tv_name)
     }
 }

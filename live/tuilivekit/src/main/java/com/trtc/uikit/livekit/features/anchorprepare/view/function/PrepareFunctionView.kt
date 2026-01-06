@@ -4,17 +4,20 @@ import android.content.Context
 import android.util.AttributeSet
 import android.view.LayoutInflater
 import android.widget.FrameLayout
-import androidx.lifecycle.Observer
 import com.trtc.uikit.livekit.R
-import com.trtc.uikit.livekit.common.ui.PopupDialog
 import com.trtc.uikit.livekit.component.audioeffect.AudioEffectPanel
 import com.trtc.uikit.livekit.component.beauty.BeautyUtils
 import com.trtc.uikit.livekit.component.beauty.tebeauty.TEBeautyManager
-import com.trtc.uikit.livekit.features.anchorprepare.manager.AnchorPrepareManager
-import com.trtc.uikit.livekit.features.anchorprepare.state.AnchorPrepareConfig
+import com.trtc.uikit.livekit.features.anchorprepare.store.AnchorPrepareStore
+import com.trtc.uikit.livekit.features.anchorprepare.store.AnchorPrepareConfig
 import com.trtc.uikit.livekit.features.anchorprepare.view.liveinfoedit.livetemplatepicker.LiveTemplatePicker
+import io.trtc.tuikit.atomicx.widget.basicwidget.popover.AtomicPopover
 import io.trtc.tuikit.atomicxcore.api.device.DeviceStore
 import io.trtc.tuikit.atomicxcore.api.view.LiveCoreView
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 
 class PrepareFunctionView @JvmOverloads constructor(
     context: Context,
@@ -22,20 +25,17 @@ class PrepareFunctionView @JvmOverloads constructor(
     defStyleAttr: Int = 0
 ) : FrameLayout(context, attrs, defStyleAttr) {
 
-    private var audioEffectPanel: PopupDialog? = null
+    private var audioEffectPanel: AtomicPopover? = null
     private var videoSettingPanel: PrepareVideoSettingPanel? = null
-    private var manager: AnchorPrepareManager? = null
+    private var manager: AnchorPrepareStore? = null
     private var liveCoreView: LiveCoreView? = null
-
-    private val disableAudioEffectObserver = Observer<Boolean> { onAudioEffectDisableChange(it) }
-    private val disableBeautyObserver = Observer<Boolean> { onBeautyDisableChange(it) }
-    private val disableMirrorObserver = Observer<Boolean> { onMirrorDisableChange(it) }
+    private var subscribeStateJob: Job? = null
 
     init {
         LayoutInflater.from(context).inflate(R.layout.anchor_prepare_layout_function, this, true)
     }
 
-    fun init(manager: AnchorPrepareManager, liveCoreView: LiveCoreView) {
+    fun init(manager: AnchorPrepareStore, liveCoreView: LiveCoreView) {
         this.manager = manager
         this.liveCoreView = liveCoreView
         TEBeautyManager.setCustomVideoProcess()
@@ -50,15 +50,29 @@ class PrepareFunctionView @JvmOverloads constructor(
     }
 
     private fun addObserver() {
-        AnchorPrepareConfig.disableMenuAudioEffectButton.observeForever(disableAudioEffectObserver)
-        AnchorPrepareConfig.disableMenuBeautyButton.observeForever(disableBeautyObserver)
-        AnchorPrepareConfig.disableMenuSwitchButton.observeForever(disableMirrorObserver)
+        subscribeStateJob = CoroutineScope(Dispatchers.Main).launch {
+            launch {
+                AnchorPrepareConfig.disableMenuAudioEffectButton.collect {
+                    onAudioEffectDisableChange(it)
+                }
+            }
+
+            launch {
+                AnchorPrepareConfig.disableMenuBeautyButton.collect {
+                    onBeautyDisableChange(it)
+                }
+            }
+
+            launch {
+                AnchorPrepareConfig.disableMenuSwitchButton.collect {
+                    onMirrorDisableChange(it)
+                }
+            }
+        }
     }
 
     private fun removeObserver() {
-        AnchorPrepareConfig.disableMenuAudioEffectButton.removeObserver(disableAudioEffectObserver)
-        AnchorPrepareConfig.disableMenuBeautyButton.removeObserver(disableBeautyObserver)
-        AnchorPrepareConfig.disableMenuSwitchButton.removeObserver(disableMirrorObserver)
+        subscribeStateJob?.cancel()
     }
 
     private fun initView() {
@@ -78,7 +92,7 @@ class PrepareFunctionView @JvmOverloads constructor(
     private fun initAudioEffectButton() {
         findViewById<android.view.View>(R.id.iv_audio_effect).setOnClickListener {
             if (audioEffectPanel == null) {
-                audioEffectPanel = PopupDialog(context)
+                audioEffectPanel = AtomicPopover(context)
                 val audioEffectPanelView = AudioEffectPanel(context)
                 audioEffectPanelView.init(manager?.getState()?.roomId ?: "")
                 audioEffectPanelView.setOnBackButtonClickListener(object : AudioEffectPanel.OnBackButtonClickListener {
@@ -86,7 +100,7 @@ class PrepareFunctionView @JvmOverloads constructor(
                         audioEffectPanel?.dismiss()
                     }
                 })
-                audioEffectPanel?.setView(audioEffectPanelView)
+                audioEffectPanel?.setContent(audioEffectPanelView)
             }
             audioEffectPanel?.show()
         }

@@ -5,6 +5,7 @@ import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.Path
 import android.graphics.Typeface
+import android.text.TextPaint
 import android.util.TypedValue
 import android.view.View
 import androidx.core.content.ContextCompat
@@ -18,35 +19,34 @@ val TXChorusMusicPlayer.TXLyricLine.fullContent: String
 
 class LyricView(
     context: Context,
-    private val mStore: KaraokeStore,
+    private val store: KaraokeStore,
 ) : View(context) {
-    private var mCurrentProgressMs: Long = 0L
-    private var mCurrentLineIndex: Int = 0
-    private var mHighlightProgress: Float = 0f
-    private var mHighlightTextSizeSp: Float = 14f
-    private var mNextLineTextSizeSp: Float = 10f
-    private var mLineSpace: Float = spToPx(mNextLineTextSizeSp) * 2.0f
-    private val mColorBlue = ContextCompat.getColor(context, R.color.karaoke_lyric_blue)
-    private val mColorWhite = ContextCompat.getColor(context, R.color.karaoke_white)
-    private val mColorGrey = ContextCompat.getColor(context, R.color.karaoke_lyric_grey)
-    private var mLyricAlign: LyricAlign = LyricAlign.RIGHT
+    private var currentProgressMs: Long = 0L
+    private var currentLineIndex: Int = 0
+    private var highlightTextSizeSp: Float = 14f
+    private var nextLineTextSizeSp: Float = 10f
+    private var lineSpace: Float = spToPx(nextLineTextSizeSp) * 1.8f
+    private val colorBlue = ContextCompat.getColor(context, R.color.karaoke_lyric_blue)
+    private val colorWhite = ContextCompat.getColor(context, R.color.karaoke_white)
+    private val colorGrey = ContextCompat.getColor(context, R.color.karaoke_lyric_grey)
+    private var lyricAlign: LyricAlign = LyricAlign.RIGHT
 
-    private val mPaintCurrentLine = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = mColorWhite
+    private val paintCurrentLine = TextPaint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = colorWhite
         textAlign = Paint.Align.RIGHT
-        textSize = spToPx(mHighlightTextSizeSp)
+        textSize = spToPx(highlightTextSizeSp)
         typeface = Typeface.DEFAULT_BOLD
     }
-    private val mPaintHighlightedLine = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = mColorBlue
+    private val paintHighlightedLine = TextPaint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = colorBlue
         textAlign = Paint.Align.RIGHT
-        textSize = spToPx(mHighlightTextSizeSp)
+        textSize = spToPx(highlightTextSizeSp)
         typeface = Typeface.DEFAULT_BOLD
     }
-    private val mPaintNextLine = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = mColorGrey
+    private val paintNextLine = TextPaint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = colorGrey
         textAlign = Paint.Align.RIGHT
-        textSize = spToPx(mNextLineTextSizeSp)
+        textSize = spToPx(nextLineTextSizeSp)
         typeface = Typeface.DEFAULT
     }
 
@@ -56,35 +56,35 @@ class LyricView(
     }
 
     fun setLyricAlign(align: LyricAlign) {
-        if (mLyricAlign != align) {
-            mLyricAlign = align
+        if (lyricAlign != align) {
+            lyricAlign = align
             updatePaintAlign()
             invalidate()
         }
     }
 
     private fun updatePaintAlign() {
-        val align = when (mLyricAlign) {
+        val align = when (lyricAlign) {
             LyricAlign.RIGHT -> Paint.Align.RIGHT
             LyricAlign.CENTER -> Paint.Align.CENTER
         }
-        mPaintCurrentLine.textAlign = align
-        mPaintHighlightedLine.textAlign = align
-        mPaintNextLine.textAlign = align
+        paintCurrentLine.textAlign = align
+        paintHighlightedLine.textAlign = align
+        paintNextLine.textAlign = align
     }
 
     fun setLyricTextSize(highlightSp: Float, nextLineSp: Float) {
-        mHighlightTextSizeSp = highlightSp
-        mNextLineTextSizeSp = nextLineSp
+        highlightTextSizeSp = highlightSp
+        nextLineTextSizeSp = nextLineSp
         updatePaintTextSize()
         invalidate()
     }
 
     private fun updatePaintTextSize() {
-        mPaintCurrentLine.textSize = spToPx(mHighlightTextSizeSp)
-        mPaintHighlightedLine.textSize = spToPx(mHighlightTextSizeSp)
-        mPaintNextLine.textSize = spToPx(mNextLineTextSizeSp)
-        mLineSpace = spToPx(mNextLineTextSizeSp) * 2.0f
+        paintCurrentLine.textSize = spToPx(highlightTextSizeSp)
+        paintHighlightedLine.textSize = spToPx(highlightTextSizeSp)
+        paintNextLine.textSize = spToPx(nextLineTextSizeSp)
+        lineSpace = spToPx(nextLineTextSizeSp) * 1.8f
     }
 
     fun spToPx(sp: Float): Float {
@@ -96,60 +96,110 @@ class LyricView(
     }
 
     fun setPlayProgress(progressMs: Long) {
-        mCurrentProgressMs = progressMs
-        mStore.songLyrics.value?.let { mLyricList ->
+        currentProgressMs = progressMs
+        store.songLyrics.value?.let { mLyricList ->
             if (mLyricList.isEmpty()) return@let
             val newIndex = mLyricList.indexOfLast { it.startTimeMs <= progressMs }
-            mCurrentLineIndex = if (newIndex != -1) newIndex else 0
-            mHighlightProgress = if (mCurrentLineIndex in mLyricList.indices) {
-                calcCurrentLineProgress(progressMs, mLyricList[mCurrentLineIndex])
-            } else 0f
+            currentLineIndex = if (newIndex != -1) newIndex else 0
         }
         invalidate()
     }
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
-        val mLyricList = mStore.songLyrics.value ?: return
+        val mLyricList = store.songLyrics.value ?: return
+        if (currentLineIndex !in mLyricList.indices) return
+
         val mViewWidth = width.toFloat()
         val mViewHeight = height.toFloat()
-        val mLineY = mViewHeight / 2
-        val mNextLineY = mLineY + mLineSpace
-        val mTextX = when (mLyricAlign) {
+        val mTextX = when (lyricAlign) {
             LyricAlign.RIGHT -> mViewWidth
             LyricAlign.CENTER -> mViewWidth / 2
         }
 
-        if (mCurrentLineIndex in mLyricList.indices) {
-            val mCurrentLine = mLyricList[mCurrentLineIndex]
-            val mCurrentLineText = mCurrentLine.fullContent
-            canvas.drawText(mCurrentLineText, mTextX, mLineY, mPaintCurrentLine)
-            val mCurrentLineTextWidth = mPaintCurrentLine.measureText(mCurrentLineText)
-            val mHighlightWidth = mCurrentLineTextWidth * mHighlightProgress
-            canvas.save()
-            val mClipPath = Path()
-            when (mLyricAlign) {
-                LyricAlign.RIGHT -> {
-                    mClipPath.addRect(
-                        mTextX - mCurrentLineTextWidth, mLineY - mPaintCurrentLine.textSize,
-                        mTextX - mCurrentLineTextWidth + mHighlightWidth, mLineY + 10f, Path.Direction.CW
-                    )
-                }
-                LyricAlign.CENTER -> {
-                    mClipPath.addRect(
-                        mTextX - mCurrentLineTextWidth / 2, mLineY - mPaintCurrentLine.textSize,
-                        mTextX - mCurrentLineTextWidth / 2 + mHighlightWidth, mLineY + 10f, Path.Direction.CW
-                    )
-                }
+        val line1Y = mViewHeight / 2
+        val line2Y = line1Y + lineSpace
+
+        val currentLineData = mLyricList[currentLineIndex]
+        val currentLineText = currentLineData.fullContent
+        val currentLineWidth = paintCurrentLine.measureText(currentLineText)
+
+        val nextLineIndex = currentLineIndex + 1
+        val nextLineText =
+            if (nextLineIndex in mLyricList.indices) mLyricList[nextLineIndex].fullContent else ""
+
+        if (currentLineWidth > mViewWidth) {
+            val fittingChars = paintCurrentLine.breakText(currentLineText, true, mViewWidth, null)
+            val line1 = currentLineText.substring(0, fittingChars)
+            val line2 = currentLineText.substring(fittingChars)
+
+            val line1Duration =
+                currentLineData.characterArray.take(fittingChars).sumOf { it.durationMs }
+            val timeInLine = (currentProgressMs - currentLineData.startTimeMs).coerceAtLeast(0)
+
+            if (timeInLine < line1Duration) {
+                val progress = if (line1Duration > 0) timeInLine.toFloat() / line1Duration else 0f
+                drawSingleLineHighlight(canvas, line1, progress, line1Y, mTextX)
+                drawTruncatedLine(canvas, line2, line2Y, mTextX, false)
+            } else {
+                val line2Duration = (currentLineData.durationMs - line1Duration).coerceAtLeast(1)
+                val timeInLine2 = timeInLine - line1Duration
+                val progress = timeInLine2.toFloat() / line2Duration
+                drawSingleLineHighlight(canvas, line2, progress, line1Y, mTextX)
+                drawTruncatedLine(canvas, nextLineText, line2Y, mTextX, true)
             }
-            canvas.clipPath(mClipPath)
-            canvas.drawText(mCurrentLineText, mTextX, mLineY, mPaintHighlightedLine)
-            canvas.restore()
+        } else {
+            val progress = calcCurrentLineProgress(currentProgressMs, currentLineData)
+            drawSingleLineHighlight(canvas, currentLineText, progress, line1Y, mTextX)
+            drawTruncatedLine(canvas, nextLineText, line2Y, mTextX, true)
         }
-        val mNextLineIndex = mCurrentLineIndex + 1
-        if (mNextLineIndex in mLyricList.indices) {
-            val mNextLine = mLyricList[mNextLineIndex]
-            canvas.drawText(mNextLine.fullContent, mTextX, mNextLineY, mPaintNextLine)
+    }
+
+    private fun drawSingleLineHighlight(
+        canvas: Canvas,
+        text: String,
+        progress: Float,
+        y: Float,
+        x: Float
+    ) {
+        canvas.drawText(text, x, y, paintCurrentLine)
+
+        val textWidth = paintCurrentLine.measureText(text)
+        val highlightWidth = textWidth * progress.coerceIn(0f, 1f)
+        val textLeft = when (lyricAlign) {
+            LyricAlign.RIGHT -> x - textWidth
+            LyricAlign.CENTER -> x - textWidth / 2
+        }
+        canvas.save()
+        val clipPath = Path()
+        clipPath.addRect(
+            textLeft, y - paintCurrentLine.textSize,
+            textLeft + highlightWidth, y + paintCurrentLine.descent(), Path.Direction.CW
+        )
+        canvas.clipPath(clipPath)
+
+        canvas.drawText(text, x, y, paintHighlightedLine)
+        canvas.restore()
+    }
+
+    private fun drawTruncatedLine(
+        canvas: Canvas,
+        text: String,
+        y: Float,
+        x: Float,
+        truncate: Boolean
+    ) {
+        if (text.isEmpty()) return
+
+        if (truncate && paintNextLine.measureText(text) > width && width > 0) {
+            val ellipsis = "..."
+            val ellipsisWidth = paintNextLine.measureText(ellipsis)
+            val availableWidth = width - ellipsisWidth
+            val fittingChars = paintNextLine.breakText(text, true, availableWidth, null)
+            val truncatedText = text.substring(0, fittingChars) + ellipsis
+            canvas.drawText(truncatedText, x, y, paintNextLine)
+        } else {
+            canvas.drawText(text, x, y, paintNextLine)
         }
     }
 
@@ -158,33 +208,13 @@ class LyricView(
             currentTimeMillis: Long,
             txLyricLine: TXChorusMusicPlayer.TXLyricLine,
         ): Float {
-            val mWords = txLyricLine.characterArray
-            val mOffsetTime = currentTimeMillis - txLyricLine.startTimeMs
-            if (mWords.isEmpty()) return 1f
-            val mLastWord = mWords.last()
-            val mTotalDuration = mLastWord.startTimeMs + mLastWord.durationMs
-            var mProgress = 0f
-            if (mOffsetTime < mTotalDuration) {
-                for (i in mWords.indices) {
-                    val mCurrentWord = mWords[i]
-                    if (mOffsetTime >= mCurrentWord.startTimeMs && mOffsetTime <= mCurrentWord.startTimeMs + mCurrentWord.durationMs) {
-                        val progressBefore = i / mWords.size.toFloat()
-                        val percent = 1 / mWords.size.toFloat()
-                        val progressCurrent =
-                            (mOffsetTime - mCurrentWord.startTimeMs) / mCurrentWord.durationMs.toFloat()
-                        mProgress = progressBefore + progressCurrent * percent
-                        break
-                    } else if (i < mWords.size - 1) {
-                        val mNextWord = mWords[i + 1]
-                        if (mOffsetTime > mCurrentWord.startTimeMs + mCurrentWord.durationMs && mOffsetTime < mNextWord.startTimeMs) {
-                            mProgress = (i + 1) / mWords.size.toFloat()
-                        }
-                    }
-                }
-            } else {
-                mProgress = 1f
+            val lineDuration = txLyricLine.durationMs
+            if (lineDuration <= 0) {
+                return if (currentTimeMillis > txLyricLine.startTimeMs) 1f else 0f
             }
-            return mProgress
+            val offsetTime = currentTimeMillis - txLyricLine.startTimeMs
+            val progress = offsetTime / lineDuration.toFloat()
+            return progress.coerceIn(0f, 1f)
         }
     }
 }

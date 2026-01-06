@@ -13,7 +13,6 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LifecycleRegistry
 import androidx.lifecycle.lifecycleScope
-import com.tencent.cloud.tuikit.engine.common.TUICommonDefine
 import com.tencent.cloud.tuikit.engine.room.TUIRoomEngine
 import com.trtc.uikit.livekit.R
 import com.trtc.uikit.livekit.common.ErrorLocalized
@@ -141,9 +140,7 @@ class BottomMenuView @JvmOverloads constructor(
     private fun unMuteMicrophone() {
         liveSeatStore.unmuteMicrophone(completionHandler {
             onError { code, _ ->
-                ErrorLocalized.onError(
-                    TUICommonDefine.Error.fromInt(code)
-                )
+                ErrorLocalized.onError(code)
             }
         })
     }

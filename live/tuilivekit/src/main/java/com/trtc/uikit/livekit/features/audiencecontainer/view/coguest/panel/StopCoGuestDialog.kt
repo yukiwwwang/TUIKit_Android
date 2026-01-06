@@ -5,13 +5,13 @@ import android.content.Context
 import android.view.LayoutInflater
 import android.widget.TextView
 import com.trtc.uikit.livekit.R
-import com.trtc.uikit.livekit.common.ui.PopupDialog
-import com.trtc.uikit.livekit.features.audiencecontainer.manager.AudienceManager
+import com.trtc.uikit.livekit.features.audiencecontainer.store.AudienceStore
+import io.trtc.tuikit.atomicx.widget.basicwidget.popover.AtomicPopover
 
 class StopCoGuestDialog(
     context: Context,
-    private val audienceManager: AudienceManager
-) : PopupDialog(context) {
+    private val audienceStore: AudienceStore,
+) : AtomicPopover(context) {
 
     init {
         initView()
@@ -23,8 +23,8 @@ class StopCoGuestDialog(
         val textStopCoGuest = view.findViewById<TextView>(R.id.tv_stop_co_guest)
         val textDismiss = view.findViewById<TextView>(R.id.tv_dismiss)
         textStopCoGuest.setOnClickListener {
-            audienceManager.getCoGuestStore().disconnect(null)
-            audienceManager.getViewStore()
+            audienceStore.getCoGuestStore().disconnect(null)
+            audienceStore.getViewStore()
                 .updateTakeSeatState(false)
             dismiss()
         }
@@ -33,6 +33,6 @@ class StopCoGuestDialog(
             dismiss()
         }
 
-        setView(view)
+        setContent(view)
     }
 }

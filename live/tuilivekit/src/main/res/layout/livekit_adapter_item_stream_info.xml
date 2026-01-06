@@ -42,13 +42,13 @@
             android:layout_weight="1"
             android:orientation="vertical">
 
-            <TextView
+            <io.trtc.tuikit.atomicx.widget.basicwidget.label.AtomicLabel
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="8dp"
                 android:text="@string/common_dashboard_video_info_title"
-                android:textColor="@color/common_text_color_primary"
-                android:textSize="12sp" />
+                android:textSize="@dimen/text_size_12"
+                android:textColor="@color/text_color_primary" />
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -56,12 +56,12 @@
                 android:layout_marginBottom="4dp"
                 android:orientation="horizontal">
 
-                <TextView
+                <io.trtc.tuikit.atomicx.widget.basicwidget.label.AtomicLabel
                     android:layout_width="50dp"
                     android:layout_height="wrap_content"
                     android:text="@string/common_dashboard_video_resolution"
-                    android:textColor="@color/common_text_color_secondary"
-                    android:textSize="12sp" />
+                    android:textColor="@color/text_color_secondary"
+                    android:textSize="@dimen/text_size_12" />
 
                 <TextView
                     android:id="@+id/tv_video_resolution"
@@ -78,12 +78,12 @@
                 android:layout_marginBottom="4dp"
                 android:orientation="horizontal">
 
-                <TextView
+                <io.trtc.tuikit.atomicx.widget.basicwidget.label.AtomicLabel
                     android:layout_width="50dp"
                     android:layout_height="wrap_content"
                     android:text="@string/common_dashboard_bitrate"
-                    android:textColor="@color/common_text_color_secondary"
-                    android:textSize="12sp" />
+                    android:textColor="@color/text_color_secondary"
+                    android:textSize="@dimen/text_size_12" />
 
                 <TextView
                     android:id="@+id/tv_video_bitrate"
@@ -99,12 +99,12 @@
                 android:layout_height="wrap_content"
                 android:orientation="horizontal">
 
-                <TextView
+                <io.trtc.tuikit.atomicx.widget.basicwidget.label.AtomicLabel
                     android:layout_width="50dp"
                     android:layout_height="wrap_content"
                     android:text="@string/common_dashboard_video_fps"
-                    android:textColor="@color/common_text_color_secondary"
-                    android:textSize="12sp" />
+                    android:textColor="@color/text_color_secondary"
+                    android:textSize="@dimen/text_size_12" />
 
                 <TextView
                     android:id="@+id/tv_video_fps"
@@ -125,13 +125,13 @@
             android:layout_weight="1"
             android:orientation="vertical">
 
-            <TextView
+            <io.trtc.tuikit.atomicx.widget.basicwidget.label.AtomicLabel
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="8dp"
                 android:text="@string/common_dashboard_audio_info_title"
-                android:textColor="@color/common_text_color_primary"
-                android:textSize="12sp" />
+                android:textColor="@color/text_color_primary"
+                android:textSize="@dimen/text_size_12" />
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -139,12 +139,12 @@
                 android:layout_marginBottom="4dp"
                 android:orientation="horizontal">
 
-                <TextView
+                <io.trtc.tuikit.atomicx.widget.basicwidget.label.AtomicLabel
                     android:layout_width="50dp"
                     android:layout_height="wrap_content"
                     android:text="@string/common_dashboard_audio_sample_rate"
-                    android:textColor="@color/common_text_color_secondary"
-                    android:textSize="12sp" />
+                    android:textColor="@color/text_color_secondary"
+                    android:textSize="@dimen/text_size_12" />
 
                 <TextView
                     android:id="@+id/tv_audio_sample_rate"
@@ -160,12 +160,12 @@
                 android:layout_height="wrap_content"
                 android:orientation="horizontal">
 
-                <TextView
+                <io.trtc.tuikit.atomicx.widget.basicwidget.label.AtomicLabel
                     android:layout_width="50dp"
                     android:layout_height="wrap_content"
                     android:text="@string/common_dashboard_bitrate"
-                    android:textColor="@color/common_text_color_secondary"
-                    android:textSize="12sp" />
+                    android:textColor="@color/text_color_secondary"
+                    android:textSize="@dimen/text_size_12" />
 
                 <TextView
                     android:id="@+id/tv_audio_bitrate"

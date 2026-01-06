@@ -7,9 +7,9 @@ import android.widget.TextView
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.trtc.uikit.livekit.R
-import com.trtc.uikit.livekit.common.ui.PopupDialog
+import io.trtc.tuikit.atomicx.widget.basicwidget.popover.AtomicPopover
 
-class LiveCoverPicker(context: Context, private val config: Config) : PopupDialog(context) {
+class LiveCoverPicker(context: Context, private val config: Config) : AtomicPopover(context) {
     
     companion object {
         private const val COVER_IMAGE_DEFAULT_WIDTH = 114
@@ -33,7 +33,7 @@ class LiveCoverPicker(context: Context, private val config: Config) : PopupDialo
         initCoverImagePickRecyclerView(view)
         initSetCoverButton(view)
 
-        setView(view)
+        setContent(view)
     }
 
     private fun initTitleView(view: View) {
@@ -45,9 +45,7 @@ class LiveCoverPicker(context: Context, private val config: Config) : PopupDialo
 
     private fun initCoverImagePickRecyclerView(view: View) {
         val recyclerView = view.findViewById<RecyclerView>(R.id.rv_image)
-        recyclerView.setBackgroundResource(R.drawable.anchor_prepare_dialog_background)
-        setView(recyclerView)
-        
+
         val spanCount = calculateViewColumnCount(context)
         recyclerView.layoutManager = GridLayoutManager(context, spanCount)
         recyclerView.addItemDecoration(LiveCoverImagePickAdapter.GridDividerItemDecoration(context))

@@ -4,7 +4,6 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@drawable/livekit_dialog_background"
     android:orientation="vertical"
     android:paddingBottom="20dp">
 
@@ -21,14 +20,14 @@
             android:paddingStart="24dp"
             android:paddingEnd="24dp">
 
-            <TextView
+            <io.trtc.tuikit.atomicx.widget.basicwidget.label.AtomicLabel
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_centerVertical="true"
                 android:layout_marginEnd="5dp"
                 android:text="@string/common_voiceroom_need_agree"
-                android:textColor="@color/common_design_standard_g7"
-                android:textSize="16sp" />
+                android:textColor="@color/text_color_primary"
+                android:textSize="@dimen/text_size_16" />
 
             <androidx.appcompat.widget.SwitchCompat
                 android:id="@+id/need_request"

@@ -61,7 +61,7 @@ class CircleIndicator @JvmOverloads constructor(
                 addView(circleView, params)
             }
         }
-        
+
         for (i in 0 until childCount) {
             val circleView = getChildAt(i)
             val drawable = circleView.background

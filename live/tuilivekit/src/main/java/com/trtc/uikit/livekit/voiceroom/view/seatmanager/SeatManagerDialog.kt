@@ -10,14 +10,14 @@ import android.widget.TextView
 import androidx.appcompat.widget.SwitchCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.tencent.cloud.tuikit.engine.common.TUICommonDefine
 import com.tencent.cloud.tuikit.engine.room.TUIRoomDefine
 import com.trtc.uikit.livekit.R
 import com.trtc.uikit.livekit.common.ErrorLocalized
 import com.trtc.uikit.livekit.common.LiveKitLogger
 import com.trtc.uikit.livekit.common.completionHandler
 import com.trtc.uikit.livekit.common.seatModeFromEngineSeatMode
-import com.trtc.uikit.livekit.common.ui.PopupDialog
+import io.trtc.tuikit.atomicx.widget.basicwidget.button.AtomicButton
+import io.trtc.tuikit.atomicx.widget.basicwidget.popover.AtomicPopover
 import io.trtc.tuikit.atomicxcore.api.live.CoGuestStore
 import io.trtc.tuikit.atomicxcore.api.live.LiveInfo
 import io.trtc.tuikit.atomicxcore.api.live.LiveListStore
@@ -32,7 +32,7 @@ import kotlinx.coroutines.launch
 
 class SeatManagerDialog(
     private val context: Context
-) : PopupDialog(context) {
+) : AtomicPopover(context) {
 
     private val liveListStore = LiveListStore.shared()
     private val liveSeatStore =
@@ -42,7 +42,7 @@ class SeatManagerDialog(
     private lateinit var tvTitle: TextView
     private lateinit var seatListTitle: TextView
     private lateinit var seatApplicationTitle: TextView
-    private lateinit var inviteButton: Button
+    private lateinit var inviteButton: AtomicButton
     private lateinit var endButton: ImageView
     private lateinit var endButtonContainer: View
     private lateinit var seatListView: RecyclerView
@@ -70,7 +70,8 @@ class SeatManagerDialog(
 
     private fun initView() {
         val rootView = View.inflate(context, R.layout.livekit_voiceroom_seat_manager_panel, null)
-        setView(rootView)
+        setContent(rootView)
+        setPanelHeight(PanelHeight.Ratio(0.9f))
         bindViewId(rootView)
         tvTitle.setText(R.string.common_link_mic_manager)
         inviteButton.setOnClickListener { showSeatInvitationPanel() }
@@ -127,7 +128,7 @@ class SeatManagerDialog(
         seatApplicationTitle = rootView.findViewById(R.id.seat_application_title)
         seatListView = rootView.findViewById(R.id.rv_seat_list)
         emptyView = rootView.findViewById(R.id.empty_view_container)
-        inviteButton = rootView.findViewById(R.id.invite_button)
+        inviteButton = rootView.findViewById(R.id.atomic_btn_invite)
         endButton = rootView.findViewById(R.id.end_button)
         endButtonContainer = rootView.findViewById(R.id.end_button_container)
         seatApplicationListView = rootView.findViewById(R.id.rv_seat_application)
@@ -225,7 +226,7 @@ class SeatManagerDialog(
         liveListStore.updateLiveInfo(info, flagList, completionHandler {
             onError { code, desc ->
                 LOGGER.error("responseSeatInvitation failed, error: $code, message: $desc")
-                ErrorLocalized.onError(TUICommonDefine.Error.fromInt(code))
+                ErrorLocalized.onError(code)
             }
         })
 

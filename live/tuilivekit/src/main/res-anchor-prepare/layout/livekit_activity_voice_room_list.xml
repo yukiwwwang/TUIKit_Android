@@ -35,16 +35,16 @@
             android:src="@drawable/livekit_ic_back"
             tools:ignore="ContentDescription" />
 
-        <TextView
+        <io.trtc.tuikit.atomicx.widget.basicwidget.label.AtomicLabel
             android:id="@+id/tv_title"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center"
             android:singleLine="true"
             android:text="@string/common_main_item_voice_room"
-            android:textColor="@color/black"
-            android:textSize="18sp"
-            android:textStyle="bold" />
+            android:textColor="@color/black_2"
+            android:textStyle="bold"
+            android:textSize="@dimen/text_size_20" />
 
         <ImageButton
             android:id="@+id/btn_multi_function"
@@ -64,32 +64,18 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/toolbar_live" />
 
-    <LinearLayout
-        android:id="@+id/ll_start"
-        android:layout_width="200dp"
+    <io.trtc.tuikit.atomicx.widget.basicwidget.button.AtomicButton
+        android:id="@+id/atomic_btn_start"
+        android:layout_width="155dp"
         android:layout_height="48dp"
         android:layout_marginBottom="20dp"
-        android:background="@drawable/livekit_bg_start_live_stream"
-        android:gravity="center"
-        android:orientation="horizontal"
+        android:text="@string/common_go_live"
+        app:buttonColorType="primary"
+        app:buttonIcon="@drawable/livekit_ic_add"
+        app:buttonIconPosition="start"
+        app:customButtonSize="l"
+        app:buttonVariant="filled"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:round="40dp">
-
-        <ImageView
-            android:id="@+id/iv_start"
-            android:layout_width="18dp"
-            android:layout_height="18dp"
-            android:src="@drawable/livekit_ic_add"
-            tools:ignore="ContentDescription" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:text="@string/common_go_live"
-            android:textColor="@color/white"
-            android:textSize="20sp" />
-    </LinearLayout>
+        app:layout_constraintStart_toStartOf="parent" />
 </androidx.constraintlayout.widget.ConstraintLayout>

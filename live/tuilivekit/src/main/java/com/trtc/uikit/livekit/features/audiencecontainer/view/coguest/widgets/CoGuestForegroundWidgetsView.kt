@@ -9,7 +9,7 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import com.trtc.uikit.livekit.R
 import com.trtc.uikit.livekit.common.LiveKitLogger
-import com.trtc.uikit.livekit.features.audiencecontainer.manager.AudienceManager
+import com.trtc.uikit.livekit.features.audiencecontainer.store.AudienceStore
 import com.trtc.uikit.livekit.features.audiencecontainer.view.BasicView
 import io.trtc.tuikit.atomicxcore.api.device.DeviceStatus
 import io.trtc.tuikit.atomicxcore.api.live.SeatUserInfo
@@ -32,7 +32,7 @@ class CoGuestForegroundWidgetsView @JvmOverloads constructor(
     private lateinit var imageMuteAudio: ImageView
     private var seatUserInfo: SeatUserInfo = SeatUserInfo()
 
-    fun init(manager: AudienceManager, userInfo: SeatUserInfo) {
+    fun init(manager: AudienceStore, userInfo: SeatUserInfo) {
         LOGGER.info("init userId:" + userInfo.userID)
         seatUserInfo = userInfo
         super.init(manager)
@@ -69,12 +69,12 @@ class CoGuestForegroundWidgetsView @JvmOverloads constructor(
     override fun addObserver() {
         subscribeStateJob = CoroutineScope(Dispatchers.Main).launch {
             launch {
-                audienceManager.getCoGuestState().connected.collect {
+                audienceStore.getCoGuestState().connected.collect {
                     onCoGuestChange()
                 }
             }
             launch {
-                audienceManager.getCoHostState().connected.collect {
+                audienceStore.getCoHostState().connected.collect {
                     onCoHostChange()
                 }
             }
@@ -107,10 +107,10 @@ class CoGuestForegroundWidgetsView @JvmOverloads constructor(
     }
 
     private fun isShowUserInfo(): Boolean {
-        if (audienceManager.getCoHostState().connected.value.size > 1) {
+        if (audienceStore.getCoHostState().connected.value.size > 1) {
             return true
         }
-        if (audienceManager.getCoGuestState().connected.value.size > 1) {
+        if (audienceStore.getCoGuestState().connected.value.size > 1) {
             return true
         }
         return false

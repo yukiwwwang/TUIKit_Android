@@ -15,29 +15,28 @@ import com.tencent.cloud.tuikit.engine.extension.TUILiveListManager
 import com.tencent.cloud.tuikit.engine.room.TUIRoomDefine
 import com.tencent.cloud.tuikit.engine.room.TUIRoomEngine
 import com.tencent.cloud.tuikit.engine.room.TUIRoomObserver
+import io.trtc.tuikit.atomicx.karaoke.view.KaraokeControlView
+import io.trtc.tuikit.atomicx.karaoke.view.KaraokeFloatingView
 import com.tencent.qcloud.tuicore.TUIConstants
 import com.tencent.qcloud.tuicore.TUICore
 import com.tencent.qcloud.tuicore.TUILogin
 import com.tencent.qcloud.tuicore.interfaces.ITUINotification
 import com.trtc.tuikit.common.imageloader.ImageLoader
 import com.trtc.tuikit.common.permission.PermissionCallback
-import com.trtc.tuikit.common.util.ToastUtil
 import com.trtc.uikit.livekit.R
+import com.trtc.uikit.livekit.common.COMPONENT_VOICE_ROOM
 import com.trtc.uikit.livekit.common.DEFAULT_BACKGROUND_URL
 import com.trtc.uikit.livekit.common.DEFAULT_COVER_URL
 import com.trtc.uikit.livekit.common.EVENT_KEY_LIVE_KIT
 import com.trtc.uikit.livekit.common.EVENT_SUB_KEY_CLOSE_VOICE_ROOM
 import com.trtc.uikit.livekit.common.EVENT_SUB_KEY_FINISH_ACTIVITY
+import com.trtc.uikit.livekit.common.ErrorLocalized
 import com.trtc.uikit.livekit.common.LiveKitLogger
-import com.trtc.uikit.livekit.common.PackageService
 import com.trtc.uikit.livekit.common.PermissionRequest
 import com.trtc.uikit.livekit.common.TEMPLATE_ID_VOICE_ROOM
 import com.trtc.uikit.livekit.common.completionHandler
-import com.trtc.uikit.livekit.common.liveInfoFromEngineLiveInfo
-import com.trtc.uikit.livekit.common.seatModeToEngineSeatMode
-import com.trtc.uikit.livekit.common.ui.StandardDialog
+import com.trtc.uikit.livekit.common.setComponent
 import com.trtc.uikit.livekit.component.barrage.BarrageStreamView
-import com.trtc.uikit.livekit.common.ErrorLocalized
 import com.trtc.uikit.livekit.component.gift.GiftPlayView
 import com.trtc.uikit.livekit.component.giftaccess.service.GiftCacheService
 import com.trtc.uikit.livekit.component.giftaccess.service.GiftConstants.GIFT_COUNT
@@ -49,9 +48,9 @@ import com.trtc.uikit.livekit.component.giftaccess.service.GiftConstants.GIFT_VI
 import com.trtc.uikit.livekit.component.giftaccess.store.GiftStore
 import com.trtc.uikit.livekit.component.giftaccess.view.BarrageViewTypeDelegate
 import com.trtc.uikit.livekit.component.giftaccess.view.GiftBarrageAdapter
-import com.trtc.uikit.livekit.voiceroom.interaction.common.AvailableSeatView
-import com.trtc.uikit.livekit.voiceroom.interaction.common.OccupiedSeatView
-import com.trtc.uikit.livekit.voiceroom.interaction.common.RemoteSeatPlaceholderView
+import com.trtc.uikit.livekit.voiceroom.interaction.common.CoHostView
+import com.trtc.uikit.livekit.voiceroom.interaction.common.LocalCoHostEmptyView
+import com.trtc.uikit.livekit.voiceroom.interaction.common.RemoteCoHostEmptyView
 import com.trtc.uikit.livekit.voiceroom.manager.VoiceRoomManager
 import com.trtc.uikit.livekit.voiceroom.store.LayoutType
 import com.trtc.uikit.livekit.voiceroom.store.LiveStatus
@@ -69,8 +68,13 @@ import com.trtc.uikit.livekit.voiceroom.view.topview.TopView
 import com.trtc.uikit.livekit.voiceroomcore.SeatGridView
 import com.trtc.uikit.livekit.voiceroomcore.SeatGridViewObserver
 import com.trtc.uikit.livekit.voiceroomcore.VoiceRoomDefine
-import io.trtc.tuikit.atomicx.karaoke.KaraokeControlView
-import io.trtc.tuikit.atomicx.karaoke.KaraokeFloatingView
+import io.trtc.tuikit.atomicx.widget.basicwidget.alertdialog.AtomicAlertDialog
+import io.trtc.tuikit.atomicx.widget.basicwidget.alertdialog.addItem
+import io.trtc.tuikit.atomicx.widget.basicwidget.alertdialog.cancelButton
+import io.trtc.tuikit.atomicx.widget.basicwidget.alertdialog.confirmButton
+import io.trtc.tuikit.atomicx.widget.basicwidget.alertdialog.init
+import io.trtc.tuikit.atomicx.widget.basicwidget.avatar.AtomicAvatar
+import io.trtc.tuikit.atomicx.widget.basicwidget.toast.AtomicToast
 import io.trtc.tuikit.atomicxcore.api.CompletionHandler
 import io.trtc.tuikit.atomicxcore.api.barrage.Barrage
 import io.trtc.tuikit.atomicxcore.api.device.DeviceStore
@@ -107,7 +111,7 @@ class VoiceRoomRootView @JvmOverloads constructor(
 ) : BasicView(context, attrs, defStyleAttr), ITUINotification {
 
     private val rootViewContext = context
-    private var invitationDialog: StandardDialog? = null
+    private var invitationDialog: AtomicAlertDialog? = null
     private var seatActionSheetGenerator: SeatActionSheetGenerator? = null
     private var seatActionSheetDialog: SeatActionSheetDialog? = null
     private var coHostStore: CoHostStore? = null
@@ -131,7 +135,7 @@ class VoiceRoomRootView @JvmOverloads constructor(
     private lateinit var liveSeatStore: LiveSeatStore
     private lateinit var coGuestStore: CoGuestStore
     private lateinit var deviceStore: DeviceStore
-    private var anchorExitConfirmDialog: StandardDialog? = null
+    private var anchorExitConfirmDialog: AtomicAlertDialog? = null
     private val roomEngine = TUIRoomEngine.sharedInstance()
 
     init {
@@ -308,14 +312,14 @@ class VoiceRoomRootView @JvmOverloads constructor(
             }
         }
         if (isConnected && isOwner()) {
-            anchorExitConfirmDialog?.hide()
+            anchorExitConfirmDialog?.dismiss()
         }
     }
 
     private fun onBattleListChanged(battleRoomList: List<SeatUserInfo>) {
         val isBattle = battleRoomList.any { it.liveID == liveID }
         if (isBattle && isOwner()) {
-            anchorExitConfirmDialog?.hide()
+            anchorExitConfirmDialog?.dismiss()
         }
     }
 
@@ -497,23 +501,23 @@ class VoiceRoomRootView @JvmOverloads constructor(
     }
 
     private fun start() {
+        setComponent(COMPONENT_VOICE_ROOM)
         val prepareState = voiceRoomManager?.prepareStore?.prepareState
-        val liveInfo = TUILiveListManager.LiveInfo()
+        val liveInfo = LiveInfo()
         liveInfo.isSeatEnabled = true
         liveInfo.keepOwnerOnSeat = true
-        liveInfo.seatLayoutTemplateId = TEMPLATE_ID_VOICE_ROOM
-        liveInfo.roomId = prepareState?.liveInfo?.value?.liveID ?: ""
-        liveInfo.name = prepareState?.liveInfo?.value?.liveName ?: ""
+        liveInfo.seatLayoutTemplateID = TEMPLATE_ID_VOICE_ROOM
+        liveInfo.liveID = prepareState?.liveInfo?.value?.liveID ?: ""
+        liveInfo.liveName = prepareState?.liveInfo?.value?.liveName ?: ""
         liveInfo.maxSeatCount = prepareState?.liveInfo?.value?.maxSeatCount ?: 9
-        liveInfo.seatMode =
-            seatModeToEngineSeatMode(prepareState?.liveInfo?.value?.seatMode ?: TakeSeatMode.FREE)
-        liveInfo.backgroundUrl =
+        liveInfo.seatMode = prepareState?.liveInfo?.value?.seatMode ?: TakeSeatMode.FREE
+        liveInfo.backgroundURL =
             prepareState?.liveInfo?.value?.backgroundURL ?: DEFAULT_BACKGROUND_URL
-        liveInfo.coverUrl = prepareState?.liveInfo?.value?.coverURL ?: DEFAULT_COVER_URL
+        liveInfo.coverURL = prepareState?.liveInfo?.value?.coverURL ?: DEFAULT_COVER_URL
         liveInfo.isPublicVisible =
             voiceRoomManager?.prepareStore?.prepareState?.liveExtraInfo?.value?.liveMode == LiveStreamPrivacyStatus.PUBLIC
         liveListStore.createLive(
-            liveInfoFromEngineLiveInfo(liveInfo),
+            liveInfo,
             object : LiveInfoCompletionHandler {
                 override fun onSuccess(liveInfo: LiveInfo) {
                     LOGGER.info("create room success")
@@ -530,6 +534,7 @@ class VoiceRoomRootView @JvmOverloads constructor(
     }
 
     fun enter() {
+        setComponent(COMPONENT_VOICE_ROOM)
         liveListStore.joinLive(liveID, object : LiveInfoCompletionHandler {
             override fun onSuccess(liveInfo: LiveInfo) {
                 voiceRoomManager?.prepareStore?.updateLiveInfo(liveInfo)
@@ -567,7 +572,7 @@ class VoiceRoomRootView @JvmOverloads constructor(
     private fun showEndView() {
         layoutEndViewContainer.removeAllViews()
         invitationDialog?.let { dialog ->
-            if (dialog.isShowing) {
+            if (dialog.isShowing()) {
                 dialog.dismiss()
             }
         }
@@ -584,19 +589,19 @@ class VoiceRoomRootView @JvmOverloads constructor(
     private fun setCoHostViewAdapter() {
         seatGridView?.setCoHostViewAdapter(object : VoiceRoomDefine.CoHostViewAdapter {
             override fun createOccupiedSeatView(seatInfo: SeatInfo, isMyRoom: Boolean): View {
-                val coHostView = OccupiedSeatView(context)
+                val coHostView = CoHostView(context)
                 coHostView.init(seatInfo)
                 return coHostView
             }
 
             override fun createAvailableSeatView(seatInfo: SeatInfo): View {
-                val view = AvailableSeatView(context)
+                val view = LocalCoHostEmptyView(context)
                 view.init(seatInfo, voiceRoomManager)
                 return view
             }
 
             override fun createRemoteSeatPlaceholderView(seatInfo: SeatInfo): View {
-                val view = RemoteSeatPlaceholderView(context)
+                val view = RemoteCoHostEmptyView(context)
                 view.init(seatInfo)
                 return view
             }
@@ -684,7 +689,7 @@ class VoiceRoomRootView @JvmOverloads constructor(
 
         voiceRoomManager?.prepareStore?.setLayoutMetaData(
             voiceRoomManager?.prepareStore?.prepareState?.layoutType?.value
-            ?: LayoutType.VOICE_ROOM
+                ?: LayoutType.VOICE_ROOM
         )
         liveListStore.queryMetaData(
             listOf(KEY_LAYOUT_TYPE),
@@ -728,7 +733,7 @@ class VoiceRoomRootView @JvmOverloads constructor(
 
     private fun onSeatInvitationCanceled() {
         invitationDialog?.let { dialog ->
-            if (dialog.isShowing) {
+            if (dialog.isShowing()) {
                 dialog.dismiss()
             }
         }
@@ -739,23 +744,28 @@ class VoiceRoomRootView @JvmOverloads constructor(
         if (liveStatus == LiveStatus.PUSHING || liveStatus == LiveStatus.PLAYING) {
             if (LayoutType.KTV_ROOM == layoutType) {
                 karaokeControlView.visibility = VISIBLE
-                if (!PackageService.isRTCubeOrTencentRTC) {
-                    karaokeFloatingView.detachFromFloating()
-                }
+                karaokeFloatingView.detachFromFloating()
             } else {
-                if (!PackageService.isRTCubeOrTencentRTC) {
-                    karaokeFloatingView.attachAsFloating(
-                        layoutRoot,
-                        KaraokeFloatingView.FloatingMode.RIGHT_HALF_MOVE
-                    )
-                }
+                karaokeFloatingView.attachAsFloating(
+                    layoutRoot,
+                    KaraokeFloatingView.FloatingMode.RIGHT_HALF_MOVE
+                )
                 karaokeControlView.visibility = GONE
             }
         }
     }
 
     private fun showInvitationDialog(hostUser: LiveUserInfo) {
-        val dialog = invitationDialog ?: StandardDialog(rootViewContext).also {
+        val avatarView = AtomicAvatar(rootViewContext).apply {
+            setContent(
+                AtomicAvatar.AvatarContent.URL(
+                    hostUser.avatarURL ?: "",
+                    R.drawable.livekit_ic_avatar
+                )
+            )
+        }
+
+        val dialog = invitationDialog ?: AtomicAlertDialog(rootViewContext).also {
             invitationDialog = it
         }
 
@@ -765,21 +775,24 @@ class VoiceRoomRootView @JvmOverloads constructor(
             } else {
                 liveListStore.liveState.currentLive.value.liveOwner.userName
             }
-        val content = rootViewContext.getString(
+        val title = rootViewContext.getString(
             R.string.common_voiceroom_receive_seat_invitation,
             inviterName
         )
-        dialog.setContent(content)
-        dialog.setAvatar(hostUser.avatarURL)
-
         val rejectText: String = rootViewContext.getString(R.string.common_reject)
-        dialog.setNegativeTextWithCountdown(rejectText, 10000L) {
-            rejectSeatInvitation(hostUser.userID)
-        }
-
         val receiveText: String = rootViewContext.getString(R.string.common_receive)
-        dialog.setPositiveText(receiveText) {
-            acceptSeatInvitation(hostUser.userID)
+
+        dialog.init {
+            init(title, iconView = avatarView)
+            countdownDuration = 10
+
+            cancelButton(rejectText) {
+                rejectSeatInvitation(hostUser.userID)
+            }
+
+            confirmButton(receiveText) {
+                acceptSeatInvitation(hostUser.userID)
+            }
         }
         dialog.show()
     }
@@ -828,41 +841,37 @@ class VoiceRoomRootView @JvmOverloads constructor(
     }
 
     private fun showExitSeatDialog() {
-        val dialog = StandardDialog(context)
-        dialog.setContent(resources.getString(R.string.common_audience_end_link_tips))
-        val options: MutableList<StandardDialog.Option> = ArrayList()
-        options.add(
-            StandardDialog.Option(
-                getResources().getString(R.string.common_end_link),
-                context.getResources().getColor(R.color.common_text_color_abnormal),
-                object : OnClickListener {
-                    override fun onClick(v: View?) {
-                        val liveInfo = liveListStore.liveState.currentLive.value
-                        if (liveInfo.seatMode == TakeSeatMode.FREE || isOwner()) {
-                            liveSeatStore.leaveSeat(null)
-                        } else {
-                            coGuestStore.disconnect(null)
-                        }
-                    }
-                })
-        )
-        options.add(
-            StandardDialog.Option(
-                getResources().getString(R.string.common_exit_live),
-                context.getResources().getColor(R.color.common_color_white_e5),
-                OnClickListener { v1: View? ->
-                    exit()
+        val dialog = AtomicAlertDialog(context)
+        val title = resources.getString(R.string.common_audience_end_link_tips)
+
+        dialog.init {
+            init(title)
+            addItem(
+                text = resources.getString(R.string.common_end_link),
+                type = AtomicAlertDialog.TextColorPreset.RED,
+            ) { dialog ->
+                val liveInfo = liveListStore.liveState.currentLive.value
+                if (liveInfo.seatMode == TakeSeatMode.FREE || isOwner()) {
+                    liveSeatStore.leaveSeat(null)
+                } else {
+                    coGuestStore.disconnect(null)
                 }
-            ))
-        options.add(
-            StandardDialog.Option(
-                getResources().getString(R.string.common_cancel),
-                context.getResources().getColor(R.color.common_color_white_e5),
-                OnClickListener { v2: View? ->
-                    dialog.dismiss()
-                }
-            ))
-        dialog.setOptions(options)
+                dialog.dismiss()
+            }
+            addItem(
+                text = getResources().getString(R.string.common_exit_live),
+                type = AtomicAlertDialog.TextColorPreset.PRIMARY
+            ) {
+                exit()
+                it.dismiss()
+            }
+            addItem(
+                text = getResources().getString(R.string.common_cancel),
+                type = AtomicAlertDialog.TextColorPreset.PRIMARY
+            ) { dialog ->
+                dialog.dismiss()
+            }
+        }
         dialog.show()
     }
 
@@ -870,89 +879,107 @@ class VoiceRoomRootView @JvmOverloads constructor(
         val isInBattle = battleStore?.battleState?.battleUsers?.value?.isEmpty() == false
         val isInConnection = coHostStore?.coHostState?.coHostStatus?.value == CoHostStatus.CONNECTED
 
-        StandardDialog(rootViewContext).let { dialog ->
+        AtomicAlertDialog(rootViewContext).let { dialog ->
             anchorExitConfirmDialog = dialog
 
             if (isInBattle) {
-                dialog.setContent(context.getString(R.string.common_end_pk_tips))
-                val options = mutableListOf(
-                    StandardDialog.Option(
-                        context.getString(R.string.common_battle_end_pk),
-                        rootViewContext.resources.getColor(R.color.common_text_color_abnormal)
+                val title = context.getString(R.string.common_end_pk_tips)
+
+                dialog.init {
+                    init(title)
+
+                    addItem(
+                        text = context.getString(R.string.common_battle_end_pk),
+                        type = AtomicAlertDialog.TextColorPreset.RED,
                     ) {
                         battleStore?.exitBattle(
                             battleStore?.battleState?.currentBattleInfo?.value?.battleID,
                             object : CompletionHandler {
                                 override fun onSuccess() {
-                                    dialog.dismiss()
+                                    it.dismiss()
                                 }
 
                                 override fun onFailure(code: Int, desc: String) {
                                     ErrorLocalized.onError(code)
-                                    dialog.dismiss()
+                                    it.dismiss()
                                 }
                             })
-                    },
-                    StandardDialog.Option(
-                        context.getString(R.string.common_end_live),
-                        rootViewContext.resources.getColor(R.color.common_color_white_e5)
+                    }
+
+                    addItem(
+                        text = context.getString(R.string.common_end_live),
+                        type = AtomicAlertDialog.TextColorPreset.PRIMARY
                     ) {
                         exit()
-                        dialog.dismiss()
-                    },
-                    StandardDialog.Option(
-                        context.getString(R.string.common_cancel),
-                        rootViewContext.resources.getColor(R.color.common_color_white_e5)
-                    ) {
-                        dialog.dismiss()
+                        it.dismiss()
                     }
-                )
-                dialog.setOptions(options)
+
+                    addItem(
+                        text = context.getString(R.string.common_cancel),
+                        type = AtomicAlertDialog.TextColorPreset.PRIMARY
+                    ) {
+                        it.dismiss()
+                    }
+                }
             } else if (isInConnection) {
-                dialog.setContent(context.getString(R.string.common_end_connection_tips))
-                val options = mutableListOf(
-                    StandardDialog.Option(
-                        context.getString(R.string.common_end_connect),
-                        rootViewContext.resources.getColor(R.color.common_text_color_abnormal)
+                val title = context.getString(R.string.common_end_connection_tips)
+
+                dialog.init {
+                    init(title)
+
+                    addItem(
+                        text = context.getString(R.string.common_end_connect),
+                        type = AtomicAlertDialog.TextColorPreset.RED,
                     ) {
                         coHostStore?.exitHostConnection(object : CompletionHandler {
                             override fun onSuccess() {
-                                dialog.dismiss()
+                                it.dismiss()
                             }
 
                             override fun onFailure(code: Int, desc: String) {
-                                dialog.dismiss()
+                                it.dismiss()
                                 ErrorLocalized.onError(code)
                             }
                         })
-                    },
-                    StandardDialog.Option(
-                        rootViewContext.getString(R.string.common_end_live),
-                        rootViewContext.resources.getColor(R.color.common_color_white_e5)
+                    }
+
+                    addItem(
+                        text = rootViewContext.getString(R.string.common_end_live),
+                        type = AtomicAlertDialog.TextColorPreset.PRIMARY
                     ) {
                         exit()
-                        dialog.dismiss()
-                    },
-                    StandardDialog.Option(
-                        context.getString(R.string.common_cancel),
-                        rootViewContext.resources.getColor(R.color.common_color_white_e5)
-                    ) {
-                        dialog.dismiss()
+                        it.dismiss()
                     }
-                )
-                dialog.setOptions(options)
+
+                    addItem(
+                        text = context.getString(R.string.common_cancel),
+                        type = AtomicAlertDialog.TextColorPreset.PRIMARY
+                    ) {
+                        it.dismiss()
+                    }
+                }
             } else {
-                dialog.setContent(context.getString(R.string.live_end_live_tips))
+                val title = context.getString(R.string.live_end_live_tips)
                 val negativeText = rootViewContext.getString(R.string.common_cancel)
-                dialog.setNegativeText(
-                    negativeText,
-                    resources.getColor(R.color.common_text_color_secondary)
-                ) { dialog.dismiss() }
                 val positiveText = rootViewContext.getString(R.string.common_end_live)
-                dialog.setPositiveText(
-                    positiveText,
-                    resources.getColor(R.color.common_text_color_abnormal)
-                ) { exit() }
+
+                dialog.init {
+                    init(title)
+
+                    cancelButton(
+                        text = negativeText,
+                        type = AtomicAlertDialog.TextColorPreset.GREY
+                    ) {
+                        it.dismiss()
+                    }
+
+                    confirmButton(
+                        text = positiveText,
+                        type = AtomicAlertDialog.TextColorPreset.RED
+                    ) {
+                        exit()
+                    }
+                }
             }
 
             dialog.show()
@@ -988,10 +1015,12 @@ class VoiceRoomRootView @JvmOverloads constructor(
         }
 
         override fun onKickedOffSeat(seatIndex: Int, hostUser: LiveUserInfo) {
-            ToastUtil.toastShortMessage(
+            AtomicToast.show(
+                context,
                 context.getString(
                     R.string.common_voiceroom_kicked_out_of_seat
-                )
+                ),
+                AtomicToast.Style.INFO
             )
         }
     }
@@ -1022,7 +1051,11 @@ class VoiceRoomRootView @JvmOverloads constructor(
     private val liveListListener = object : LiveListListener() {
         override fun onLiveEnded(liveID: String, reason: LiveEndedReason, message: String) {
             if (isOwner()) return
-            ToastUtil.toastShortMessage(context.getString(R.string.common_room_destroy))
+            AtomicToast.show(
+                context,
+                context.getString(R.string.common_room_destroy),
+                AtomicToast.Style.INFO
+            )
             voiceRoomManager?.prepareStore?.updateLiveStatus(LiveStatus.DASHBOARD)
             seatActionSheetGenerator?.destroy()
             if (seatActionSheetDialog != null) {
@@ -1037,8 +1070,10 @@ class VoiceRoomRootView @JvmOverloads constructor(
         ) {
             LOGGER.info("onKickedOutOfRoom:[roomId:${this@VoiceRoomRootView.liveID},reason:$reason,message:$message]")
             if (LiveKickedOutReason.BY_LOGGED_ON_OTHER_DEVICE !== reason) {
-                ToastUtil.toastShortMessage(
-                    context.getString(R.string.common_kicked_out_of_room_by_owner)
+                AtomicToast.show(
+                    context,
+                    context.getString(R.string.common_kicked_out_of_room_by_owner),
+                    AtomicToast.Style.INFO
                 )
                 val params: HashMap<String, Any> = HashMap()
                 params.put("roomId", this@VoiceRoomRootView.liveID)
@@ -1049,7 +1084,7 @@ class VoiceRoomRootView @JvmOverloads constructor(
 
     private val roomEngineObserver = object : TUIRoomObserver() {
         override fun onKickedOffLine(message: String?) {
-            ToastUtil.toastShortMessage(message)
+            AtomicToast.show(context, message ?: "", AtomicToast.Style.INFO)
             val params: MutableMap<String?, Any?> = java.util.HashMap<String?, Any?>()
             params.put("roomId", liveID)
             TUICore.notifyEvent(EVENT_KEY_LIVE_KIT, EVENT_SUB_KEY_FINISH_ACTIVITY, params)

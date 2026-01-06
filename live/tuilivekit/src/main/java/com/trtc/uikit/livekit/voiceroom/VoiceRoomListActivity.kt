@@ -16,18 +16,19 @@ import com.tencent.qcloud.tuicore.TUILogin
 import com.tencent.qcloud.tuicore.util.SPUtils
 import com.trtc.tuikit.common.FullScreenActivity
 import com.trtc.tuikit.common.util.ActivityLauncher
-import com.trtc.tuikit.common.util.ToastUtil
+import io.trtc.tuikit.atomicx.widget.basicwidget.toast.AtomicToast
 import com.trtc.uikit.livekit.R
 import com.trtc.uikit.livekit.common.EVENT_KEY_LIVE_KIT
 import com.trtc.uikit.livekit.common.EVENT_SUB_KEY_DESTROY_LIVE_VIEW
 import com.trtc.uikit.livekit.common.LiveIdentityGenerator
 import com.trtc.uikit.livekit.common.LiveKitLogger
-import com.trtc.uikit.livekit.component.pictureinpicture.PictureInPictureStore
+import com.trtc.uikit.livekit.component.pippanel.PIPPanelStore
 import com.trtc.uikit.livekit.features.livelist.LiveListView
 import com.trtc.uikit.livekit.features.livelist.Style
 import com.trtc.uikit.livekit.livestream.VideoLiveKit
 import com.trtc.uikit.livekit.livestream.impl.LiveInfoUtils.asEngineLiveInfo
 import com.trtc.uikit.livekit.livestream.impl.LiveInfoUtils.asStoreLiveInfo
+import io.trtc.tuikit.atomicxcore.api.login.LoginStore
 
 class VoiceRoomListActivity : FullScreenActivity() {
 
@@ -84,8 +85,10 @@ class VoiceRoomListActivity : FullScreenActivity() {
     }
 
     private fun initCreateRoomView() {
-        findViewById<View>(R.id.ll_start).setOnClickListener {
-            if (packageName == "com.tencent.trtc") {
+        findViewById<View>(R.id.atomic_btn_start).setOnClickListener {
+            if (packageName == "com.tencent.trtc" &&
+                LoginStore.shared.loginState.loginUserInfo.value?.userID?.startsWith("moa")
+                == false) {
                 realNameVerifyAndStartLive()
                 return@setOnClickListener
             }
@@ -109,8 +112,8 @@ class VoiceRoomListActivity : FullScreenActivity() {
     }
 
     private fun startVoiceLive() {
-        if (PictureInPictureStore.sharedInstance().state.isAnchorStreaming) {
-            ToastUtil.toastShortMessage(getString(R.string.common_exit_float_window_tip))
+        if (PIPPanelStore.sharedInstance().state.isAnchorStreaming) {
+            AtomicToast.show(this, getString(R.string.common_exit_float_window_tip), style = AtomicToast.Style.WARNING)
             return
         }
         TUICore.notifyEvent(EVENT_KEY_LIVE_KIT, EVENT_SUB_KEY_DESTROY_LIVE_VIEW, null)
@@ -137,8 +140,8 @@ class VoiceRoomListActivity : FullScreenActivity() {
     }
 
     private fun enterRoom(info: TUILiveListManager.LiveInfo) {
-        if (PictureInPictureStore.sharedInstance().state.isAnchorStreaming) {
-            ToastUtil.toastShortMessage(getString(R.string.common_exit_float_window_tip))
+        if (PIPPanelStore.sharedInstance().state.isAnchorStreaming) {
+            AtomicToast.show(this, getString(R.string.common_exit_float_window_tip), style = AtomicToast.Style.WARNING)
             return
         }
         TUICore.notifyEvent(EVENT_KEY_LIVE_KIT, EVENT_SUB_KEY_DESTROY_LIVE_VIEW, null)

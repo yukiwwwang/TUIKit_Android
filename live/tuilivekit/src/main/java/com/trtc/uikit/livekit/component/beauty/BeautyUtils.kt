@@ -3,7 +3,7 @@ package com.trtc.uikit.livekit.component.beauty
 import android.content.Context
 import android.os.Bundle
 import com.tencent.qcloud.tuicore.interfaces.TUIServiceCallback
-import com.tencent.qcloud.tuicore.util.ToastUtil
+import io.trtc.tuikit.atomicx.widget.basicwidget.toast.AtomicToast
 import com.trtc.uikit.livekit.component.beauty.tebeauty.TEBeautyManager
 import io.trtc.tuikit.atomicxcore.api.device.BaseBeautyStore
 import java.lang.ref.WeakReference
@@ -19,15 +19,21 @@ object BeautyUtils {
                     if (code == 0) {
                         val dialog = BeautyPanelDialog(context)
                         dialogWeakRef = WeakReference(dialog)
+                        dialog.setOnDismissListener {
+                            TEBeautyManager.exportParam()
+                        }
                         dialog.show()
                     } else {
-                        ToastUtil.toastShortMessage("check beauty resource failed:$code,message:$message")
+                        AtomicToast.show(context, "check beauty resource failed:$code,message:$message", AtomicToast.Style.ERROR)
                     }
                 }
             })
         } else {
             val dialog = BeautyPanelDialog(context)
             dialogWeakRef = WeakReference(dialog)
+            dialog.setOnDismissListener {
+                TEBeautyManager.exportParam()
+            }
             dialog.show()
         }
     }

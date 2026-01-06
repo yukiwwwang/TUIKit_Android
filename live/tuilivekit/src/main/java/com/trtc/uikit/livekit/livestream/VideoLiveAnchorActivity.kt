@@ -20,8 +20,7 @@ import com.trtc.tuikit.common.FullScreenActivity
 import com.trtc.uikit.livekit.R
 import com.trtc.uikit.livekit.common.EVENT_KEY_LIVE_KIT
 import com.trtc.uikit.livekit.common.EVENT_SUB_KEY_DESTROY_LIVE_VIEW
-import com.trtc.uikit.livekit.common.MutableLiveDataUtils.setValue
-import com.trtc.uikit.livekit.component.pictureinpicture.PictureInPictureStore
+import com.trtc.uikit.livekit.component.pippanel.PIPPanelStore
 import com.trtc.uikit.livekit.features.anchorboardcast.AnchorBoardcastState
 import com.trtc.uikit.livekit.features.anchorboardcast.AnchorView
 import com.trtc.uikit.livekit.features.anchorboardcast.AnchorViewListener
@@ -34,6 +33,7 @@ import com.trtc.uikit.livekit.features.endstatistics.EndStatisticsDefine
 import com.trtc.uikit.livekit.features.endstatistics.EndStatisticsDefine.AnchorEndStatisticsInfo
 import com.trtc.uikit.livekit.livestream.impl.LiveInfoUtils
 import com.trtc.uikit.livekit.livestream.impl.VideoLiveKitImpl
+import io.trtc.tuikit.atomicx.pictureinpicture.PictureInPictureStore
 import io.trtc.tuikit.atomicxcore.api.live.LiveInfo
 
 class VideoLiveAnchorActivity : FullScreenActivity(), 
@@ -113,31 +113,34 @@ class VideoLiveAnchorActivity : FullScreenActivity(),
 
     override fun onUserLeaveHint() {
         super.onUserLeaveHint()
-        if (PictureInPictureStore.sharedInstance().state.anchorIsPictureInPictureMode) {
+        if (PIPPanelStore.sharedInstance().state.anchorIsPictureInPictureMode) {
             return
         }
-        if (PictureInPictureStore.sharedInstance().state.isAnchorStreaming) {
+        if (PIPPanelStore.sharedInstance().state.isAnchorStreaming &&
+            PIPPanelStore.sharedInstance().state.enablePictureInPictureToggle
+        ) {
             onClickFloatWindow()
         }
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        PictureInPictureStore.sharedInstance().reset()
+        PIPPanelStore.sharedInstance().reset()
         TUICore.unRegisterEvent(this)
         
         anchorPrepareView?.removeAnchorPrepareViewListener(this)
         anchorView?.removeAnchorViewListener(this)
-        
-        setValue(PictureInPictureStore.sharedInstance().state.roomId, "")
+
+        PIPPanelStore.sharedInstance().setPictureInPictureModeRoomId("")
+        PictureInPictureStore.shared.updateIsPictureInPictureMode(false)
     }
 
     override fun onBackPressed() {}
 
     override fun onPictureInPictureModeChanged(isInPictureInPictureMode: Boolean) {
         super.onPictureInPictureModeChanged(isInPictureInPictureMode)
-        PictureInPictureStore.sharedInstance().state.anchorIsPictureInPictureMode = isInPictureInPictureMode
-        
+        PictureInPictureStore.shared.updateIsPictureInPictureMode(isInPictureInPictureMode)
+        PIPPanelStore.sharedInstance().state.anchorIsPictureInPictureMode = isInPictureInPictureMode
         anchorView?.enablePipMode(isInPictureInPictureMode)
         
         if (!isInPictureInPictureMode && lifecycle.currentState == Lifecycle.State.CREATED) {
@@ -163,7 +166,7 @@ class VideoLiveAnchorActivity : FullScreenActivity(),
         anchorView = AnchorView(this).apply {
             val params = mutableMapOf<String, Any>()
             anchorPrepareView?.let { prepareView ->
-                params["coHostTemplateId"] = prepareView.getState()?.coHostTemplateId?.getValue() ?: ""
+                params["coHostTemplateId"] = prepareView.getState()?.coHostTemplateId?.value ?: ""
                 init(
                     liveInfo, 
                     prepareView.getCoreView(),
@@ -194,11 +197,11 @@ class VideoLiveAnchorActivity : FullScreenActivity(),
 
     private fun initLiveInfo() {
         anchorPrepareView?.getState()?.let {
-            liveInfo.liveName = it.roomName.getValue() ?: ""
-            liveInfo.isPublicVisible = it.liveMode.getValue() == LiveStreamPrivacyStatus.PUBLIC
-            liveInfo.coverURL = it.coverURL.getValue() ?: ""
-            liveInfo.backgroundURL = it.coverURL.getValue() ?: ""
-            liveInfo.seatLayoutTemplateID = it.coGuestTemplateId.getValue() ?: 600
+            liveInfo.liveName = it.roomName.value
+            liveInfo.isPublicVisible = it.liveMode.value == LiveStreamPrivacyStatus.PUBLIC
+            liveInfo.coverURL = it.coverURL.value
+            liveInfo.backgroundURL = it.coverURL.value
+            liveInfo.seatLayoutTemplateID = it.coGuestTemplateId.value
         }
     }
 
@@ -259,7 +262,7 @@ class VideoLiveAnchorActivity : FullScreenActivity(),
     override fun onClickFloatWindow() {
         val success = VideoLiveKitImpl.createInstance(applicationContext).enterPictureInPictureMode(this)
         if (success) {
-            setValue(PictureInPictureStore.sharedInstance().state.roomId, liveInfo.liveID)
+            PIPPanelStore.sharedInstance().setPictureInPictureModeRoomId(liveInfo.liveID)
         }
     }
 

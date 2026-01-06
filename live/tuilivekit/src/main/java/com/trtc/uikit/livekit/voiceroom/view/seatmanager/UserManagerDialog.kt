@@ -7,17 +7,16 @@ import android.view.View.GONE
 import android.view.View.VISIBLE
 import android.widget.ImageView
 import android.widget.TextView
-import androidx.constraintlayout.utils.widget.ImageFilterView
-import com.tencent.cloud.tuikit.engine.common.TUICommonDefine
 import com.tencent.cloud.tuikit.engine.room.TUIRoomEngine
-import com.trtc.tuikit.common.imageloader.ImageLoader
 import com.trtc.uikit.livekit.R
 import com.trtc.uikit.livekit.common.ErrorLocalized
 import com.trtc.uikit.livekit.common.LiveKitLogger
 import com.trtc.uikit.livekit.common.completionHandler
-import com.trtc.uikit.livekit.common.ui.PopupDialog
 import com.trtc.uikit.livekit.common.ui.setDebounceClickListener
 import com.trtc.uikit.livekit.voiceroom.manager.VoiceRoomManager
+import io.trtc.tuikit.atomicx.widget.basicwidget.avatar.AtomicAvatar
+import io.trtc.tuikit.atomicx.widget.basicwidget.avatar.AtomicAvatar.AvatarContent
+import io.trtc.tuikit.atomicx.widget.basicwidget.popover.AtomicPopover
 import io.trtc.tuikit.atomicxcore.api.live.DeviceControlPolicy
 import io.trtc.tuikit.atomicxcore.api.live.LiveListStore
 import io.trtc.tuikit.atomicxcore.api.live.LiveSeatStore
@@ -32,13 +31,13 @@ import kotlinx.coroutines.launch
 class UserManagerDialog(
     private val context: Context,
     private val voiceRoomManager: VoiceRoomManager?
-) : PopupDialog(context) {
+) : AtomicPopover(context) {
 
     private val liveListStore = LiveListStore.shared()
     private val liveSeatStore: LiveSeatStore =
         LiveSeatStore.create(liveListStore.liveState.currentLive.value.liveID)
 
-    private lateinit var imageHeadView: ImageFilterView
+    private lateinit var imageHeadView: AtomicAvatar
     private lateinit var userIdText: TextView
     private lateinit var userNameText: TextView
     private lateinit var ivMute: ImageView
@@ -80,7 +79,7 @@ class UserManagerDialog(
 
     private fun initView() {
         val rootView = View.inflate(context, R.layout.livekit_user_manager_panel, null)
-        setView(rootView)
+        setContent(rootView)
         bindViewId(rootView)
         initFollowButtonView(rootView)
         rootView.findViewById<View>(R.id.hand_up).setOnClickListener { hangup() }
@@ -108,12 +107,8 @@ class UserManagerDialog(
         if (seatInfo.userInfo.userID.isEmpty() == true) {
             return
         }
-        val avatarUrl = seatInfo.userInfo.avatarURL
-        if (TextUtils.isEmpty(avatarUrl)) {
-            imageHeadView.setImageResource(R.drawable.livekit_ic_avatar)
-        } else {
-            ImageLoader.load(context, imageHeadView, avatarUrl, R.drawable.livekit_ic_avatar)
-        }
+        imageHeadView.setContent(AvatarContent.URL(seatInfo.userInfo.avatarURL, R.drawable.livekit_ic_avatar))
+
         userNameText.text = seatInfo.userInfo.userName
         userIdText.text = context.getString(R.string.common_user_id, seatInfo.userInfo.userID)
         updateAudioLockState(seatInfo.userInfo.allowOpenMicrophone == false)
@@ -212,7 +207,7 @@ class UserManagerDialog(
         liveSeatStore.kickUserOutOfSeat(seatInfo.userInfo.userID, completionHandler {
             onError { code, desc ->
                 LOGGER.error("kickUserOutOfSeat failed,error:$code,message:$desc")
-                ErrorLocalized.onError(TUICommonDefine.Error.fromInt(code))
+                ErrorLocalized.onError(code)
             }
         })
     }

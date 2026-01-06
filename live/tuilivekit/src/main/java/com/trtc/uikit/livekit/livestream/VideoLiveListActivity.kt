@@ -14,23 +14,24 @@ import android.widget.ImageView
 import androidx.activity.addCallback
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.constraintlayout.widget.ConstraintSet
+import com.tencent.cloud.tuikit.engine.room.TUIRoomEngine
 import com.tencent.qcloud.tuicore.TUIConstants
 import com.tencent.qcloud.tuicore.TUICore
-import com.tencent.qcloud.tuicore.TUILogin
 import com.tencent.qcloud.tuicore.util.SPUtils
 import com.trtc.tuikit.common.FullScreenActivity
-import com.trtc.tuikit.common.util.ToastUtil
 import com.trtc.uikit.livekit.R
 import com.trtc.uikit.livekit.common.EVENT_KEY_LIVE_KIT
 import com.trtc.uikit.livekit.common.EVENT_SUB_KEY_DESTROY_LIVE_VIEW
 import com.trtc.uikit.livekit.common.LiveIdentityGenerator
 import com.trtc.uikit.livekit.common.LiveKitLogger
-import com.trtc.uikit.livekit.component.pictureinpicture.PictureInPictureStore
+import com.trtc.uikit.livekit.component.pippanel.PIPPanelStore
 import com.trtc.uikit.livekit.features.livelist.LiveListView
 import com.trtc.uikit.livekit.features.livelist.Style
 import com.trtc.uikit.livekit.livestream.impl.LiveInfoUtils.asEngineLiveInfo
 import com.trtc.uikit.livekit.voiceroom.VoiceRoomKit
+import io.trtc.tuikit.atomicx.widget.basicwidget.toast.AtomicToast
 import io.trtc.tuikit.atomicxcore.api.live.LiveInfo
+import io.trtc.tuikit.atomicxcore.api.login.LoginStore
 
 class VideoLiveListActivity : FullScreenActivity() {
 
@@ -59,7 +60,7 @@ class VideoLiveListActivity : FullScreenActivity() {
         mMainLayout = findViewById(R.id.main)
         mLiveListView = findViewById(R.id.live_list_view)
         mToolbarLiveView = findViewById(R.id.toolbar_live)
-        mStartLiveView = findViewById(R.id.ll_start)
+        mStartLiveView = findViewById(R.id.atomic_btn_start)
         mLiveListColumnTypeView = findViewById(R.id.btn_live_list_column_type)
 
         mLiveListColumnTypeView.setOnClickListener { changeColumnStyle() }
@@ -68,8 +69,8 @@ class VideoLiveListActivity : FullScreenActivity() {
         initVideoLiveTitle()
         initLiveListView()
         onBackPressedDispatcher.addCallback(this) {
-            if (PictureInPictureStore.sharedInstance().state.anchorIsPictureInPictureMode
-                || PictureInPictureStore.sharedInstance().state.audienceIsPictureInPictureMode
+            if (PIPPanelStore.sharedInstance().state.anchorIsPictureInPictureMode
+                || PIPPanelStore.sharedInstance().state.audienceIsPictureInPictureMode
             ) {
                 val homeIntent = Intent(Intent.ACTION_MAIN).apply {
                     addCategory(Intent.CATEGORY_HOME)
@@ -143,7 +144,9 @@ class VideoLiveListActivity : FullScreenActivity() {
 
     private fun initStartLiveView() {
         mStartLiveView.setOnClickListener {
-            if (packageName == "com.tencent.trtc") {
+            if (packageName == "com.tencent.trtc" &&
+                LoginStore.shared.loginState.loginUserInfo.value?.userID?.startsWith("moa")
+                == false) {
                 realNameVerifyAndStartLive()
                 return@setOnClickListener
             }
@@ -166,20 +169,23 @@ class VideoLiveListActivity : FullScreenActivity() {
     }
 
     private fun startVideoLive() {
-        if (PictureInPictureStore.sharedInstance().state.isAnchorStreaming) {
-            ToastUtil.toastShortMessage(getString(R.string.common_exit_float_window_tip))
+        if (PIPPanelStore.sharedInstance().state.isAnchorStreaming) {
+            AtomicToast.show(this, getString(R.string.common_exit_float_window_tip), AtomicToast.Style.WARNING)
             return
         }
         TUICore.notifyEvent(EVENT_KEY_LIVE_KIT, EVENT_SUB_KEY_DESTROY_LIVE_VIEW, null)
-        val roomId = LiveIdentityGenerator.generateId(TUILogin.getUserId(), LiveIdentityGenerator.RoomType.LIVE)
+        val roomId = LiveIdentityGenerator.generateId(
+            LoginStore.shared.loginState.loginUserInfo.value?.userID ?: "",
+            LiveIdentityGenerator.RoomType.LIVE
+        )
         VideoLiveKit.createInstance(applicationContext).startLive(roomId)
     }
 
     private fun initBackButton() {
         findViewById<View>(R.id.iv_back).setOnClickListener {
             hideAdvanceSettingView()
-            if (PictureInPictureStore.sharedInstance().state.anchorIsPictureInPictureMode
-                || PictureInPictureStore.sharedInstance().state.audienceIsPictureInPictureMode
+            if (PIPPanelStore.sharedInstance().state.anchorIsPictureInPictureMode
+                || PIPPanelStore.sharedInstance().state.audienceIsPictureInPictureMode
             ) {
                 val homeIntent = Intent(Intent.ACTION_MAIN).apply {
                     addCategory(Intent.CATEGORY_HOME)
@@ -201,8 +207,8 @@ class VideoLiveListActivity : FullScreenActivity() {
     }
 
     private fun enterRoom(info: LiveInfo) {
-        if (PictureInPictureStore.sharedInstance().state.isAnchorStreaming) {
-            ToastUtil.toastShortMessage(getString(R.string.common_exit_float_window_tip))
+        if (PIPPanelStore.sharedInstance().state.isAnchorStreaming) {
+            AtomicToast.show(this, getString(R.string.common_exit_float_window_tip), AtomicToast.Style.WARNING)
             return
         }
         TUICore.notifyEvent(EVENT_KEY_LIVE_KIT, EVENT_SUB_KEY_DESTROY_LIVE_VIEW, null)

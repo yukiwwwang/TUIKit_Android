@@ -80,12 +80,13 @@
                         android:layout_height="28dp"
                         android:background="@drawable/livekit_function_connection" />
 
-                    <TextView
+                    <io.trtc.tuikit.atomicx.widget.basicwidget.label.AtomicLabel
                         android:layout_width="match_parent"
                         android:layout_height="16dp"
                         android:gravity="center"
                         android:text="@string/common_link_host"
-                        android:textSize="10dp" />
+                        android:textColor="@color/text_color_primary"
+                        android:textSize="@dimen/text_size_10" />
                 </LinearLayout>
 
                 <LinearLayout
@@ -102,12 +103,13 @@
                         android:layout_height="28dp"
                         android:background="@drawable/livekit_function_battle" />
 
-                    <TextView
+                    <io.trtc.tuikit.atomicx.widget.basicwidget.label.AtomicLabel
                         android:layout_width="match_parent"
                         android:layout_height="16dp"
                         android:gravity="center"
                         android:text="@string/common_anchor_battle"
-                        android:textSize="10dp" />
+                        android:textColor="@color/text_color_primary"
+                        android:textSize="@dimen/text_size_10" />
                 </LinearLayout>
 
                 <LinearLayout
@@ -123,12 +125,13 @@
                         android:layout_width="28dp"
                         android:layout_height="28dp" />
 
-                    <TextView
+                    <io.trtc.tuikit.atomicx.widget.basicwidget.label.AtomicLabel
                         android:layout_width="match_parent"
                         android:layout_height="16dp"
                         android:gravity="center"
                         android:text="@string/common_link_guest"
-                        android:textSize="10dp" />
+                        android:textColor="@color/text_color_primary"
+                        android:textSize="@dimen/text_size_10" />
                 </LinearLayout>
 
                 <LinearLayout
@@ -144,12 +147,13 @@
                         android:layout_height="28dp"
                         android:background="@drawable/livekit_function_more" />
 
-                    <TextView
+                    <io.trtc.tuikit.atomicx.widget.basicwidget.label.AtomicLabel
                         android:layout_width="match_parent"
                         android:layout_height="16dp"
                         android:gravity="center"
                         android:text="@string/common_more"
-                        android:textSize="10dp" />
+                        android:textColor="@color/text_color_primary"
+                        android:textSize="@dimen/text_size_10" />
                 </LinearLayout>
             </LinearLayout>
         </androidx.constraintlayout.widget.ConstraintLayout>

@@ -7,11 +7,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
-import androidx.constraintlayout.utils.widget.ImageFilterView
 import androidx.recyclerview.widget.RecyclerView
-import com.tencent.cloud.tuikit.engine.common.TUICommonDefine
 import com.tencent.cloud.tuikit.engine.common.TUICommonDefine.Error.ALL_SEAT_OCCUPIED
-import com.trtc.tuikit.common.imageloader.ImageLoader
 import com.trtc.uikit.livekit.R
 import com.trtc.uikit.livekit.common.ErrorLocalized
 import com.trtc.uikit.livekit.common.LiveKitLogger
@@ -19,6 +16,8 @@ import io.trtc.tuikit.atomicxcore.api.CompletionHandler
 import io.trtc.tuikit.atomicxcore.api.live.CoGuestStore
 import io.trtc.tuikit.atomicxcore.api.live.LiveListStore
 import io.trtc.tuikit.atomicxcore.api.live.LiveUserInfo
+import io.trtc.tuikit.atomicx.widget.basicwidget.avatar.AtomicAvatar
+import io.trtc.tuikit.atomicx.widget.basicwidget.avatar.AtomicAvatar.AvatarContent
 import java.util.concurrent.CopyOnWriteArrayList
 
 class AnchorApplyCoGuestAdapter(
@@ -48,11 +47,12 @@ class AnchorApplyCoGuestAdapter(
             holder.textName.text = userInfo.userName
         }
 
-        if (TextUtils.isEmpty(userInfo.avatarURL)) {
-            holder.imageHead.setImageResource(R.drawable.livekit_ic_avatar)
-        } else {
-            ImageLoader.load(context, holder.imageHead, userInfo.avatarURL, R.drawable.livekit_ic_avatar)
-        }
+        holder.imageHead.setContent(
+            AvatarContent.URL(
+                data[position].avatarURL,
+                R.drawable.livekit_ic_avatar
+            )
+        )
 
         holder.textReject.tag = userInfo
         holder.textReject.isEnabled = true
@@ -64,7 +64,7 @@ class AnchorApplyCoGuestAdapter(
                     override fun onSuccess() {}
 
                     override fun onFailure(code: Int, desc: String) {
-                        ErrorLocalized.onError(TUICommonDefine.Error.fromInt(code))
+                        ErrorLocalized.onError(code)
                     }
 
                 })
@@ -84,7 +84,7 @@ class AnchorApplyCoGuestAdapter(
                         if (code == ALL_SEAT_OCCUPIED.value) {
                             view.isEnabled = true
                         }
-                        ErrorLocalized.onError(TUICommonDefine.Error.fromInt(code))
+                        ErrorLocalized.onError(code)
                         logger.error("AnchorApplyCoGuestAdapter respondIntraRoomConnection failed:code:$code,desc:$desc")
                     }
 
@@ -108,10 +108,9 @@ class AnchorApplyCoGuestAdapter(
     }
 
     class ApplyLinkMicViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        val imageHead: ImageFilterView = itemView.findViewById(R.id.iv_head)
+        val imageHead: AtomicAvatar = itemView.findViewById(R.id.iv_head)
         val textName: TextView = itemView.findViewById(R.id.tv_name)
-        val textLevel: TextView = itemView.findViewById(R.id.tv_level)
-        val textAccept: TextView = itemView.findViewById(R.id.tv_accept)
-        val textReject: TextView = itemView.findViewById(R.id.tv_reject)
+        val textAccept: TextView = itemView.findViewById(R.id.atomic_btn_accept)
+        val textReject: TextView = itemView.findViewById(R.id.atomic_btn_reject)
     }
 }

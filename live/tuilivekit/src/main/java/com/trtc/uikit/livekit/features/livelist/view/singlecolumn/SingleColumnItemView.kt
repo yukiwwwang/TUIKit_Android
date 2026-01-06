@@ -12,7 +12,7 @@ import com.trtc.tuikit.common.imageloader.ImageLoader
 import com.trtc.tuikit.common.imageloader.ImageOptions
 import com.trtc.uikit.livekit.R
 import com.trtc.uikit.livekit.common.LiveKitLogger
-import com.trtc.uikit.livekit.component.pictureinpicture.PictureInPictureStore
+import com.trtc.uikit.livekit.component.pippanel.PIPPanelStore
 import com.trtc.uikit.livekit.features.livelist.LiveListViewAdapter
 import io.trtc.tuikit.atomicxcore.api.live.LiveInfo
 import io.trtc.tuikit.atomicxcore.api.view.LiveCoreView
@@ -131,7 +131,7 @@ class SingleColumnItemView @JvmOverloads constructor(
     }
 
     private fun getPictureInPictureRoomId(): String? {
-        return PictureInPictureStore.sharedInstance().state.roomId.value
+        return PIPPanelStore.sharedInstance().state.roomId.value
     }
 
     fun isPauseByPictureInPicture(): Boolean = pauseByPictureInPicture

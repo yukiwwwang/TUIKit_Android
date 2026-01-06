@@ -7,19 +7,18 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
-import androidx.constraintlayout.utils.widget.ImageFilterView
 import androidx.recyclerview.widget.RecyclerView
-import com.tencent.cloud.tuikit.engine.common.TUICommonDefine
-import com.tencent.qcloud.tuicore.TUILogin
-import com.trtc.tuikit.common.imageloader.ImageLoader
 import com.trtc.uikit.livekit.R
 import com.trtc.uikit.livekit.common.ErrorLocalized
 import com.trtc.uikit.livekit.common.LiveKitLogger
+import io.trtc.tuikit.atomicx.widget.basicwidget.avatar.AtomicAvatar
+import io.trtc.tuikit.atomicx.widget.basicwidget.avatar.AtomicAvatar.AvatarContent
 import io.trtc.tuikit.atomicxcore.api.CompletionHandler
 import io.trtc.tuikit.atomicxcore.api.live.CoGuestStore
 import io.trtc.tuikit.atomicxcore.api.live.LiveListStore
 import io.trtc.tuikit.atomicxcore.api.live.LiveSeatStore
 import io.trtc.tuikit.atomicxcore.api.live.SeatUserInfo
+import io.trtc.tuikit.atomicxcore.api.login.LoginStore
 import java.util.concurrent.CopyOnWriteArrayList
 
 class AnchorCoGuestAdapter(private val context: Context) :
@@ -49,11 +48,12 @@ class AnchorCoGuestAdapter(private val context: Context) :
             holder.textName.text = userInfo.userName
         }
 
-        if (TextUtils.isEmpty(userInfo.avatarURL)) {
-            holder.imageHead.setImageResource(R.drawable.livekit_ic_avatar)
-        } else {
-            ImageLoader.load(context, holder.imageHead, userInfo.avatarURL, R.drawable.livekit_ic_avatar)
-        }
+        holder.imageHead.setContent(
+            AvatarContent.URL(
+                data[position].avatarURL,
+                R.drawable.livekit_ic_avatar
+            )
+        )
 
         holder.textHangUp.tag = userInfo
         holder.textHangUp.isEnabled = true
@@ -66,7 +66,7 @@ class AnchorCoGuestAdapter(private val context: Context) :
                     }
 
                     override fun onFailure(code: Int, desc: String) {
-                        ErrorLocalized.onError(TUICommonDefine.Error.fromInt(code))
+                        ErrorLocalized.onError(code)
                         LOGGER.error("AnchorCoGuestAdapter disconnectUser failed:code:$code,desc:$desc")
                     }
                 })
@@ -78,7 +78,7 @@ class AnchorCoGuestAdapter(private val context: Context) :
             CoGuestStore.create(LiveListStore.shared().liveState.currentLive.value.liveID).coGuestState.connected.value.filterNot { it.liveID != LiveListStore.shared().liveState.currentLive.value.liveID }
         data.clear()
         data.addAll(userList)
-        val selfUserId = TUILogin.getUserId()
+        val selfUserId = LoginStore.shared.loginState.loginUserInfo.value?.userID ?: ""
         data.removeAll { it.userID == selfUserId }
     }
 
@@ -93,9 +93,8 @@ class AnchorCoGuestAdapter(private val context: Context) :
     }
 
     class LinkMicViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        val imageHead: ImageFilterView = itemView.findViewById(R.id.iv_head)
+        val imageHead: AtomicAvatar = itemView.findViewById(R.id.iv_head)
         val textName: TextView = itemView.findViewById(R.id.tv_name)
-        val textLevel: TextView = itemView.findViewById(R.id.tv_level)
         val textHangUp: TextView = itemView.findViewById(R.id.tv_hang_up)
     }
 }

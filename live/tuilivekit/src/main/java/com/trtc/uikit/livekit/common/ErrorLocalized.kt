@@ -1,9 +1,9 @@
 package com.trtc.uikit.livekit.common
 
-import com.tencent.cloud.tuikit.engine.common.TUICommonDefine
 import com.tencent.qcloud.tuicore.TUIConfig
+import com.trtc.tuikit.common.system.ContextProvider
 import com.trtc.uikit.livekit.R
-import com.trtc.uikit.livekit.common.ui.StandardToast
+import io.trtc.tuikit.atomicx.widget.basicwidget.toast.AtomicToast
 
 class ErrorLocalized {
     companion object {
@@ -107,6 +107,7 @@ class ErrorLocalized {
         const val LIVE_CONNECTION_ERROR_CONNECTING_OTHER_ROOM = 3
         const val LIVE_CONNECTION_ERROR_CONNECTION_FULL = 4
         const val LIVE_CONNECTION_ERROR_RETRY = 5
+        const val LIVE_CONNECTION_ROOM_MISMATCH = 6
 
         const val LIVE_IM_ERROR_FREQ_LIMIT = 7008
         const val LIVE_IM_ERROR_GROUP_SHUTUP_DENY = 10017
@@ -129,23 +130,13 @@ class ErrorLocalized {
         private val LOGGER = LiveKitLogger.getCommonLogger("ErrorLocalized")
 
         @JvmStatic
-        fun onError(error: TUICommonDefine.Error) {
-            if (error == TUICommonDefine.Error.SUCCESS) return
-            convertToErrorMessage(error.value).also { message ->
-                LOGGER.info("[error:$error,value:${error.value},message:$message]")
-                if (!INTERCEPT_TOAST_ONLY_PRINT_LOG.contains(error.value)) {
-                    StandardToast.toastShortMessage(message)
-                }
-            }
-        }
-
-        @JvmStatic
         fun onError(error: Int) {
             if (error == 0) return
             convertToErrorMessage(error).also { message ->
                 LOGGER.info("[error:$error,value:${error},message:$message]")
                 if (!INTERCEPT_TOAST_ONLY_PRINT_LOG.contains(error)) {
-                    StandardToast.toastShortMessage(message)
+                    val context = ContextProvider.getApplicationContext()
+                    AtomicToast.show(context, message, AtomicToast.Style.ERROR)
                 }
             }
         }
@@ -443,6 +434,8 @@ class ErrorLocalized {
 
                 LIVE_CONNECTION_ERROR_RETRY ->
                     context.getString(R.string.live_error_connection_retry)
+                LIVE_CONNECTION_ROOM_MISMATCH ->
+                    context.getString(R.string.live_error_room_mismatch)
 
                 LIVE_IM_ERROR_FREQ_LIMIT ->
                     context.getString(R.string.live_barrage_error_freq_limit)

@@ -3,13 +3,13 @@ package com.trtc.uikit.livekit.features.anchorboardcast.view.cohost.widgets
 import android.content.Context
 import android.util.AttributeSet
 import android.view.LayoutInflater
-import androidx.constraintlayout.utils.widget.ImageFilterView
-import com.tencent.cloud.tuikit.engine.room.TUIRoomDefine
-import com.trtc.tuikit.common.imageloader.ImageLoader
 import com.trtc.uikit.livekit.R
 import com.trtc.uikit.livekit.common.LiveKitLogger
-import com.trtc.uikit.livekit.features.anchorboardcast.manager.AnchorManager
+import com.trtc.uikit.livekit.features.anchorboardcast.store.AnchorStore
 import com.trtc.uikit.livekit.features.anchorboardcast.view.BasicView
+import io.trtc.tuikit.atomicx.widget.basicwidget.avatar.AtomicAvatar
+import io.trtc.tuikit.atomicx.widget.basicwidget.avatar.AtomicAvatar.AvatarContent
+import io.trtc.tuikit.atomicxcore.api.live.SeatInfo
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -25,13 +25,13 @@ class CoHostBackgroundWidgetsView @JvmOverloads constructor(
         private val LOGGER = LiveKitLogger.getFeaturesLogger("CoHost-BackgroundWidgetsView")
     }
 
-    private var state = TUIRoomDefine.SeatFullInfo()
-    private lateinit var imageAvatar: ImageFilterView
+    private var state = SeatInfo()
+    private lateinit var imageAvatar: AtomicAvatar
     private var subscribeStateJob: Job? = null
 
-    fun init(manager: AnchorManager, userInfo: TUIRoomDefine.SeatFullInfo) {
-        LOGGER.info("init userId:${userInfo.userId},roomId:${userInfo.roomId}")
-        state = userInfo
+    fun init(manager: AnchorStore, seatInfo: SeatInfo) {
+        LOGGER.info("init userId:${seatInfo.userInfo.userID},roomId:${seatInfo.userInfo.liveID}")
+        state = seatInfo
         super.init(manager)
     }
 
@@ -45,7 +45,12 @@ class CoHostBackgroundWidgetsView @JvmOverloads constructor(
     }
 
     private fun initUserAvatarView() {
-        ImageLoader.load(baseContext, imageAvatar, state.userAvatar, R.drawable.livekit_ic_avatar)
+        imageAvatar.setContent(
+            AvatarContent.URL(
+                state.userInfo.avatarURL,
+                R.drawable.livekit_ic_avatar
+            )
+        )
     }
 
     override fun addObserver() {

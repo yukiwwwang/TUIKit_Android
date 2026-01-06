@@ -6,11 +6,11 @@ import android.util.AttributeSet
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.TextView
-import androidx.constraintlayout.utils.widget.ImageFilterView
-import com.trtc.tuikit.common.imageloader.ImageLoader
 import com.trtc.uikit.livekit.R
 import com.trtc.uikit.livekit.voiceroom.manager.VoiceRoomManager
 import com.trtc.uikit.livekit.voiceroom.view.basic.BasicView
+import io.trtc.tuikit.atomicx.widget.basicwidget.avatar.AtomicAvatar
+import io.trtc.tuikit.atomicx.widget.basicwidget.avatar.AtomicAvatar.AvatarContent
 
 class AudienceDashboardView @JvmOverloads constructor(
     context: Context,
@@ -19,7 +19,7 @@ class AudienceDashboardView @JvmOverloads constructor(
 ) : BasicView(context, attrs, defStyleAttr) {
 
     private var textName: TextView
-    private var imageHead: ImageFilterView
+    private var imageHead: AtomicAvatar
 
     init {
         LayoutInflater.from(context).inflate(R.layout.livekit_audience_dashboard_view, this, true)
@@ -38,11 +38,7 @@ class AudienceDashboardView @JvmOverloads constructor(
             voiceRoomManager.prepareStore.prepareState.liveInfo.value.liveOwner
         textName.text = ownerInfo.userName.ifEmpty { ownerInfo.userID }
 
-        if (ownerInfo.avatarURL.isEmpty()) {
-            imageHead.setImageResource(R.drawable.livekit_ic_avatar)
-        } else {
-            ImageLoader.load(context, imageHead, ownerInfo.avatarURL, R.drawable.livekit_ic_avatar)
-        }
+        imageHead.setContent(AvatarContent.URL(ownerInfo.avatarURL, R.drawable.livekit_ic_avatar))
     }
 
     override fun addObserver() = Unit

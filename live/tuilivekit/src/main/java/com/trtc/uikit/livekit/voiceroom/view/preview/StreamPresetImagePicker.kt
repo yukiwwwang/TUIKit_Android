@@ -8,12 +8,12 @@ import android.widget.TextView
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.trtc.uikit.livekit.R
-import com.trtc.uikit.livekit.common.ui.PopupDialog
+import io.trtc.tuikit.atomicx.widget.basicwidget.popover.AtomicPopover
 
 class StreamPresetImagePicker(
     context: Context,
     private val config: Config
-) : PopupDialog(context) {
+) : AtomicPopover(context) {
 
     private var selectedImageURL: String? = null
     private var onConfirmListener: OnConfirmListener? = null
@@ -35,13 +35,11 @@ class StreamPresetImagePicker(
         initRecycleView(context, view)
         initBackButton(view)
         initSetCoverButton(view)
-        setView(view)
+        setContent(view)
     }
 
     private fun initRecycleView(context: Context, view: View) {
         val recyclerView = view.findViewById<RecyclerView>(R.id.rv_image)
-        recyclerView.setBackgroundResource(R.drawable.livekit_dialog_background)
-        setView(recyclerView)
         val spanCount = calculateViewColumnCount(context)
         recyclerView.layoutManager = GridLayoutManager(context, spanCount)
         recyclerView.addItemDecoration(PresetImageGridAdapter.GridDividerItemDecoration(context))

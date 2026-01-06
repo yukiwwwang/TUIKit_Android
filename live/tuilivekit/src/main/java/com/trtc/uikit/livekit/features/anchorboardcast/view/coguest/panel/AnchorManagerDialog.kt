@@ -7,31 +7,30 @@ import android.view.View.GONE
 import android.view.View.VISIBLE
 import android.widget.ImageView
 import android.widget.TextView
-import androidx.constraintlayout.utils.widget.ImageFilterView
-import com.tencent.cloud.tuikit.engine.common.TUICommonDefine
 import com.tencent.cloud.tuikit.engine.room.TUIRoomDefine
 import com.tencent.cloud.tuikit.engine.room.TUIRoomEngine
 import com.tencent.cloud.tuikit.engine.room.TUIRoomObserver
-import com.tencent.qcloud.tuicore.TUILogin
-import com.trtc.tuikit.common.imageloader.ImageLoader
 import com.trtc.tuikit.common.permission.PermissionCallback
 import com.trtc.tuikit.common.system.ContextProvider
 import com.trtc.uikit.livekit.R
 import com.trtc.uikit.livekit.common.ErrorLocalized
 import com.trtc.uikit.livekit.common.LiveKitLogger
 import com.trtc.uikit.livekit.common.PermissionRequest
-import com.trtc.uikit.livekit.common.ui.PopupDialog
-import com.trtc.uikit.livekit.features.anchorboardcast.manager.AnchorManager
-import com.trtc.uikit.livekit.features.anchorboardcast.manager.module.MediaManager
+import com.trtc.uikit.livekit.features.anchorboardcast.store.AnchorStore
+import com.trtc.uikit.livekit.features.anchorboardcast.store.MediaStore
 import com.trtc.uikit.livekit.features.anchorboardcast.view.usermanage.ConfirmDialog
+import io.trtc.tuikit.atomicx.widget.basicwidget.avatar.AtomicAvatar
+import io.trtc.tuikit.atomicx.widget.basicwidget.popover.AtomicPopover
+import io.trtc.tuikit.atomicx.widget.basicwidget.avatar.AtomicAvatar.AvatarContent
 import io.trtc.tuikit.atomicxcore.api.CompletionHandler
 import io.trtc.tuikit.atomicxcore.api.device.DeviceStatus
 import io.trtc.tuikit.atomicxcore.api.device.DeviceStore
 import io.trtc.tuikit.atomicxcore.api.live.CoGuestStore
 import io.trtc.tuikit.atomicxcore.api.live.LiveListStore
 import io.trtc.tuikit.atomicxcore.api.live.LiveSeatStore
+import io.trtc.tuikit.atomicxcore.api.live.SeatInfo
 import io.trtc.tuikit.atomicxcore.api.live.SeatUserInfo
-import io.trtc.tuikit.atomicxcore.api.view.LiveCoreView
+import io.trtc.tuikit.atomicxcore.api.login.LoginStore
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -39,9 +38,8 @@ import kotlinx.coroutines.launch
 
 class AnchorManagerDialog(
     private val context: Context,
-    private val anchorManager: AnchorManager,
-    private val liveCoreView: LiveCoreView
-) : PopupDialog(context) {
+    private val anchorManager: AnchorStore
+) : AtomicPopover(context) {
 
     companion object {
         private val LOGGER = LiveKitLogger.getFeaturesLogger("AnchorManagerDialog")
@@ -49,8 +47,8 @@ class AnchorManagerDialog(
         private const val BUTTON_ENABLE_ALPHA = 1.0f
     }
 
-    private var userInfo: TUIRoomDefine.SeatFullInfo? = null
-    private lateinit var imageHeadView: ImageFilterView
+    private var seatInfo: SeatInfo? = null
+    private lateinit var imageHeadView: AtomicAvatar
     private lateinit var userIdText: TextView
     private lateinit var userNameText: TextView
     private lateinit var flipCameraContainer: View
@@ -71,9 +69,9 @@ class AnchorManagerDialog(
         initView()
     }
 
-    fun init(userInfo: TUIRoomDefine.SeatFullInfo) {
-        this.userInfo = userInfo
-        anchorManager.getUserManager().checkFollowUser(userInfo.userId)
+    fun init(userInfo: SeatInfo) {
+        this.seatInfo = userInfo
+        anchorManager.getUserStore().checkFollowUser(userInfo.userInfo.userID)
         updateView()
     }
 
@@ -89,7 +87,7 @@ class AnchorManagerDialog(
 
     private fun initView() {
         val rootView = View.inflate(context, R.layout.livekit_anchor_manager_panel, null)
-        setView(rootView)
+        setContent(rootView)
         bindViewId(rootView)
         initFollowButtonView(rootView)
     }
@@ -110,38 +108,30 @@ class AnchorManagerDialog(
         textUnfollow = rootView.findViewById(R.id.tv_unfollow)
         imageFollowIcon = rootView.findViewById(R.id.iv_follow)
 
-        handUpContainer.setOnClickListener { onHangupButtonClicked() }
-        flipCameraContainer.setOnClickListener { onSwitchCameraButtonClicked() }
-        audioContainer.setOnClickListener { onMicrophoneButtonClicked() }
-        videoContainer.setOnClickListener { onCameraButtonClicked() }
+        handUpContainer.setOnClickListener { clickHangupButton() }
+        flipCameraContainer.setOnClickListener { clickSwitchCameraButton() }
+        audioContainer.setOnClickListener { clickMicrophoneButton() }
+        videoContainer.setOnClickListener { clickCameraButton() }
     }
 
     private fun updateView() {
-        val currentUserInfo = userInfo ?: return
-        if (TextUtils.isEmpty(currentUserInfo.userId)) {
+        val currentUserInfo = seatInfo ?: return
+        if (TextUtils.isEmpty(currentUserInfo.userInfo.userID)) {
             return
         }
 
-        val avatarUrl = currentUserInfo.userAvatar
-        if (TextUtils.isEmpty(avatarUrl)) {
-            imageHeadView.setImageResource(R.drawable.livekit_ic_avatar)
-        } else {
-            ImageLoader.load(context, imageHeadView, avatarUrl, R.drawable.livekit_ic_avatar)
-        }
-        userNameText.text = currentUserInfo.userName
-        userIdText.text = context.getString(R.string.common_user_id, currentUserInfo.userId)
+        imageHeadView.setContent(
+            AvatarContent.URL(
+                currentUserInfo.userInfo.avatarURL,
+                R.drawable.livekit_ic_avatar
+            )
+        )
+        userNameText.text = currentUserInfo.userInfo.userName
+        userIdText.text = context.getString(R.string.common_user_id, currentUserInfo.userInfo.userID)
         updateMediaDeviceButton()
     }
 
     private fun updateMediaDeviceButton() {
-        if (isAdmin()) {
-            updateAdminDeviceButton()
-        } else {
-            updateGeneralUserDeviceButton()
-        }
-    }
-
-    private fun updateAdminDeviceButton() {
         if (isSelfUser()) {
             flipCameraContainer.visibility = VISIBLE
             handUpContainer.visibility = GONE
@@ -155,24 +145,16 @@ class AnchorManagerDialog(
         }
     }
 
-    private fun updateGeneralUserDeviceButton() {
-        if (isSelfUser()) {
-            flipCameraContainer.visibility = VISIBLE
-            handUpContainer.visibility = VISIBLE
-            followContainer.visibility = GONE
-        }
-    }
-
     private fun isSelfUser(): Boolean {
-        val currentUserInfo = userInfo ?: return false
-        if (TextUtils.isEmpty(currentUserInfo.userId)) {
+        val currentUserInfo = seatInfo ?: return false
+        if (TextUtils.isEmpty(currentUserInfo.userInfo.userID)) {
             return false
         }
-        return currentUserInfo.userId == TUILogin.getUserId()
+        return currentUserInfo.userInfo.userID == LoginStore.shared.loginState.loginUserInfo.value?.userID
     }
 
     private fun isAdmin(): Boolean {
-        return TUILogin.getUserId() == LiveListStore.shared().liveState.currentLive.value.liveOwner.userID
+        return LoginStore.shared.loginState.loginUserInfo.value?.userID == LiveListStore.shared().liveState.currentLive.value.liveOwner.userID
     }
 
     private fun addObserver() {
@@ -206,19 +188,19 @@ class AnchorManagerDialog(
 
     private fun initFollowButtonView(rootView: View) {
         rootView.findViewById<View>(R.id.fl_follow_panel).setOnClickListener {
-            val currentUserInfo = userInfo ?: return@setOnClickListener
-            if (anchorManager.getUserState().followingUserList.value!!.contains(currentUserInfo.userId)) {
-                anchorManager.getUserManager().unfollowUser(currentUserInfo.userId)
+            val currentUserInfo = seatInfo ?: return@setOnClickListener
+            if (anchorManager.getUserState().followingUserList.value.contains(currentUserInfo.userInfo.userID)) {
+                anchorManager.getUserStore().unfollowUser(currentUserInfo.userInfo.userID)
             } else {
-                anchorManager.getUserManager().followUser(currentUserInfo.userId)
+                anchorManager.getUserStore().followUser(currentUserInfo.userInfo.userID)
             }
         }
     }
 
     private suspend fun onFollowingUserChanged() {
         anchorManager.getUserState().followingUserList.collect { followUsers ->
-            userInfo?.let { currentUserInfo ->
-                if (followUsers.contains(currentUserInfo.userId)) {
+            seatInfo?.let { currentUserInfo ->
+                if (followUsers.contains(currentUserInfo.userInfo.userID)) {
                     textUnfollow.visibility = GONE
                     imageFollowIcon.visibility = VISIBLE
                 } else {
@@ -229,8 +211,8 @@ class AnchorManagerDialog(
         }
     }
 
-    private fun onHangupButtonClicked() {
-        val currentUserInfo = userInfo ?: return
+    private fun clickHangupButton() {
+        val currentUserInfo = seatInfo ?: return
 
         if (confirmDialog == null) {
             confirmDialog = ConfirmDialog(context)
@@ -242,12 +224,12 @@ class AnchorManagerDialog(
                 setPositiveText(context.getString(R.string.common_disconnection))
                 setPositiveListener {
                     LiveSeatStore.create(LiveListStore.shared().liveState.currentLive.value.liveID)
-                        .kickUserOutOfSeat(currentUserInfo.userId, object : CompletionHandler {
+                        .kickUserOutOfSeat(currentUserInfo.userInfo.userID, object : CompletionHandler {
                             override fun onSuccess() {}
 
                             override fun onFailure(code: Int, desc: String) {
                                 LOGGER.error("disconnectUser failed:code:$code,desc:$desc")
-                                ErrorLocalized.onError(TUICommonDefine.Error.fromInt(code))
+                                ErrorLocalized.onError(code)
                             }
                         })
                     dismiss()
@@ -270,10 +252,10 @@ class AnchorManagerDialog(
         }
     }
 
-    private fun onMicrophoneButtonClicked() {
-        userInfo?.let {
+    private fun clickMicrophoneButton() {
+        seatInfo?.let {
             if (isSelfUser()) {
-                if (it.userMicrophoneStatus == TUIRoomDefine.DeviceStatus.OPENED) {
+                if (it.userInfo.microphoneStatus == DeviceStatus.ON) {
                     LiveSeatStore.create(LiveListStore.shared().liveState.currentLive.value.liveID).muteMicrophone()
                 } else {
                     LiveSeatStore.create(LiveListStore.shared().liveState.currentLive.value.liveID)
@@ -282,7 +264,7 @@ class AnchorManagerDialog(
 
                             override fun onFailure(code: Int, desc: String) {
                                 LOGGER.error("unMuteMicrophone failed:code:$code,desc:$desc")
-                                ErrorLocalized.onError(TUICommonDefine.Error.fromInt(code))
+                                ErrorLocalized.onError(code)
                             }
 
                         })
@@ -292,19 +274,19 @@ class AnchorManagerDialog(
             }
 
             if (isAdmin()) {
-                val isAudioLocked = anchorManager.getState().lockAudioUserList.value?.contains(it.userId)
-                anchorManager.getMediaManager().disableUserMediaDevice(
-                    it.userId,
-                    MediaManager.MediaDevice.MICROPHONE,
-                    isAudioLocked == true
+                val isAudioLocked = anchorManager.getState().lockAudioUserList.value.contains(it.userInfo.userID)
+                anchorManager.getMediaStore().disableUserMediaDevice(
+                    it.userInfo.userID,
+                    MediaStore.MediaDevice.MICROPHONE,
+                    isAudioLocked
                 )
                 dismiss()
             }
         }
     }
 
-    private fun onCameraButtonClicked() {
-        val currentUserInfo = userInfo ?: return
+    private fun clickCameraButton() {
+        val currentUserInfo = seatInfo ?: return
 
         if (isSelfUser()) {
             if (DeviceStore.shared().deviceState.cameraStatus.value == DeviceStatus.ON) {
@@ -318,19 +300,19 @@ class AnchorManagerDialog(
         }
 
         if (isAdmin()) {
-            userInfo?.let {
-                val isVideoLocked = anchorManager.getState().lockVideoUserList.value?.contains(it.userId)
-                anchorManager.getMediaManager().disableUserMediaDevice(
-                    currentUserInfo.userId,
-                    MediaManager.MediaDevice.CAMERA,
-                    isVideoLocked == true
+            seatInfo?.let {
+                val isVideoLocked = anchorManager.getState().lockVideoUserList.value.contains(it.userInfo.userID)
+                anchorManager.getMediaStore().disableUserMediaDevice(
+                    currentUserInfo.userInfo.userID,
+                    MediaStore.MediaDevice.CAMERA,
+                    isVideoLocked
                 )
             }
             dismiss()
         }
     }
 
-    private fun onSwitchCameraButtonClicked() {
+    private fun clickSwitchCameraButton() {
         val isFront = DeviceStore.shared().deviceState.isFrontCamera.value
         DeviceStore.shared().switchCamera(!isFront)
         dismiss()
@@ -353,7 +335,7 @@ class AnchorManagerDialog(
 
                     override fun onFailure(code: Int, desc: String) {
                         LOGGER.error("startCamera failed:code:$code,desc:$desc")
-                        ErrorLocalized.onError(TUICommonDefine.Error.fromInt(code))
+                        ErrorLocalized.onError(code)
                     }
 
                 })
@@ -363,8 +345,8 @@ class AnchorManagerDialog(
 
     private suspend fun onMicrophoneStatusChanged() {
         DeviceStore.shared().deviceState.microphoneStatus.collect {
-            userInfo?.let {
-                val isAudioLocked = anchorManager.getState().lockAudioUserList.value?.contains(it.userId)
+            seatInfo?.let {
+                val isAudioLocked = anchorManager.getState().lockAudioUserList.value?.contains(it.userInfo.userID)
                 if (!isSelfUser()) {
                     if (isAdmin()) {
                         audioContainer.isEnabled = true
@@ -386,7 +368,7 @@ class AnchorManagerDialog(
                 } else {
                     audioContainer.isEnabled = true
                     ivAudio.alpha = BUTTON_ENABLE_ALPHA
-                    val isMicrophoneMuted = it.userMicrophoneStatus != TUIRoomDefine.DeviceStatus.OPENED
+                    val isMicrophoneMuted = it.userInfo.microphoneStatus != DeviceStatus.ON
                     if (isMicrophoneMuted) {
                         ivAudio.setImageResource(R.drawable.livekit_ic_mute_audio)
                         tvAudio.setText(R.string.common_unmute_audio)
@@ -401,8 +383,8 @@ class AnchorManagerDialog(
 
     private suspend fun onLockAudioUserListChanged() {
         anchorManager.getState().lockAudioUserList.collect { lockAudioUserList ->
-            userInfo?.let {
-                val isAudioLocked = lockAudioUserList.contains(it.userId)
+            seatInfo?.let {
+                val isAudioLocked = lockAudioUserList.contains(it.userInfo.userID)
                 if (!isSelfUser()) {
                     if (isAdmin()) {
                         audioContainer.isEnabled = true
@@ -440,8 +422,8 @@ class AnchorManagerDialog(
 
     private suspend fun onCameraStatusChanged() {
         anchorManager.getState().lockVideoUserList.collect { lockVideoUserList ->
-            userInfo?.let {
-                val isVideoLocked = lockVideoUserList.contains(it.userId)
+            seatInfo?.let {
+                val isVideoLocked = lockVideoUserList.contains(it.userInfo.userID)
 
                 if (!isSelfUser()) {
                     if (isAdmin()) {
@@ -486,9 +468,9 @@ class AnchorManagerDialog(
         CoGuestStore.create(LiveListStore.shared().liveState.currentLive.value.liveID).coGuestState.connected.collect {
             val userList: List<SeatUserInfo> =
                 it.filterNot { it.liveID != LiveListStore.shared().liveState.currentLive.value.liveID }
-            userInfo?.let {
+            seatInfo?.let {
                 val isConnected = userList.any { item ->
-                    it.userId == item.userID
+                    it.userInfo.userID == item.userID
                 }
                 if (!isConnected) {
                     dismiss()
@@ -501,17 +483,17 @@ class AnchorManagerDialog(
     }
 
     private val tuiRoomObserver = object : TUIRoomObserver() {
-        override fun onKickedOffSeat(seatIndex: Int, operateUser: TUIRoomDefine.UserInfo) {
+        override fun onKickedOffSeat(seatIndex: Int, operateUser: TUIRoomDefine.UserInfo, extensionInfo: String) {
             dismiss()
             confirmDialog?.dismiss()
         }
 
         override fun onRemoteUserLeaveRoom(roomId: String, userInfo: TUIRoomDefine.UserInfo) {
-            val currentUserInfo = this@AnchorManagerDialog.userInfo ?: return
-            if (TextUtils.isEmpty(currentUserInfo.userId)) {
+            val currentUserInfo = this@AnchorManagerDialog.seatInfo ?: return
+            if (TextUtils.isEmpty(currentUserInfo.userInfo.userID)) {
                 return
             }
-            if (userInfo.userId == currentUserInfo.userId) {
+            if (userInfo.userId == currentUserInfo.userInfo.userID) {
                 dismiss()
                 confirmDialog?.dismiss()
             }

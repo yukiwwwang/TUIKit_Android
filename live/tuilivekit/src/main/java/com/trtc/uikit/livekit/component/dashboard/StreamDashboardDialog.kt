@@ -12,22 +12,23 @@ import android.widget.TextView
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.PagerSnapHelper
 import androidx.recyclerview.widget.RecyclerView
-import com.tencent.cloud.tuikit.engine.room.TUIRoomDefine
-import com.tencent.cloud.tuikit.engine.room.TUIRoomEngine
-import com.tencent.cloud.tuikit.engine.room.TUIRoomObserver
-import com.tencent.trtc.TRTCStatistics
 import com.trtc.tuikit.common.util.ScreenUtil
 import com.trtc.uikit.livekit.R
-import com.trtc.uikit.livekit.common.ui.PopupDialog
-import com.trtc.uikit.livekit.component.dashboard.service.TRTCObserver
-import com.trtc.uikit.livekit.component.dashboard.service.TRTCStatisticsListener
-import com.trtc.uikit.livekit.component.dashboard.store.StreamDashboardUserState
 import com.trtc.uikit.livekit.component.dashboard.view.CircleIndicator
 import com.trtc.uikit.livekit.component.dashboard.view.StreamInfoAdapter
+import io.trtc.tuikit.atomicx.widget.basicwidget.popover.AtomicPopover
+import io.trtc.tuikit.atomicxcore.api.device.DeviceStore
+import io.trtc.tuikit.atomicxcore.api.live.AVStatistics
+import io.trtc.tuikit.atomicxcore.api.live.LiveEndedReason
+import io.trtc.tuikit.atomicxcore.api.live.LiveListListener
+import io.trtc.tuikit.atomicxcore.api.live.LiveListStore
+import io.trtc.tuikit.atomicxcore.api.live.LiveSeatStore
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 
-class StreamDashboardDialog(context: Context) : PopupDialog(context, com.trtc.tuikit.common.R.style.TUICommonBottomDialogTheme) {
-
-    private val mTRTCObserver: TRTCObserver = TRTCObserver()
+class StreamDashboardDialog(context: Context, val roomId: String) : AtomicPopover(context) {
     private val mPagerSnapHelper = PagerSnapHelper()
     private lateinit var mRecyclerMediaInfo: RecyclerView
     private lateinit var mCircleIndicator: CircleIndicator
@@ -37,10 +38,11 @@ class StreamDashboardDialog(context: Context) : PopupDialog(context, com.trtc.tu
     private lateinit var mAdapter: StreamInfoAdapter
     private var mColorGreen: Int = 0
     private var mColorPink: Int = 0
-    private val mVideoStatusList = ArrayList<StreamDashboardUserState>()
+    private val mVideoStatusList = ArrayList<AVStatistics>()
+    private var subscribeStateJob: Job? = null
 
-    private val mRoomObserver = object : TUIRoomObserver() {
-        override fun onRoomDismissed(roomId: String, reason: TUIRoomDefine.RoomDismissedReason) {
+    private val liveListListener = object : LiveListListener() {
+        override fun onLiveEnded(liveID: String, reason: LiveEndedReason, message: String) {
             dismiss()
         }
     }
@@ -51,12 +53,11 @@ class StreamDashboardDialog(context: Context) : PopupDialog(context, com.trtc.tu
 
     private fun initView() {
         val view = LayoutInflater.from(context).inflate(R.layout.livekit_stream_dashboard, null)
-        
+
         bindViewId(view)
         initMediaInfoRecyclerView()
-        setTRTCListener()
         updateNetworkStatistics(0, 0, 0)
-        setView(view)
+        setContent(view)
     }
 
     private fun bindViewId(view: View) {
@@ -86,7 +87,7 @@ class StreamDashboardDialog(context: Context) : PopupDialog(context, com.trtc.tu
         val params = window.attributes
         val screenHeight = context.resources.displayMetrics.heightPixels
         val height = (screenHeight * 0.75).toInt()
-        
+
         if (configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
             params.gravity = Gravity.END
             params.width = context.resources.displayMetrics.widthPixels / 2
@@ -124,25 +125,6 @@ class StreamDashboardDialog(context: Context) : PopupDialog(context, com.trtc.tu
         }
     }
 
-    private fun setTRTCListener() {
-        mTRTCObserver.setListener(object : TRTCStatisticsListener() {
-            @SuppressLint("DefaultLocale")
-            override fun onNetworkStatisticsChange(rtt: Int, upLoss: Int, downLoss: Int) {
-                updateNetworkStatistics(rtt, upLoss, downLoss)
-            }
-
-            override fun onLocalStatisticsChange(localArray: ArrayList<TRTCStatistics.TRTCLocalStatistics>) {
-                mAdapter.updateLocalVideoStatus(localArray)
-                updateCircleIndicator()
-            }
-
-            override fun onRemoteStatisticsChange(remoteArray: ArrayList<TRTCStatistics.TRTCRemoteStatistics>) {
-                mAdapter.updateRemoteVideoStatus(remoteArray)
-                updateCircleIndicator()
-            }
-        })
-    }
-
     @SuppressLint("DefaultLocale")
     private fun updateNetworkStatistics(rtt: Int, upLoss: Int, downLoss: Int) {
         mTextRtt.text = String.format("%dms", rtt)
@@ -154,12 +136,24 @@ class StreamDashboardDialog(context: Context) : PopupDialog(context, com.trtc.tu
     }
 
     private fun addObserver() {
-        TUIRoomEngine.sharedInstance().addObserver(mRoomObserver)
-        TUIRoomEngine.sharedInstance().trtcCloud.addListener(mTRTCObserver)
+        subscribeStateJob = CoroutineScope(Dispatchers.Main).launch {
+            launch {
+                DeviceStore.shared().deviceState.networkInfo.collect {
+                    updateNetworkStatistics(it.delay, it.upLoss, it.downLoss)
+                }
+            }
+
+            launch {
+                val liveSeatStore = LiveSeatStore.create(roomId)
+                liveSeatStore.liveSeatState.avStatistics.collect {
+                    mAdapter.updateRemoteVideoStatus(it)
+                }
+            }
+        }
+        LiveListStore.shared().addLiveListListener(liveListListener)
     }
 
     private fun removeObserver() {
-        TUIRoomEngine.sharedInstance().removeObserver(mRoomObserver)
-        TUIRoomEngine.sharedInstance().trtcCloud.removeListener(mTRTCObserver)
+        LiveListStore.shared().removeLiveListListener(liveListListener)
     }
 }

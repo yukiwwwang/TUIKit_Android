@@ -4,7 +4,6 @@ import android.annotation.SuppressLint
 import android.util.Log
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
-import com.tencent.cloud.tuikit.engine.room.TUIRoomDefine
 import com.trtc.uikit.livekit.component.barrage.BarrageStreamView.OnMessageClickListener
 import io.trtc.tuikit.atomicxcore.api.barrage.Barrage
 
@@ -46,12 +45,7 @@ class BarrageMsgListAdapter(
         adapterMap[viewType]?.let { adapter ->
             adapter.onBindViewHolder(holder, position, barrage)
             holder.itemView.setOnClickListener {
-                val userInfo = TUIRoomDefine.UserInfo().apply {
-                    userId = barrage.sender.userID
-                    userName = barrage.sender.userName
-                    avatarUrl = barrage.sender.avatarURL
-                }
-                onMessageClickListener?.onMessageClick(userInfo)
+                onMessageClickListener?.onMessageClick(barrage.sender)
             }
         }
     }

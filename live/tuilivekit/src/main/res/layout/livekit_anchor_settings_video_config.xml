@@ -3,29 +3,28 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@drawable/livekit_dialog_background"
     android:orientation="vertical"
     android:padding="15dp">
 
-    <TextView
+    <io.trtc.tuikit.atomicx.widget.basicwidget.label.AtomicLabel
         android:id="@+id/tv_title"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginVertical="10dp"
         android:gravity="center"
         android:text="@string/common_video_params"
-        android:textColor="@color/common_design_standard_g7"
-        android:textSize="16sp"
-        android:textStyle="bold" />
+        android:textColor="@color/text_color_primary"
+        android:textSize="@dimen/text_size_16"
+        android:textStyle="bold"/>
 
-    <TextView
+    <io.trtc.tuikit.atomicx.widget.basicwidget.label.AtomicLabel
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="10dp"
         android:layout_marginBottom="10dp"
         android:text="@string/common_settings_video_config"
-        android:textColor="@color/common_design_standard_g7"
-        android:textSize="14sp" />
+        android:textColor="@color/text_color_secondary"
+        android:textSize="@dimen/text_size_14" />
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -41,13 +40,13 @@
             android:layout_height="wrap_content"
             android:layout_marginEnd="8dp">
 
-            <TextView
+            <io.trtc.tuikit.atomicx.widget.basicwidget.label.AtomicLabel
                 android:id="@+id/tv_resolution"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/common_video_resolution"
-                android:textColor="@color/common_design_standard_g7"
-                android:textSize="16sp"
+                android:textColor="@color/text_color_primary"
+                android:textSize="@dimen/text_size_16"
                 android:textStyle="bold"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
@@ -88,12 +87,12 @@
             android:layout_marginTop="20dp"
             android:orientation="horizontal">
 
-            <TextView
+            <io.trtc.tuikit.atomicx.widget.basicwidget.label.AtomicLabel
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/common_video_bitrate"
-                android:textColor="@color/common_design_standard_g7"
-                android:textSize="16sp"
+                android:textColor="@color/text_color_primary"
+                android:textSize="@dimen/text_size_16"
                 android:textStyle="bold" />
 
             <TextView
@@ -121,13 +120,13 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal">
 
-            <TextView
+            <io.trtc.tuikit.atomicx.widget.basicwidget.label.AtomicLabel
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="18dp"
                 android:text="@string/common_video_fps"
-                android:textColor="@color/common_design_standard_g7"
-                android:textSize="16sp"
+                android:textColor="@color/text_color_primary"
+                android:textSize="@dimen/text_size_16"
                 android:textStyle="bold" />
 
             <TextView
@@ -152,13 +151,13 @@
             android:thumb="@drawable/audio_effect_seekbar_thumb" />
     </LinearLayout>
 
-    <TextView
+    <io.trtc.tuikit.atomicx.widget.basicwidget.label.AtomicLabel
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginVertical="15dp"
         android:text="@string/common_more_settings"
-        android:textColor="@color/common_design_standard_g7"
-        android:textSize="14sp" />
+        android:textColor="@color/text_color_secondary"
+        android:textSize="@dimen/text_size_14" />
 
     <LinearLayout
         android:layout_width="match_parent"

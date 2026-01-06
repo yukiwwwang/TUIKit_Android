@@ -6,7 +6,7 @@
     <string name="karaoke_no_song">まだ曲はありません</string>
     <string name="karaoke_order_song">歌の注文</string>
     <string name="karaoke_ordered">すでにクリックしています</string>
-    <string name="karaoke_ordered_count">クリック（%1$s）</string>
+    <string name="karaoke_ordered_count">クリック（%1$d）</string>
     <string name="karaoke_original">オリジナルの歌</string>
     <string name="karaoke_reverb_ktv">KTV</string>
     <string name="karaoke_reverb_loud">ホン・リアン</string>
@@ -31,4 +31,5 @@
     <string name="karaoke_voice_none">オリジナルのサウンドトラック</string>
     <string name="karaoke_voice_uncle">叔父</string>
     <string name="karaoke_song_list">歌リスト</string>
+    <string name="karaoke_music_loading_error">音楽の読み込みに失敗しました</string>
 </resources>

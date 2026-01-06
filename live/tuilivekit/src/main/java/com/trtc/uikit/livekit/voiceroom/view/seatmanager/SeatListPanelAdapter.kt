@@ -7,14 +7,14 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
-import androidx.constraintlayout.utils.widget.ImageFilterView
 import androidx.recyclerview.widget.RecyclerView
-import com.tencent.cloud.tuikit.engine.common.TUICommonDefine
 import com.tencent.cloud.tuikit.engine.room.TUIRoomEngine
-import com.trtc.tuikit.common.imageloader.ImageLoader
 import com.trtc.uikit.livekit.R
 import com.trtc.uikit.livekit.common.ErrorLocalized
 import com.trtc.uikit.livekit.common.completionHandler
+import io.trtc.tuikit.atomicx.widget.basicwidget.avatar.AtomicAvatar
+import io.trtc.tuikit.atomicx.widget.basicwidget.avatar.AtomicAvatar.AvatarContent
+import io.trtc.tuikit.atomicx.widget.basicwidget.button.AtomicButton
 import io.trtc.tuikit.atomicxcore.api.live.LiveListStore
 import io.trtc.tuikit.atomicxcore.api.live.LiveSeatStore
 import io.trtc.tuikit.atomicxcore.api.live.SeatInfo
@@ -48,22 +48,19 @@ class SeatListPanelAdapter(
             holder.textName.text = dataList[position].userInfo.userName
         }
 
-        if (TextUtils.isEmpty(dataList[position].userInfo.avatarURL)) {
-            holder.imageHead.setImageResource(R.drawable.livekit_ic_avatar)
-        } else {
-            ImageLoader.load(
-                context,
-                holder.imageHead,
+        holder.imageHead.setContent(
+            AvatarContent.URL(
                 dataList[position].userInfo.avatarURL,
                 R.drawable.livekit_ic_avatar
             )
-        }
+        )
+
         holder.textSeatIndex.text = (dataList[position].index + 1).toString()
         holder.textHangUp.tag = dataList[position]
         holder.textHangUp.setOnClickListener { view ->
             val seatInfo = view.tag as SeatInfo
             liveSeatStore.kickUserOutOfSeat(seatInfo.userInfo.userID, completionHandler {
-                onError { code, desc -> ErrorLocalized.onError(TUICommonDefine.Error.fromInt(code)) }
+                onError { code, desc -> ErrorLocalized.onError(code) }
             })
         }
     }
@@ -97,10 +94,10 @@ class SeatListPanelAdapter(
     }
 
     class LinkMicViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        val imageHead: ImageFilterView = itemView.findViewById(R.id.iv_head)
+        val imageHead: AtomicAvatar = itemView.findViewById(R.id.iv_head)
         val textName: TextView = itemView.findViewById(R.id.tv_name)
         val textLevel: TextView = itemView.findViewById(R.id.tv_level)
-        val textHangUp: TextView = itemView.findViewById(R.id.tv_hang_up)
+        val textHangUp: AtomicButton = itemView.findViewById(R.id.atomic_btn_hang_up)
         val textSeatIndex: TextView = itemView.findViewById(R.id.tv_seat_index)
     }
 }

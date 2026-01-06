@@ -5,10 +5,10 @@ import android.util.AttributeSet
 import android.widget.FrameLayout
 import androidx.fragment.app.FragmentActivity
 import com.tencent.qcloud.tuicore.TUICore
-import com.trtc.uikit.livekit.features.livelist.access.DoubleColumnListViewAdapter
-import com.trtc.uikit.livekit.features.livelist.access.SingleColumnListViewAdapter
-import com.trtc.uikit.livekit.features.livelist.access.TUILiveListDataSource
-import com.trtc.uikit.livekit.features.livelist.manager.LiveInfoListService
+import com.trtc.uikit.livekit.features.livelist.view.access.DoubleColumnListViewAdapter
+import com.trtc.uikit.livekit.features.livelist.view.access.SingleColumnListViewAdapter
+import com.trtc.uikit.livekit.features.livelist.view.access.TUILiveListDataSource
+import com.trtc.uikit.livekit.features.livelist.store.LiveInfoListStore
 import com.trtc.uikit.livekit.features.livelist.view.doublecolumn.DoubleColumnListView
 import com.trtc.uikit.livekit.features.livelist.view.singlecolumn.SingleColumnListView
 
@@ -22,7 +22,7 @@ class LiveListView @JvmOverloads constructor(
     private lateinit var singleColumnListView: SingleColumnListView
     private lateinit var doubleColumnListView: DoubleColumnListView
 
-    private lateinit var liveInfoListService: LiveInfoListService
+    private lateinit var liveInfoListStore: LiveInfoListStore
     private lateinit var fragmentActivity: FragmentActivity
     private var liveListViewAdapter: LiveListViewAdapter? = null
     private var onItemClickListener: OnItemClickListener? = null
@@ -38,14 +38,14 @@ class LiveListView @JvmOverloads constructor(
         this.style = style
         liveListViewAdapter = adapter
         val liveDataSource = dataSource ?: TUILiveListDataSource()
-        liveInfoListService = LiveInfoListService(liveDataSource)
-        initLiveColumnListView(fragmentActivity, style, liveInfoListService)
+        liveInfoListStore = LiveInfoListStore(liveDataSource)
+        initLiveColumnListView(fragmentActivity, style, liveInfoListStore)
         isInit = true
     }
 
     fun updateColumnStyle(style: Style) {
         if (isInit && style != this.style) {
-            initLiveColumnListView(fragmentActivity, style, liveInfoListService)
+            initLiveColumnListView(fragmentActivity, style, liveInfoListStore)
         }
         this.style = style
     }
@@ -78,7 +78,7 @@ class LiveListView @JvmOverloads constructor(
     private fun initLiveColumnListView(
         fragmentActivity: FragmentActivity,
         style: Style,
-        liveInfoListService: LiveInfoListService
+        liveInfoListStore: LiveInfoListStore
     ) {
         val adapter = liveListViewAdapter ?: when (style) {
             Style.DOUBLE_COLUMN -> DoubleColumnListViewAdapter(fragmentActivity)
@@ -88,13 +88,13 @@ class LiveListView @JvmOverloads constructor(
         removeAllViews()
         if (style == Style.DOUBLE_COLUMN) {
             doubleColumnListView = DoubleColumnListView(fragmentActivity).apply {
-                init(fragmentActivity, adapter, liveInfoListService)
+                init(fragmentActivity, adapter, liveInfoListStore)
             }
             addView(doubleColumnListView)
             setDoubleColumnListViewClickLister(onItemClickListener)
         } else {
             singleColumnListView = SingleColumnListView(fragmentActivity).apply {
-                init(fragmentActivity, adapter, liveInfoListService)
+                init(fragmentActivity, adapter, liveInfoListStore)
             }
             addView(singleColumnListView)
             setSingleColumnListViewClickLister(onItemClickListener)

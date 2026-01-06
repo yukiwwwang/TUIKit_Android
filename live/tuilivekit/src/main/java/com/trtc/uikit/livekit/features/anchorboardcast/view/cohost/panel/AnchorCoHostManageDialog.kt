@@ -20,8 +20,14 @@ import com.trtc.uikit.livekit.R
 import com.trtc.uikit.livekit.common.EVENT_KEY_LIVE_KIT
 import com.trtc.uikit.livekit.common.EVENT_SUB_KEY_REQUEST_CONNECTION
 import com.trtc.uikit.livekit.common.ErrorLocalized
-import com.trtc.uikit.livekit.common.ui.PopupDialog
-import com.trtc.uikit.livekit.features.anchorboardcast.manager.AnchorManager
+import com.trtc.uikit.livekit.common.LiveKitLogger
+import com.trtc.uikit.livekit.features.anchorboardcast.store.AnchorStore
+import com.trtc.uikit.livekit.features.anchorboardcast.store.CoHostAnchor
+import io.trtc.tuikit.atomicx.widget.basicwidget.popover.AtomicPopover
+import io.trtc.tuikit.atomicx.widget.basicwidget.alertdialog.AtomicAlertDialog
+import io.trtc.tuikit.atomicx.widget.basicwidget.alertdialog.cancelButton
+import io.trtc.tuikit.atomicx.widget.basicwidget.alertdialog.confirmButton
+import io.trtc.tuikit.atomicx.widget.basicwidget.alertdialog.init
 import io.trtc.tuikit.atomicxcore.api.live.BattleInfo
 import io.trtc.tuikit.atomicxcore.api.live.BattleListener
 import io.trtc.tuikit.atomicxcore.api.live.BattleStore
@@ -37,10 +43,11 @@ import kotlinx.coroutines.launch
 @SuppressLint("ViewConstructor")
 class AnchorCoHostManageDialog(
     context: Context,
-    private val anchorManager: AnchorManager,
+    private val anchorManager: AnchorStore,
     private val liveStream: LiveCoreView
-) : PopupDialog(context), ITUINotification {
+) : AtomicPopover(context), ITUINotification {
 
+    private val logger = LiveKitLogger.getFeaturesLogger("AnchorCoHostManageDialog")
     private lateinit var textConnectedTitle: TextView
     private lateinit var nestedScrollView: NestedScrollView
     private lateinit var recyclerConnectedList: RecyclerView
@@ -81,7 +88,7 @@ class AnchorCoHostManageDialog(
         initDisconnectView()
         initNestedScrollView()
         refreshData()
-        setView(view)
+        setContent(view)
         addObserver()
     }
 
@@ -98,12 +105,24 @@ class AnchorCoHostManageDialog(
     private fun addObserver() {
         val currentLiveId = LiveListStore.shared().liveState.currentLive.value.liveID
         BattleStore.create(currentLiveId).addBattleListener(battleListener)
+        val coHostStore = CoHostStore.create(currentLiveId)
         subscribeStateJob = CoroutineScope(Dispatchers.Main).launch {
             launch {
-                onRecommendListChange()
+                anchorManager.getCoHostState().recommendUsers.collect {
+                    onRecommendListChange(it)
+                }
             }
+
             launch {
-                onConnectedUserChange()
+                coHostStore.coHostState.connected.collect {
+                    onConnectedUserChange(it)
+                }
+            }
+
+            launch {
+                coHostStore.coHostState.candidates.collect {
+                    onCandidatesChange(it)
+                }
             }
         }
         TUICore.registerEvent(EVENT_KEY_LIVE_KIT, EVENT_SUB_KEY_REQUEST_CONNECTION, this)
@@ -117,41 +136,41 @@ class AnchorCoHostManageDialog(
     }
 
     @SuppressLint("NotifyDataSetChanged")
-    private suspend fun onRecommendListChange() {
-        anchorManager.getCoHostState().recommendUsers.collect {
-            textRecommendTitle.post {
-                if (it.isEmpty()) {
-                    textRecommendTitle.visibility = GONE
-                } else {
-                    textRecommendTitle.visibility = VISIBLE
-                }
-                anchorRecommendedAdapter.updateData(it)
-                anchorRecommendedAdapter.notifyDataSetChanged()
+    private fun onRecommendListChange(recommendList: List<CoHostAnchor>) {
+        textRecommendTitle.post {
+            if (recommendList.isEmpty()) {
+                textRecommendTitle.visibility = GONE
+            } else {
+                textRecommendTitle.visibility = VISIBLE
             }
+            anchorRecommendedAdapter.updateData(recommendList)
+            anchorRecommendedAdapter.notifyDataSetChanged()
         }
     }
 
     @SuppressLint("NotifyDataSetChanged", "StringFormatMatches")
-    private suspend fun onConnectedUserChange() {
-        val currentLiveId = LiveListStore.shared().liveState.currentLive.value.liveID
-        val coHostStore = CoHostStore.create(currentLiveId)
-        coHostStore.coHostState.connected.collect {
-            textDisconnect.post {
-                if (it.isEmpty()) {
-                    textDisconnect.visibility = GONE
-                    textConnectedTitle.visibility = GONE
-                } else {
-                    textDisconnect.visibility = VISIBLE
-                    textConnectedTitle.visibility = VISIBLE
-                    textConnectedTitle.text = context.getString(
-                        R.string.common_connection_list_title,
-                        it.size - 1
-                    )
-                }
-                anchorConnectedAdapter.updateData(it)
-                anchorConnectedAdapter.notifyDataSetChanged()
+    private fun onConnectedUserChange(seatList: List<SeatUserInfo>) {
+        anchorManager.getAnchorCoHostStore().getCoHostCandidates(true)
+        textDisconnect.post {
+            if (seatList.isEmpty()) {
+                textDisconnect.visibility = GONE
+                textConnectedTitle.visibility = GONE
+            } else {
+                textDisconnect.visibility = VISIBLE
+                textConnectedTitle.visibility = VISIBLE
+                textConnectedTitle.text = context.getString(
+                    R.string.common_connection_list_title,
+                    seatList.size - 1
+                )
             }
+            anchorConnectedAdapter.updateData(seatList)
+            anchorConnectedAdapter.notifyDataSetChanged()
         }
+    }
+
+    private fun onCandidatesChange(candidatesList: List<SeatUserInfo>) {
+        logger.info("onCandidatesChange: $candidatesList")
+        anchorManager.getAnchorCoHostStore().handleCandidatesChange(candidatesList)
     }
 
     private fun initRecommendList() {
@@ -162,11 +181,11 @@ class AnchorCoHostManageDialog(
     }
 
     private fun refreshData() {
-        anchorManager.getCoHostManager().fetchLiveList(true)
+        anchorManager.getAnchorCoHostStore().getCoHostCandidates(true)
     }
 
     private fun loadMoreData() {
-        anchorManager.getCoHostManager().fetchLiveList(false)
+        anchorManager.getAnchorCoHostStore().getCoHostCandidates(false)
     }
 
     private fun initConnectingList() {
@@ -183,7 +202,7 @@ class AnchorCoHostManageDialog(
 
     private fun initRefresh() {
         swipeRefreshLayout.setOnRefreshListener {
-            anchorManager.getCoHostManager().fetchLiveList(true)
+            anchorManager.getAnchorCoHostStore().getCoHostCandidates(true)
             swipeRefreshLayout.isRefreshing = false
         }
     }
@@ -223,16 +242,22 @@ class AnchorCoHostManageDialog(
     }
 
     private fun showDisconnectDialog() {
-        val dialog = StandardDialog(context)
-        dialog.setContent(context.getString(R.string.common_disconnect_tips))
-        dialog.setAvatar(null)
+        val dialog = AtomicAlertDialog(context)
+        dialog.init {
+            init(
+                title = context.getString(R.string.common_disconnect_tips),
+                content = null,
+                iconView = null,
+            )
 
-        dialog.setNegativeText(context.getString(R.string.common_disconnect_cancel)) {
-            dialog.dismiss()
-        }
-        dialog.setPositiveText(context.getString(R.string.common_end_connect)) {
-            dialog.dismiss()
-            disconnect()
+            cancelButton(context.getString(R.string.common_disconnect_cancel)) {
+                it.dismiss()
+            }
+
+            confirmButton(context.getString(R.string.common_end_connect)) {
+                it.dismiss()
+                disconnect()
+            }
         }
         dialog.show()
     }

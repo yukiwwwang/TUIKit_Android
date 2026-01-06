@@ -7,8 +7,8 @@ import android.widget.ImageView
 import android.widget.TextView
 import com.trtc.uikit.livekit.R
 import com.trtc.uikit.livekit.common.LiveKitLogger
-import com.trtc.uikit.livekit.features.anchorboardcast.manager.AnchorManager
-import com.trtc.uikit.livekit.features.anchorboardcast.state.BattleState.BattleUser
+import com.trtc.uikit.livekit.features.anchorboardcast.store.AnchorStore
+import com.trtc.uikit.livekit.features.anchorboardcast.store.BattleUser
 import com.trtc.uikit.livekit.features.anchorboardcast.view.BasicView
 import io.trtc.tuikit.atomicxcore.api.live.CoHostStore
 import io.trtc.tuikit.atomicxcore.api.live.LiveListStore
@@ -40,7 +40,7 @@ class BattleMemberInfoView @JvmOverloads constructor(
     private var subscribeStateJob: Job? = null
     private var userId: String? = null
 
-    fun init(liveStreamManager: AnchorManager, userId: String) {
+    fun init(liveStreamManager: AnchorStore, userId: String) {
         this@BattleMemberInfoView.userId = userId
         init(liveStreamManager)
     }
@@ -114,7 +114,7 @@ class BattleMemberInfoView @JvmOverloads constructor(
         val connectedUsers =
             CoHostStore.create(LiveListStore.shared().liveState.currentLive.value.liveID).coHostState.connected.value
         if (battleUsers.isEmpty() || connectedUsers.isEmpty()) {
-            battleManager?.resetOnDisplayResult()
+            anchorBattleStore?.resetOnDisplayResult()
         } else {
             val battleUserMap = battleState?.battledUsers?.value?.associateBy { it.userId } ?: emptyMap()
 

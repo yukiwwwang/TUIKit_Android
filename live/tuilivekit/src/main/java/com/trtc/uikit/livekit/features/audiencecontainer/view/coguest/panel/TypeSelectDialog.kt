@@ -5,24 +5,23 @@ import android.content.Context
 import android.view.LayoutInflater
 import android.widget.ImageView
 import androidx.constraintlayout.widget.ConstraintLayout
-import com.tencent.cloud.tuikit.engine.common.TUICommonDefine
-import com.tencent.qcloud.tuicore.util.ToastUtil
 import com.trtc.tuikit.common.permission.PermissionCallback
+import io.trtc.tuikit.atomicx.widget.basicwidget.toast.AtomicToast
 import com.trtc.tuikit.common.system.ContextProvider
 import com.trtc.uikit.livekit.R
 import com.trtc.uikit.livekit.common.ErrorLocalized
 import com.trtc.uikit.livekit.common.LiveKitLogger
 import com.trtc.uikit.livekit.common.PermissionRequest
 import com.trtc.uikit.livekit.common.completionHandler
-import com.trtc.uikit.livekit.common.ui.PopupDialog
-import com.trtc.uikit.livekit.features.audiencecontainer.manager.AudienceManager
+import io.trtc.tuikit.atomicx.widget.basicwidget.popover.AtomicPopover
+import com.trtc.uikit.livekit.features.audiencecontainer.store.AudienceStore
 
 @SuppressLint("ViewConstructor")
 class TypeSelectDialog(
     context: Context,
-    private val audienceManager: AudienceManager,
-    private val seatIndex: Int
-) : PopupDialog(context), AudienceManager.AudienceViewListener {
+    private val audienceStore: AudienceStore,
+    private val seatIndex: Int,
+) : AtomicPopover(context), AudienceStore.AudienceViewListener {
 
     companion object {
         private val LOGGER = LiveKitLogger.getLiveStreamLogger("TypeSelectDialog")
@@ -45,17 +44,17 @@ class TypeSelectDialog(
         initLinkVideoView()
         initLinkAudioView()
 
-        setView(view)
+        setContent(view)
     }
 
     override fun onAttachedToWindow() {
         super.onAttachedToWindow()
-        audienceManager.addAudienceViewListener(this)
+        audienceStore.addAudienceViewListener(this)
     }
 
     override fun onDetachedFromWindow() {
         super.onDetachedFromWindow()
-        audienceManager.removeAudienceViewListener(this)
+        audienceStore.removeAudienceViewListener(this)
     }
 
     private fun bindViewId(view: android.view.View) {
@@ -86,14 +85,14 @@ class TypeSelectDialog(
 
     private fun initLinkSettingsView() {
         imageLinkSettings.setOnClickListener {
-            val settingsDialog = VideoCoGuestSettingsDialog(context, audienceManager)
+            val settingsDialog = VideoCoGuestSettingsDialog(context, audienceStore, seatIndex)
             settingsDialog.show()
             dismiss()
         }
     }
 
     private fun applyLinkMic(openCamera: Boolean) {
-        ToastUtil.toastShortMessageCenter(context.getString(R.string.common_toast_apply_link_mic))
+        AtomicToast.show(context, context.getString(R.string.common_toast_apply_link_mic), AtomicToast.Style.INFO)
         PermissionRequest.requestMicrophonePermissions(
             ContextProvider.getApplicationContext(),
             object : PermissionCallback() {
@@ -104,24 +103,18 @@ class TypeSelectDialog(
                             object : PermissionCallback() {
                                 override fun onGranted() {
                                     LOGGER.info("requestCameraPermissions:[onGranted]")
-                                    audienceManager.getViewStore()
+                                    audienceStore.getViewStore()
                                         .updateTakeSeatState(true)
-                                    audienceManager.getViewStore().updateOpenCameraAfterTakeSeatState(openCamera)
-                                    audienceManager.getCoGuestStore().applyForSeat(
+                                    audienceStore.getViewStore().updateOpenCameraAfterTakeSeatState(openCamera)
+                                    audienceStore.getCoGuestStore().applyForSeat(
                                         seatIndex, 60, openCamera.toString(),
                                         completionHandler {
                                             onSuccess {
-                                                audienceManager.getViewStore()
-                                                    .updateTakeSeatState(false)
+                                                audienceStore.getViewStore().updateTakeSeatState(false)
                                             }
                                             onError { code, _ ->
-                                                audienceManager.getViewStore()
-                                                    .updateTakeSeatState(false)
-                                                ErrorLocalized.onError(
-                                                    TUICommonDefine.Error.fromInt(
-                                                        code
-                                                    )
-                                                )
+                                                audienceStore.getViewStore().updateTakeSeatState(false)
+                                                ErrorLocalized.onError(code)
                                             }
                                         })
                                 }
@@ -131,24 +124,20 @@ class TypeSelectDialog(
                                 }
                             })
                     } else {
-                        audienceManager.getViewStore()
+                        audienceStore.getViewStore()
                             .updateTakeSeatState(true)
-                        audienceManager.getViewStore().updateOpenCameraAfterTakeSeatState(openCamera)
-                        audienceManager.getCoGuestStore().applyForSeat(
+                        audienceStore.getViewStore().updateOpenCameraAfterTakeSeatState(openCamera)
+                        audienceStore.getCoGuestStore().applyForSeat(
                             seatIndex, 60, openCamera.toString(),
                             completionHandler {
                                 onSuccess {
-                                    audienceManager.getViewStore()
+                                    audienceStore.getViewStore()
                                         .updateTakeSeatState(false)
                                 }
                                 onError { code, _ ->
-                                    audienceManager.getViewStore()
+                                    audienceStore.getViewStore()
                                         .updateTakeSeatState(false)
-                                    ErrorLocalized.onError(
-                                        TUICommonDefine.Error.fromInt(
-                                            code
-                                        )
-                                    )
+                                    ErrorLocalized.onError(code)
                                 }
                             })
                     }

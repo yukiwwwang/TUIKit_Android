@@ -52,7 +52,7 @@
     <string name="common_end_pk_tips">You are currently in PK mode. Would you like to [End PK] or [End Live] ?</string>
     <string name="common_float_window_received_battle_invitation">You\'ve received an invitation to battle, and you can go back to full-screen mode for post-processing</string>
     <string name="common_float_window_received_connection_invitation">You\'ve received an invitation to connect, and you can go back to full-screen mode for post-processing</string>
-    <string name="common_kick_out_of_room">Kick Out</string>
+    <string name="common_kick_out_of_room">Remove</string>
     <string name="common_kicked_out_of_room_by_owner">You have been kicked out of the room</string>
     <string name="common_more">More</string>
     <string name="common_more_features">More Features</string>
@@ -92,6 +92,7 @@
     <string name="live_barrage_text_hint">Join Chat!</string>
     <string name="live_error_connection_notexit">The room you are invited to connect to does not exist</string>
     <string name="live_error_connection_retry">Internal error, it is recommended to try again.</string>
+    <string name="live_error_room_mismatch">The room types do not match; connections can only be initiated in rooms of the same type.</string>
     <string name="livelist_loading">Loading...</string>
     <string name="livelist_no_more_data">There is no more data</string>
     <string name="livelist_empty_data">Please start a live room</string>
@@ -186,6 +187,7 @@
     <string name="common_set_cover">Set Cover</string>
     <string name="common_end_link">End Co-guest</string>
     <string name="common_end_live">End Live</string>
+    <string name="common_exit_connect">Exit connect</string>
     <string name="common_end_user">End</string>
     <string name="common_entered_room">Entered room</string>
     <string name="common_follow_anchor">Follow</string>
@@ -288,9 +290,14 @@
     <string name="common_video_settings_item_beauty">Beauty</string>
     <string name="common_video_settings_item_flip">Flip</string>
     <string name="common_video_settings_item_mirror">Mirror</string>
+    <string name="common_video_settings_item_pip">Pip</string>
+    <string name="common_pip_toggle">Pip Toggle</string>
+    <string name="common_pip_toggle_description">After enabling, the app will automatically enter picture-in-picture mode when moved to the background</string>
     <string name="common_voiceroom_empty_view">No users in the seat, go to invite</string>
     <string name="common_voiceroom_invite">Invite</string>
     <string name="common_voiceroom_invite_seat_canceled">Seat invitation has been canceled</string>
+    <string name="common_voiceroom_invite_seat_rejected">Seat invitation has been rejected</string>
+    <string name="common_voiceroom_invite_seat_timeout">Seat invitation timeout</string>
     <string name="common_voiceroom_lock">Lock Seat</string>
     <string name="common_voiceroom_mute_seat">Mute</string>
     <string name="common_voiceroom_need_agree">Require owner\'s consent to speak</string>
@@ -382,4 +389,5 @@
     <string name="common_remove">Remove</string>
     <string name="common_host_kick_user_after_connect">The connection is successful. Users beyond the first 6 seats have been removed.</string>
     <string name="common_audience_kicked_re_apply">The connection only displays the first 6 seats. You have been removed.</string>
+    <string name="common_back_seats_occupied">Cannot connect when back 4 seats occupied</string>
 </resources>

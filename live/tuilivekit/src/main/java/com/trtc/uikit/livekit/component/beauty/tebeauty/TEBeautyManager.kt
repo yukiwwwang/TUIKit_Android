@@ -93,7 +93,7 @@ object TEBeautyManager {
     }
 
     private fun initBeautyKit(context: Context, createPanel: Boolean) {
-        LOGGER.info("initBeautyKit")
+        LOGGER.info("initBeautyKit:$lastParamList")
         val params = mapOf(
             "context" to context,
             "lastParamList" to lastParamList
@@ -128,15 +128,15 @@ object TEBeautyManager {
         })
     }
 
+    fun exportParam(): String {
+        lastParamList = TUICore.callService(TE_BEAUTY_EXTENSION, "exportParam", null)?.toString() ?: "null"
+        LOGGER.info("exportParam:$lastParamList")
+        return lastParamList ?: ""
+    }
+
     private fun destroyBeautyKit() {
         LOGGER.info("destroyBeautyKit")
         TUICore.callService(TE_BEAUTY_EXTENSION, "destroyBeautyKit", null)
-    }
-
-    private fun exportParam(): String {
-        val param = TUICore.callService(TE_BEAUTY_EXTENSION, "exportParam", null)?.toString() ?: "null"
-        LOGGER.info("exportParam:$param")
-        return param
     }
 
     private fun createTEBeautyPanel(context: Context): View? {

@@ -12,12 +12,13 @@ import android.view.LayoutInflater
 import android.view.animation.DecelerateInterpolator
 import android.view.animation.OvershootInterpolator
 import android.widget.FrameLayout
-import android.widget.ImageView
 import android.widget.RelativeLayout
 import android.widget.TextView
 import androidx.constraintlayout.utils.widget.ImageFilterView
 import com.trtc.uikit.livekit.R
 import com.trtc.uikit.livekit.component.gift.view.animation.ImageAnimationView.GiftImageAnimationInfo
+import io.trtc.tuikit.atomicx.widget.basicwidget.avatar.AtomicAvatar
+import io.trtc.tuikit.atomicx.widget.basicwidget.avatar.AtomicAvatar.AvatarContent
 
 class GiftBulletFrameLayout @JvmOverloads constructor(private val mContext: Context, attrs: AttributeSet? = null) :
     FrameLayout(
@@ -28,7 +29,7 @@ class GiftBulletFrameLayout @JvmOverloads constructor(private val mContext: Cont
     private var giftEndAnimationRunnable: Runnable? = null
     private var giftGroup: RelativeLayout? = null
     private var imageGiftIcon: ImageFilterView? = null
-    private var imageSendUserIcon: ImageView? = null
+    private var imageSendUserIcon: AtomicAvatar? = null
     private var textSendUserName: TextView? = null
     private var textGiftTitle: TextView? = null
     private var callback: Callback? = null
@@ -78,16 +79,12 @@ class GiftBulletFrameLayout @JvmOverloads constructor(private val mContext: Cont
                 )
             }
         }
-        if (!TextUtils.isEmpty(giftImageAnimationInfo.senderAvatarUrl)) {
-            imageSendUserIcon?.let {
-                ImageLoader.loadImage(
-                    mContext,
-                    imageSendUserIcon!!,
-                    giftImageAnimationInfo.senderAvatarUrl,
-                    R.drawable.gift_default_avatar
-                )
-            }
-        }
+        imageSendUserIcon?.setContent(
+            AvatarContent.URL(
+                giftImageAnimationInfo.senderAvatarUrl ?: "",
+                R.drawable.gift_default_avatar
+            )
+        )
     }
 
     fun startAnimation() {

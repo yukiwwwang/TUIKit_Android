@@ -21,8 +21,8 @@ import com.bumptech.glide.request.RequestListener
 import com.bumptech.glide.request.RequestOptions
 import com.bumptech.glide.request.target.Target
 import com.tencent.qcloud.tuicore.TUIThemeManager
-import com.tencent.qcloud.tuicore.util.ToastUtil
 import com.tencent.uikit.app.R
+import io.trtc.tuikit.atomicx.widget.basicwidget.toast.AtomicToast
 import com.tencent.uikit.app.common.utils.LayoutUtil
 import com.tencent.uikit.app.common.widget.gatherimage.SynthesizedImageView
 import com.trtc.tuikit.common.util.ScreenUtil
@@ -129,7 +129,11 @@ class ImageSelectActivity : BaseLightActivity() {
         if (selected!!.isDefault()) {
             selected!!.setLocalPath(CHAT_CONVERSATION_BACKGROUND_DEFAULT_URL)
             setResult(selected!!)
-            ToastUtil.toastShortMessage(resources.getString(R.string.app_set_success))
+            AtomicToast.show(
+                this,
+                resources.getString(R.string.app_set_success),
+                AtomicToast.Style.SUCCESS
+            )
             finish()
             return
         }
@@ -163,7 +167,7 @@ class ImageSelectActivity : BaseLightActivity() {
                 ): Boolean {
                     dialog.cancel()
                     Log.e(TAG, "DownloadUrl onLoadFailed e = $e")
-                    ToastUtil.toastShortMessage(resources.getString(R.string.app_set_fail))
+                    AtomicToast.show(this@ImageSelectActivity, resources.getString(R.string.app_set_fail), AtomicToast.Style.ERROR)
                     return false
                 }
 
@@ -179,7 +183,11 @@ class ImageSelectActivity : BaseLightActivity() {
                     Log.e(TAG, "DownloadUrl resource path = $path")
                     finalBean.setLocalPath(path)
                     setResult(finalBean)
-                    ToastUtil.toastShortMessage(resources.getString(R.string.app_set_success))
+                    AtomicToast.show(
+                        this@ImageSelectActivity,
+                        resources.getString(R.string.app_set_success),
+                        AtomicToast.Style.SUCCESS
+                    )
                     return false
                 }
             })

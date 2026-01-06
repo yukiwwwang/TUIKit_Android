@@ -19,14 +19,14 @@ import com.trtc.tuikit.common.system.ContextProvider
 import com.trtc.uikit.livekit.R
 import com.trtc.uikit.livekit.common.EVENT_KEY_LIVE_KIT
 import com.trtc.uikit.livekit.common.EVENT_SUB_KEY_DESTROY_LIVE_VIEW
-import com.trtc.uikit.livekit.common.MutableLiveDataUtils.setValue
-import com.trtc.uikit.livekit.component.pictureinpicture.PictureInPictureStore
+import com.trtc.uikit.livekit.component.pippanel.PIPPanelStore
 import com.trtc.uikit.livekit.features.audiencecontainer.AudienceContainerView
 import com.trtc.uikit.livekit.features.audiencecontainer.AudienceContainerViewDefine
 import com.trtc.uikit.livekit.features.endstatistics.AudienceEndStatisticsView
 import com.trtc.uikit.livekit.features.endstatistics.EndStatisticsDefine
 import com.trtc.uikit.livekit.livestream.impl.LiveInfoUtils
 import com.trtc.uikit.livekit.livestream.impl.VideoLiveKitImpl
+import io.trtc.tuikit.atomicx.pictureinpicture.PictureInPictureStore
 
 class VideoLiveAudienceActivity : FullScreenActivity(), 
     ITUINotification,
@@ -98,22 +98,25 @@ class VideoLiveAudienceActivity : FullScreenActivity(),
 
     override fun onUserLeaveHint() {
         super.onUserLeaveHint()
-        if (PictureInPictureStore.sharedInstance().state.audienceIsPictureInPictureMode) {
+        if (PIPPanelStore.sharedInstance().state.audienceIsPictureInPictureMode) {
             return
         }
-        if (audienceContainerView?.isLiveStreaming() == true) {
+        if (audienceContainerView?.isLiveStreaming() == true &&
+            PIPPanelStore.sharedInstance().state.enablePictureInPictureToggle
+        ) {
             onPictureInPictureClick()
         }
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        PictureInPictureStore.sharedInstance().reset()
+        PIPPanelStore.sharedInstance().reset()
         VideoLiveKitImpl.createInstance(applicationContext).removeCallingAPIListener(this)
         stopForegroundService()
         audienceContainerView?.removeListener(this)
         TUICore.unRegisterEvent(this)
-        setValue(PictureInPictureStore.sharedInstance().state.roomId, "")
+        PIPPanelStore.sharedInstance().setPictureInPictureModeRoomId("")
+        PictureInPictureStore.shared.updateIsPictureInPictureMode(false)
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -152,8 +155,8 @@ class VideoLiveAudienceActivity : FullScreenActivity(),
 
     override fun onPictureInPictureModeChanged(isInPictureInPictureMode: Boolean) {
         super.onPictureInPictureModeChanged(isInPictureInPictureMode)
-        PictureInPictureStore.sharedInstance().state.audienceIsPictureInPictureMode = isInPictureInPictureMode
-        
+        PIPPanelStore.sharedInstance().state.audienceIsPictureInPictureMode = isInPictureInPictureMode
+        PictureInPictureStore.shared.updateIsPictureInPictureMode(isInPictureInPictureMode)
         audienceContainerView?.enablePictureInPictureMode(isInPictureInPictureMode)
         
         if (!isInPictureInPictureMode && lifecycle.currentState == Lifecycle.State.CREATED) {
@@ -183,7 +186,7 @@ class VideoLiveAudienceActivity : FullScreenActivity(),
     }
 
     override fun onLiveEnded(roomId: String, ownerName: String, ownerAvatarUrl: String) {
-        if (PictureInPictureStore.sharedInstance().state.audienceIsPictureInPictureMode) {
+        if (PIPPanelStore.sharedInstance().state.audienceIsPictureInPictureMode) {
             finish()
             return
         }
@@ -205,7 +208,7 @@ class VideoLiveAudienceActivity : FullScreenActivity(),
         val success = VideoLiveKitImpl.createInstance(applicationContext).enterPictureInPictureMode(this)
         if (success) {
             val roomId = audienceContainerView?.getRoomId()
-            setValue(PictureInPictureStore.sharedInstance().state.roomId, roomId ?: "")
+            PIPPanelStore.sharedInstance().setPictureInPictureModeRoomId(roomId ?: "")
         }
     }
 

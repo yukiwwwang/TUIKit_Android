@@ -58,6 +58,352 @@
   <div class="breadcrumbs"></div>
   <div class="cover ">
     <h1 class="cover"><span>Atomic</span><wbr></wbr><span><span>X</span></span> <span><span>Core</span></span> <span><span>API</span></span></h1>
+    <div class="platform-hinted UnderCoverText" data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":atomicxcore:dokkaHtml/release"><div style="text-align: center; padding: 20px 0;">
+<h2 style="color: #1976D2; margin-bottom: 10px;">🚀 AtomicX Core API</h2>
+<p style="color: #666; font-size: 14px;">Tencent Real-Time Communication SDK Core API Documentation</p>
+</div><h2 class=""> 📋 Overview</h2><p class="paragraph">AtomicX Core API is an SDK designed based on state management patterns. It manages business logic for each module through <strong>Store</strong> classes, and each Store provides a corresponding <strong>State</strong> data class to subscribe to state changes.</p><h2 class=""> 🏗️ API Overview</h2><table>
+<thead>
+<tr><th>Module</th><th>Store</th><th>State</th><th>Description</th></tr>
+</thead>
+<tbody>
+<tr><td><strong>Login</strong></td><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.login/-login-store/index.html">LoginStore</a></td><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.login/-login-state/index.html">LoginState</a></td><td>User login, logout, profile management</td></tr>
+<tr><td><strong>Live</strong></td><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.live/-live-list-store/index.html">LiveListStore</a></td><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.live/-live-list-state/index.html">LiveListState</a></td><td>Live room list management</td></tr>
+<tr><td></td><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.live/-live-audience-store/index.html">LiveAudienceStore</a></td><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.live/-live-audience-state/index.html">LiveAudienceState</a></td><td>Audience state management</td></tr>
+<tr><td></td><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.live/-live-seat-store/index.html">LiveSeatStore</a></td><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.live/-live-seat-state/index.html">LiveSeatState</a></td><td>Seat management</td></tr>
+<tr><td></td><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.live/-co-guest-store/index.html">CoGuestStore</a></td><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.live/-co-guest-state/index.html">CoGuestState</a></td><td>Audience co-streaming management</td></tr>
+<tr><td></td><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.live/-co-host-store/index.html">CoHostStore</a></td><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.live/-co-host-state/index.html">CoHostState</a></td><td>Host co-streaming management</td></tr>
+<tr><td></td><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.live/-battle-store/index.html">BattleStore</a></td><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.live/-battle-state/index.html">BattleState</a></td><td>PK battle management</td></tr>
+<tr><td></td><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.live/-like-store/index.html">LikeStore</a></td><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.live/-like-state/index.html">LikeState</a></td><td>Like management</td></tr>
+<tr><td><strong>Room</strong></td><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.room/-room-store/index.html">RoomStore</a></td><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.room/-room-state/index.html">RoomState</a></td><td>Room management</td></tr>
+<tr><td></td><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.room/-room-participant-store/index.html">RoomParticipantStore</a></td><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.room/-room-participant-state/index.html">RoomParticipantState</a></td><td>Room participant management</td></tr>
+<tr><td><strong>Barrage</strong></td><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.barrage/-barrage-store/index.html">BarrageStore</a></td><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.barrage/-barrage-state/index.html">BarrageState</a></td><td>Barrage message management</td></tr>
+<tr><td><strong>Gift</strong></td><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.gift/-gift-store/index.html">GiftStore</a></td><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.gift/-gift-state/index.html">GiftState</a></td><td>Gift sending and receiving</td></tr>
+<tr><td><strong>Device</strong></td><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.device/-device-store/index.html">DeviceStore</a></td><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.device/-device-state/index.html">DeviceState</a></td><td>Camera, microphone management</td></tr>
+<tr><td></td><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.device/-audio-effect-store/index.html">AudioEffectStore</a></td><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.device/-audio-effect-state/index.html">AudioEffectState</a></td><td>Audio effect management</td></tr>
+<tr><td></td><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.device/-base-beauty-store/index.html">BaseBeautyStore</a></td><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.device/-base-beauty-state/index.html">BaseBeautyState</a></td><td>Basic beauty management</td></tr>
+</tbody>
+</table><h2 class=""> 🔐 Login Module</h2><h3 class=""> <a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.login/-login-store/index.html">LoginStore</a></h3><p class="paragraph">Core class for login management, responsible for user login, logout, and profile settings.</p><p class="paragraph"><strong>Core APIs:</strong></p><table>
+<thead>
+<tr><th>Method</th><th>Description</th></tr>
+</thead>
+<tbody>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.login/-login-store/login.html">login</a></td><td>User login</td></tr>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.login/-login-store/logout.html">logout</a></td><td>User logout</td></tr>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.login/-login-store/set-self-info.html">setSelfInfo</a></td><td>Set profile information</td></tr>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.login/-login-store/add-login-listener.html">addLoginListener</a></td><td>Add login listener</td></tr>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.login/-login-store/remove-login-listener.html">removeLoginListener</a></td><td>Remove login listener</td></tr>
+</tbody>
+</table><p class="paragraph"><strong>State Subscription (</strong><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.login/-login-state/index.html"><strong>LoginState</strong></a><strong>):</strong></p><table>
+<thead>
+<tr><th>Property</th><th>Type</th><th>Description</th></tr>
+</thead>
+<tbody>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.login/-login-state/login-status.html">loginStatus</a></td><td><code>StateFlow&lt;<a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.login/-login-status/index.html">LoginStatus</a>&gt;</code></td><td>Login status</td></tr>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.login/-login-state/login-user-info.html">loginUserInfo</a></td><td><code>StateFlow&lt;<a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.login/-user-profile/index.html">UserProfile</a>?&gt;</code></td><td>Current logged-in user info</td></tr>
+</tbody>
+</table><p class="paragraph"><strong>Related Types:</strong> <a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.login/-login-status/index.html">LoginStatus</a> | <a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.login/-user-profile/index.html">UserProfile</a> | <a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.login/-gender/index.html">Gender</a> | <a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.login/-allow-type/index.html">AllowType</a> | <a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.login/-login-listener/index.html">LoginListener</a></p><h2 class=""> 📺 Live Module</h2><h3 class=""> <a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.live/-co-guest-store/index.html">CoGuestStore</a></h3><p class="paragraph">Audience co-streaming management, handles co-streaming requests, invitations, acceptance, and rejection between hosts and audiences.</p><p class="paragraph"><strong>Core APIs:</strong></p><table>
+<thead>
+<tr><th>Method</th><th>Description</th></tr>
+</thead>
+<tbody>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.live/-co-guest-store/apply-for-seat.html">applyForSeat</a></td><td>Apply to take seat</td></tr>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.live/-co-guest-store/cancel-application.html">cancelApplication</a></td><td>Cancel application</td></tr>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.live/-co-guest-store/accept-application.html">acceptApplication</a></td><td>Accept application</td></tr>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.live/-co-guest-store/reject-application.html">rejectApplication</a></td><td>Reject application</td></tr>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.live/-co-guest-store/invite-to-seat.html">inviteToSeat</a></td><td>Invite to take seat</td></tr>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.live/-co-guest-store/cancel-invitation.html">cancelInvitation</a></td><td>Cancel invitation</td></tr>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.live/-co-guest-store/accept-invitation.html">acceptInvitation</a></td><td>Accept invitation</td></tr>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.live/-co-guest-store/reject-invitation.html">rejectInvitation</a></td><td>Reject invitation</td></tr>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.live/-co-guest-store/disconnect.html">disconnect</a></td><td>Disconnect co-streaming</td></tr>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.live/-co-guest-store/add-host-listener.html">addHostListener</a></td><td>Add host-side listener</td></tr>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.live/-co-guest-store/remove-host-listener.html">removeHostListener</a></td><td>Remove host-side listener</td></tr>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.live/-co-guest-store/add-guest-listener.html">addGuestListener</a></td><td>Add guest-side listener</td></tr>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.live/-co-guest-store/remove-guest-listener.html">removeGuestListener</a></td><td>Remove guest-side listener</td></tr>
+</tbody>
+</table><p class="paragraph"><strong>State Subscription (</strong><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.live/-co-guest-state/index.html"><strong>CoGuestState</strong></a><strong>):</strong></p><table>
+<thead>
+<tr><th>Property</th><th>Type</th><th>Description</th></tr>
+</thead>
+<tbody>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.live/-co-guest-state/connected.html">connected</a></td><td><code>StateFlow&lt;List&lt;<a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.live/-seat-user-info/index.html">SeatUserInfo</a>&gt;&gt;</code></td><td>Connected users list</td></tr>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.live/-co-guest-state/invitees.html">invitees</a></td><td><code>StateFlow&lt;List&lt;<a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.live/-live-user-info/index.html">LiveUserInfo</a>&gt;&gt;</code></td><td>Users invited by host</td></tr>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.live/-co-guest-state/applicants.html">applicants</a></td><td><code>StateFlow&lt;List&lt;<a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.live/-live-user-info/index.html">LiveUserInfo</a>&gt;&gt;</code></td><td>Users applying to co-stream</td></tr>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.live/-co-guest-state/candidates.html">candidates</a></td><td><code>StateFlow&lt;List&lt;<a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.live/-live-user-info/index.html">LiveUserInfo</a>&gt;&gt;</code></td><td>Co-streaming candidate users</td></tr>
+</tbody>
+</table><p class="paragraph"><strong>Related Types:</strong> <a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.live/-host-listener/index.html">HostListener</a> | <a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.live/-guest-listener/index.html">GuestListener</a> | <a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.live/-no-response-reason/index.html">NoResponseReason</a> | <a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.live/-seat-user-info/index.html">SeatUserInfo</a> | <a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.live/-live-user-info/index.html">LiveUserInfo</a></p><h3 class=""> <a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.live/-co-host-store/index.html">CoHostStore</a></h3><p class="paragraph">Host co-streaming management, handles cross-room co-streaming between hosts.</p><p class="paragraph"><strong>Core APIs:</strong></p><table>
+<thead>
+<tr><th>Method</th><th>Description</th></tr>
+</thead>
+<tbody>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.live/-co-host-store/request-connection.html">requestConnection</a></td><td>Request connection</td></tr>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.live/-co-host-store/cancel-request.html">cancelRequest</a></td><td>Cancel request</td></tr>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.live/-co-host-store/accept-connection.html">acceptConnection</a></td><td>Accept connection</td></tr>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.live/-co-host-store/reject-connection.html">rejectConnection</a></td><td>Reject connection</td></tr>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.live/-co-host-store/disconnect.html">disconnect</a></td><td>Disconnect</td></tr>
+</tbody>
+</table><p class="paragraph"><strong>State Subscription (</strong><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.live/-co-host-state/index.html"><strong>CoHostState</strong></a><strong>):</strong></p><table>
+<thead>
+<tr><th>Property</th><th>Type</th><th>Description</th></tr>
+</thead>
+<tbody>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.live/-co-host-state/connected-users.html">connectedUsers</a></td><td><code>StateFlow&lt;List&lt;<a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.live/-live-user-info/index.html">LiveUserInfo</a>&gt;&gt;</code></td><td>Connected hosts list</td></tr>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.live/-co-host-state/sent-connection-requests.html">sentConnectionRequests</a></td><td><code>StateFlow&lt;List&lt;<a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.live/-live-user-info/index.html">LiveUserInfo</a>&gt;&gt;</code></td><td>Sent connection requests</td></tr>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.live/-co-host-state/received-connection-requests.html">receivedConnectionRequests</a></td><td><code>StateFlow&lt;List&lt;<a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.live/-live-user-info/index.html">LiveUserInfo</a>&gt;&gt;</code></td><td>Received connection requests</td></tr>
+</tbody>
+</table><h3 class=""> <a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.live/-battle-store/index.html">BattleStore</a></h3><p class="paragraph">PK battle management, handles PK battle logic between hosts.</p><p class="paragraph"><strong>Core APIs:</strong></p><table>
+<thead>
+<tr><th>Method</th><th>Description</th></tr>
+</thead>
+<tbody>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.live/-battle-store/request-battle.html">requestBattle</a></td><td>Request PK battle</td></tr>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.live/-battle-store/cancel-request.html">cancelRequest</a></td><td>Cancel request</td></tr>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.live/-battle-store/accept-battle.html">acceptBattle</a></td><td>Accept PK battle</td></tr>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.live/-battle-store/reject-battle.html">rejectBattle</a></td><td>Reject PK battle</td></tr>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.live/-battle-store/exit-battle.html">exitBattle</a></td><td>Exit PK battle</td></tr>
+</tbody>
+</table><p class="paragraph"><strong>State Subscription (</strong><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.live/-battle-state/index.html"><strong>BattleState</strong></a><strong>):</strong></p><table>
+<thead>
+<tr><th>Property</th><th>Type</th><th>Description</th></tr>
+</thead>
+<tbody>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.live/-battle-state/is-battling.html">isBattling</a></td><td><code>StateFlow&lt;Boolean&gt;</code></td><td>Whether in PK battle</td></tr>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.live/-battle-state/battle-users.html">battleUsers</a></td><td><code>StateFlow&lt;List&lt;<a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.live/-battle-user-info/index.html">BattleUserInfo</a>&gt;&gt;</code></td><td>PK battle users list</td></tr>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.live/-battle-state/sent-battle-requests.html">sentBattleRequests</a></td><td><code>StateFlow&lt;List&lt;<a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.live/-live-user-info/index.html">LiveUserInfo</a>&gt;&gt;</code></td><td>Sent PK requests</td></tr>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.live/-battle-state/received-battle-requests.html">receivedBattleRequests</a></td><td><code>StateFlow&lt;List&lt;<a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.live/-live-user-info/index.html">LiveUserInfo</a>&gt;&gt;</code></td><td>Received PK requests</td></tr>
+</tbody>
+</table><h3 class=""> <a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.live/-live-seat-store/index.html">LiveSeatStore</a></h3><p class="paragraph">Seat management, controls seat status in live rooms.</p><p class="paragraph"><strong>Core APIs:</strong></p><table>
+<thead>
+<tr><th>Method</th><th>Description</th></tr>
+</thead>
+<tbody>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.live/-live-seat-store/take-seat.html">takeSeat</a></td><td>Take seat</td></tr>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.live/-live-seat-store/leave-seat.html">leaveSeat</a></td><td>Leave seat</td></tr>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.live/-live-seat-store/lock-seat.html">lockSeat</a></td><td>Lock seat</td></tr>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.live/-live-seat-store/kick-user-off-seat.html">kickUserOffSeat</a></td><td>Kick user off seat</td></tr>
+</tbody>
+</table><p class="paragraph"><strong>State Subscription (</strong><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.live/-live-seat-state/index.html"><strong>LiveSeatState</strong></a><strong>):</strong></p><table>
+<thead>
+<tr><th>Property</th><th>Type</th><th>Description</th></tr>
+</thead>
+<tbody>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.live/-live-seat-state/seat-list.html">seatList</a></td><td><code>StateFlow&lt;List&lt;<a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.live/-seat-info/index.html">SeatInfo</a>&gt;&gt;</code></td><td>Seat list</td></tr>
+</tbody>
+</table><h3 class=""> <a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.live/-live-list-store/index.html">LiveListStore</a></h3><p class="paragraph">Live room list management.</p><p class="paragraph"><strong>Core APIs:</strong></p><table>
+<thead>
+<tr><th>Method</th><th>Description</th></tr>
+</thead>
+<tbody>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.live/-live-list-store/fetch-live-list.html">fetchLiveList</a></td><td>Fetch live list</td></tr>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.live/-live-list-store/fetch-recommended-list.html">fetchRecommendedList</a></td><td>Fetch recommended list</td></tr>
+</tbody>
+</table><p class="paragraph"><strong>State Subscription (</strong><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.live/-live-list-state/index.html"><strong>LiveListState</strong></a><strong>):</strong></p><table>
+<thead>
+<tr><th>Property</th><th>Type</th><th>Description</th></tr>
+</thead>
+<tbody>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.live/-live-list-state/live-list.html">liveList</a></td><td><code>StateFlow&lt;List&lt;<a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.live/-live-info/index.html">LiveInfo</a>&gt;&gt;</code></td><td>Live list</td></tr>
+</tbody>
+</table><h3 class=""> <a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.live/-live-audience-store/index.html">LiveAudienceStore</a></h3><p class="paragraph">Audience state management.</p><p class="paragraph"><strong>Core APIs:</strong></p><table>
+<thead>
+<tr><th>Method</th><th>Description</th></tr>
+</thead>
+<tbody>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.live/-live-audience-store/join-live.html">joinLive</a></td><td>Join live room</td></tr>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.live/-live-audience-store/leave-live.html">leaveLive</a></td><td>Leave live room</td></tr>
+</tbody>
+</table><p class="paragraph"><strong>State Subscription (</strong><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.live/-live-audience-state/index.html"><strong>LiveAudienceState</strong></a><strong>):</strong></p><table>
+<thead>
+<tr><th>Property</th><th>Type</th><th>Description</th></tr>
+</thead>
+<tbody>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.live/-live-audience-state/live-info.html">liveInfo</a></td><td><code>StateFlow&lt;<a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.live/-live-info/index.html">LiveInfo</a>?&gt;</code></td><td>Current live info</td></tr>
+</tbody>
+</table><h3 class=""> <a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.live/-like-store/index.html">LikeStore</a></h3><p class="paragraph">Like management.</p><p class="paragraph"><strong>Core APIs:</strong></p><table>
+<thead>
+<tr><th>Method</th><th>Description</th></tr>
+</thead>
+<tbody>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.live/-like-store/like.html">like</a></td><td>Send like</td></tr>
+</tbody>
+</table><p class="paragraph"><strong>State Subscription (</strong><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.live/-like-state/index.html"><strong>LikeState</strong></a><strong>):</strong></p><table>
+<thead>
+<tr><th>Property</th><th>Type</th><th>Description</th></tr>
+</thead>
+<tbody>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.live/-like-state/like-count.html">likeCount</a></td><td><code>StateFlow&lt;Int&gt;</code></td><td>Like count</td></tr>
+</tbody>
+</table><h2 class=""> 🏠 Room Module</h2><h3 class=""> <a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.room/-room-store/index.html">RoomStore</a></h3><p class="paragraph">Core class for room management, responsible for room creation, joining, leaving, and scheduling.</p><p class="paragraph"><strong>Core APIs:</strong></p><table>
+<thead>
+<tr><th>Method</th><th>Description</th></tr>
+</thead>
+<tbody>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.room/-room-store/create-and-join-room.html">createAndJoinRoom</a></td><td>Create and join room</td></tr>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.room/-room-store/join-room.html">joinRoom</a></td><td>Join room</td></tr>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.room/-room-store/leave-room.html">leaveRoom</a></td><td>Leave room</td></tr>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.room/-room-store/end-room.html">endRoom</a></td><td>End room</td></tr>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.room/-room-store/schedule-room.html">scheduleRoom</a></td><td>Schedule room</td></tr>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.room/-room-store/cancel-scheduled-room.html">cancelScheduledRoom</a></td><td>Cancel scheduled room</td></tr>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.room/-room-store/call-user-to-room.html">callUserToRoom</a></td><td>Call user to join room</td></tr>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.room/-room-store/accept-call.html">acceptCall</a></td><td>Accept call</td></tr>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.room/-room-store/reject-call.html">rejectCall</a></td><td>Reject call</td></tr>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.room/-room-store/add-room-listener.html">addRoomListener</a></td><td>Add room listener</td></tr>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.room/-room-store/remove-room-listener.html">removeRoomListener</a></td><td>Remove room listener</td></tr>
+</tbody>
+</table><p class="paragraph"><strong>State Subscription (</strong><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.room/-room-state/index.html"><strong>RoomState</strong></a><strong>):</strong></p><table>
+<thead>
+<tr><th>Property</th><th>Type</th><th>Description</th></tr>
+</thead>
+<tbody>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.room/-room-state/current-room.html">currentRoom</a></td><td><code>StateFlow&lt;<a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.room/-room-info/index.html">RoomInfo</a>?&gt;</code></td><td>Current room info</td></tr>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.room/-room-state/scheduled-room-list.html">scheduledRoomList</a></td><td><code>StateFlow&lt;List&lt;<a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.room/-room-info/index.html">RoomInfo</a>&gt;&gt;</code></td><td>Scheduled room list</td></tr>
+</tbody>
+</table><p class="paragraph"><strong>Related Types:</strong> <a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.room/-room-status/index.html">RoomStatus</a> | <a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.room/-room-info/index.html">RoomInfo</a> | <a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.room/-room-user/index.html">RoomUser</a> | <a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.room/-room-call/index.html">RoomCall</a> | <a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.room/-room-listener/index.html">RoomListener</a></p><h3 class=""> <a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.room/-room-participant-store/index.html">RoomParticipantStore</a></h3><p class="paragraph">Room participant management, handles participant permissions, device control, message muting, etc.</p><p class="paragraph"><strong>Core APIs:</strong></p><table>
+<thead>
+<tr><th>Method</th><th>Description</th></tr>
+</thead>
+<tbody>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.room/-room-participant-store/get-participant-list.html">getParticipantList</a></td><td>Get participant list</td></tr>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.room/-room-participant-store/transfer-owner.html">transferOwner</a></td><td>Transfer owner</td></tr>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.room/-room-participant-store/set-admin.html">setAdmin</a></td><td>Set admin</td></tr>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.room/-room-participant-store/revoke-admin.html">revokeAdmin</a></td><td>Revoke admin</td></tr>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.room/-room-participant-store/kick-user.html">kickUser</a></td><td>Kick user</td></tr>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.room/-room-participant-store/close-participant-device.html">closeParticipantDevice</a></td><td>Close participant device</td></tr>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.room/-room-participant-store/disable-all-devices.html">disableAllDevices</a></td><td>Disable all devices</td></tr>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.room/-room-participant-store/disable-all-messages.html">disableAllMessages</a></td><td>Mute all messages</td></tr>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.room/-room-participant-store/request-to-open-device.html">requestToOpenDevice</a></td><td>Request to open device</td></tr>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.room/-room-participant-store/invite-to-open-device.html">inviteToOpenDevice</a></td><td>Invite to open device</td></tr>
+</tbody>
+</table><p class="paragraph"><strong>State Subscription (</strong><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.room/-room-participant-state/index.html"><strong>RoomParticipantState</strong></a><strong>):</strong></p><table>
+<thead>
+<tr><th>Property</th><th>Type</th><th>Description</th></tr>
+</thead>
+<tbody>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.room/-room-participant-state/participant-list.html">participantList</a></td><td><code>StateFlow&lt;List&lt;<a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.room/-room-participant/index.html">RoomParticipant</a>&gt;&gt;</code></td><td>Participant list</td></tr>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.room/-room-participant-state/participant-list-with-video.html">participantListWithVideo</a></td><td><code>StateFlow&lt;List&lt;<a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.room/-room-participant/index.html">RoomParticipant</a>&gt;&gt;</code></td><td>Participants with video</td></tr>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.room/-room-participant-state/participant-with-screen.html">participantWithScreen</a></td><td><code>StateFlow&lt;<a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.room/-room-participant/index.html">RoomParticipant</a>?&gt;</code></td><td>Participant sharing screen</td></tr>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.room/-room-participant-state/local-participant.html">localParticipant</a></td><td><code>StateFlow&lt;<a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.room/-room-participant/index.html">RoomParticipant</a>?&gt;</code></td><td>Local participant</td></tr>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.room/-room-participant-state/pending-device-applications.html">pendingDeviceApplications</a></td><td><code>StateFlow&lt;List&lt;<a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.room/-device-request-info/index.html">DeviceRequestInfo</a>&gt;&gt;</code></td><td>Pending device applications</td></tr>
+</tbody>
+</table><p class="paragraph"><strong>Related Types:</strong> <a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.room/-participant-role/index.html">ParticipantRole</a> | <a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.room/-room-participant/index.html">RoomParticipant</a> | <a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.room/-device-request-info/index.html">DeviceRequestInfo</a> | <a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.room/-room-participant-listener/index.html">RoomParticipantListener</a></p><h2 class=""> 💬 Barrage Module</h2><h3 class=""> <a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.barrage/-barrage-store/index.html">BarrageStore</a></h3><p class="paragraph">Core class for barrage management, responsible for sending and syncing barrage messages.</p><p class="paragraph"><strong>Core APIs:</strong></p><table>
+<thead>
+<tr><th>Method</th><th>Description</th></tr>
+</thead>
+<tbody>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.barrage/-barrage-store/send-text-message.html">sendTextMessage</a></td><td>Send text barrage</td></tr>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.barrage/-barrage-store/send-custom-message.html">sendCustomMessage</a></td><td>Send custom barrage</td></tr>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.barrage/-barrage-store/append-local-tip.html">appendLocalTip</a></td><td>Append local tip message</td></tr>
+</tbody>
+</table><p class="paragraph"><strong>State Subscription (</strong><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.barrage/-barrage-state/index.html"><strong>BarrageState</strong></a><strong>):</strong></p><table>
+<thead>
+<tr><th>Property</th><th>Type</th><th>Description</th></tr>
+</thead>
+<tbody>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.barrage/-barrage-state/message-list.html">messageList</a></td><td><code>StateFlow&lt;List&lt;<a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.barrage/-barrage/index.html">Barrage</a>&gt;&gt;</code></td><td>Barrage message list</td></tr>
+</tbody>
+</table><p class="paragraph"><strong>Related Types:</strong> <a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.barrage/-barrage/index.html">Barrage</a> | <a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.barrage/-barrage-type/index.html">BarrageType</a></p><h2 class=""> 🎁 Gift Module</h2><h3 class=""> <a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.gift/-gift-store/index.html">GiftStore</a></h3><p class="paragraph">Core class for gift management, handles gift sending and receiving.</p><p class="paragraph"><strong>Core APIs:</strong></p><table>
+<thead>
+<tr><th>Method</th><th>Description</th></tr>
+</thead>
+<tbody>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.gift/-gift-store/send-gift.html">sendGift</a></td><td>Send gift</td></tr>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.gift/-gift-store/refresh-usable-gifts.html">refreshUsableGifts</a></td><td>Refresh available gifts list</td></tr>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.gift/-gift-store/set-language.html">setLanguage</a></td><td>Set gift info display language</td></tr>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.gift/-gift-store/add-gift-listener.html">addGiftListener</a></td><td>Add gift event listener</td></tr>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.gift/-gift-store/remove-gift-listener.html">removeGiftListener</a></td><td>Remove gift event listener</td></tr>
+</tbody>
+</table><p class="paragraph"><strong>State Subscription (</strong><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.gift/-gift-state/index.html"><strong>GiftState</strong></a><strong>):</strong></p><table>
+<thead>
+<tr><th>Property</th><th>Type</th><th>Description</th></tr>
+</thead>
+<tbody>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.gift/-gift-state/usable-gifts.html">usableGifts</a></td><td><code>StateFlow&lt;List&lt;<a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.gift/-gift-category/index.html">GiftCategory</a>&gt;&gt;</code></td><td>Available gift categories</td></tr>
+</tbody>
+</table><p class="paragraph"><strong>Related Types:</strong> <a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.gift/-gift/index.html">Gift</a> | <a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.gift/-gift-category/index.html">GiftCategory</a> | <a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.gift/-gift-listener/index.html">GiftListener</a></p><h2 class=""> 📱 Device Module</h2><h3 class=""> <a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.device/-device-store/index.html">DeviceStore</a></h3><p class="paragraph">Core class for device management, controls hardware devices like camera and microphone.</p><p class="paragraph"><strong>Core APIs:</strong></p><table>
+<thead>
+<tr><th>Method</th><th>Description</th></tr>
+</thead>
+<tbody>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.device/-device-store/open-local-microphone.html">openLocalMicrophone</a></td><td>Open microphone</td></tr>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.device/-device-store/close-local-microphone.html">closeLocalMicrophone</a></td><td>Close microphone</td></tr>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.device/-device-store/open-local-camera.html">openLocalCamera</a></td><td>Open camera</td></tr>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.device/-device-store/close-local-camera.html">closeLocalCamera</a></td><td>Close camera</td></tr>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.device/-device-store/switch-camera.html">switchCamera</a></td><td>Switch front/back camera</td></tr>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.device/-device-store/switch-mirror.html">switchMirror</a></td><td>Switch mirror mode</td></tr>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.device/-device-store/update-video-quality.html">updateVideoQuality</a></td><td>Update video quality</td></tr>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.device/-device-store/set-audio-route.html">setAudioRoute</a></td><td>Set audio route</td></tr>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.device/-device-store/set-capture-volume.html">setCaptureVolume</a></td><td>Set capture volume</td></tr>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.device/-device-store/set-output-volume.html">setOutputVolume</a></td><td>Set output volume</td></tr>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.device/-device-store/start-screen-share.html">startScreenShare</a></td><td>Start screen sharing</td></tr>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.device/-device-store/stop-screen-share.html">stopScreenShare</a></td><td>Stop screen sharing</td></tr>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.device/-device-store/start-camera-test.html">startCameraTest</a></td><td>Start camera test</td></tr>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.device/-device-store/stop-camera-test.html">stopCameraTest</a></td><td>Stop camera test</td></tr>
+</tbody>
+</table><p class="paragraph"><strong>State Subscription (</strong><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.device/-device-state/index.html"><strong>DeviceState</strong></a><strong>):</strong></p><table>
+<thead>
+<tr><th>Property</th><th>Type</th><th>Description</th></tr>
+</thead>
+<tbody>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.device/-device-state/microphone-status.html">microphoneStatus</a></td><td><code>StateFlow&lt;<a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.device/-device-status/index.html">DeviceStatus</a>&gt;</code></td><td>Microphone status</td></tr>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.device/-device-state/microphone-last-error.html">microphoneLastError</a></td><td><code>StateFlow&lt;<a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.device/-device-error/index.html">DeviceError</a>&gt;</code></td><td>Microphone error</td></tr>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.device/-device-state/camera-status.html">cameraStatus</a></td><td><code>StateFlow&lt;<a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.device/-device-status/index.html">DeviceStatus</a>&gt;</code></td><td>Camera status</td></tr>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.device/-device-state/camera-last-error.html">cameraLastError</a></td><td><code>StateFlow&lt;<a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.device/-device-error/index.html">DeviceError</a>&gt;</code></td><td>Camera error</td></tr>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.device/-device-state/is-front-camera.html">isFrontCamera</a></td><td><code>StateFlow&lt;Boolean&gt;</code></td><td>Is front camera</td></tr>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.device/-device-state/local-mirror-type.html">localMirrorType</a></td><td><code>StateFlow&lt;<a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.device/-mirror-type/index.html">MirrorType</a>&gt;</code></td><td>Local mirror type</td></tr>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.device/-device-state/local-video-quality.html">localVideoQuality</a></td><td><code>StateFlow&lt;<a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.device/-video-quality/index.html">VideoQuality</a>&gt;</code></td><td>Local video quality</td></tr>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.device/-device-state/current-audio-route.html">currentAudioRoute</a></td><td><code>StateFlow&lt;<a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.device/-audio-route/index.html">AudioRoute</a>&gt;</code></td><td>Current audio route</td></tr>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.device/-device-state/screen-status.html">screenStatus</a></td><td><code>StateFlow&lt;<a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.device/-device-status/index.html">DeviceStatus</a>&gt;</code></td><td>Screen sharing status</td></tr>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.device/-device-state/network-info.html">networkInfo</a></td><td><code>StateFlow&lt;<a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.device/-network-info/index.html">NetworkInfo</a>&gt;</code></td><td>Network info</td></tr>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.device/-device-state/capture-volume.html">captureVolume</a></td><td><code>StateFlow&lt;Int&gt;</code></td><td>Capture volume</td></tr>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.device/-device-state/output-volume.html">outputVolume</a></td><td><code>StateFlow&lt;Int&gt;</code></td><td>Output volume</td></tr>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.device/-device-state/current-mic-volume.html">currentMicVolume</a></td><td><code>StateFlow&lt;Int&gt;</code></td><td>Current mic volume</td></tr>
+</tbody>
+</table><p class="paragraph"><strong>Related Types:</strong> <a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.device/-device-type/index.html">DeviceType</a> | <a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.device/-device-status/index.html">DeviceStatus</a> | <a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.device/-device-error/index.html">DeviceError</a> | <a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.device/-audio-route/index.html">AudioRoute</a> | <a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.device/-video-quality/index.html">VideoQuality</a> | <a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.device/-mirror-type/index.html">MirrorType</a> | <a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.device/-network-quality/index.html">NetworkQuality</a> | <a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.device/-network-info/index.html">NetworkInfo</a></p><h3 class=""> <a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.device/-audio-effect-store/index.html">AudioEffectStore</a></h3><p class="paragraph">Audio effect management, provides voice changer, reverb and other audio effects.</p><p class="paragraph"><strong>State Subscription (</strong><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.device/-audio-effect-state/index.html"><strong>AudioEffectState</strong></a><strong>):</strong></p><table>
+<thead>
+<tr><th>Property</th><th>Type</th><th>Description</th></tr>
+</thead>
+<tbody>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.device/-audio-effect-state/audio-changer-type.html">changerType</a></td><td><code>StateFlow&lt;<a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.device/-audio-changer-type/index.html">AudioChangerType</a>&gt;</code></td><td>Voice changer type</td></tr>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.device/-audio-effect-state/audio-reverb-type.html">reverbType</a></td><td><code>StateFlow&lt;<a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.device/-audio-reverb-type/index.html">AudioReverbType</a>&gt;</code></td><td>Reverb type</td></tr>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.device/-audio-effect-state/music-volume.html">musicVolume</a></td><td><code>StateFlow&lt;Int&gt;</code></td><td>Music volume</td></tr>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.device/-audio-effect-state/voice-volume.html">voiceVolume</a></td><td><code>StateFlow&lt;Int&gt;</code></td><td>Voice volume</td></tr>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.device/-audio-effect-state/voice-pitch.html">voicePitch</a></td><td><code>StateFlow&lt;Double&gt;</code></td><td>Voice pitch</td></tr>
+</tbody>
+</table><p class="paragraph"><strong>Related Types:</strong> <a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.device/-audio-changer-type/index.html">AudioChangerType</a> | <a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.device/-audio-reverb-type/index.html">AudioReverbType</a></p><h3 class=""> <a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.device/-base-beauty-store/index.html">BaseBeautyStore</a></h3><p class="paragraph">Basic beauty management, provides whitening, smoothing and other beauty features.</p><p class="paragraph"><strong>State Subscription (</strong><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.device/-base-beauty-state/index.html"><strong>BaseBeautyState</strong></a><strong>):</strong></p><table>
+<thead>
+<tr><th>Property</th><th>Type</th><th>Description</th></tr>
+</thead>
+<tbody>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.device/-base-beauty-state/smooth-level.html">smoothLevel</a></td><td><code>StateFlow&lt;Int&gt;</code></td><td>Smooth level</td></tr>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.device/-base-beauty-state/whiteness-level.html">whitenessLevel</a></td><td><code>StateFlow&lt;Int&gt;</code></td><td>Whiteness level</td></tr>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.device/-base-beauty-state/ruddy-level.html">ruddyLevel</a></td><td><code>StateFlow&lt;Int&gt;</code></td><td>Ruddy level</td></tr>
+</tbody>
+</table><h2 class=""> 🖼️ View Module</h2><h3 class=""> <a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.view/-live-core-view/index.html">LiveCoreView</a></h3><p class="paragraph">Live core view component, provides live video rendering capability.</p><h3 class=""> <a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.view/-camera-view/index.html">CameraView</a></h3><p class="paragraph">Camera preview view component.</p><h3 class=""> <a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.view/-room-participant-view/index.html">RoomParticipantView</a></h3><p class="paragraph">Room participant video view component, used to display participant video.</p><p class="paragraph"><strong>Core APIs:</strong></p><table>
+<thead>
+<tr><th>Method</th><th>Description</th></tr>
+</thead>
+<tbody>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.view/-room-participant-view/init.html">init</a></td><td>Initialize view</td></tr>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.view/-room-participant-view/update-stream-type.html">updateStreamType</a></td><td>Update video stream type</td></tr>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.view/-room-participant-view/update-participant.html">updateParticipant</a></td><td>Update participant info</td></tr>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.view/-room-participant-view/set-fill-mode.html">setFillMode</a></td><td>Set fill mode</td></tr>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.view/-room-participant-view/set-active.html">setActive</a></td><td>Set active state</td></tr>
+</tbody>
+</table><p class="paragraph"><strong>Related Types:</strong> <a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.view/-video-stream-type/index.html">VideoStreamType</a> | <a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.view/-fill-mode/index.html">FillMode</a></p><h2 class=""> 📦 Package Structure</h2><table>
+<thead>
+<tr><th>Package</th><th>Description</th></tr>
+</thead>
+<tbody>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.login/index.html">io.trtc.tuikit.atomicxcore.api.login</a></td><td>Login related</td></tr>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.room/index.html">io.trtc.tuikit.atomicxcore.api.room</a></td><td>Room related</td></tr>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.live/index.html">io.trtc.tuikit.atomicxcore.api.live</a></td><td>Live related</td></tr>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.barrage/index.html">io.trtc.tuikit.atomicxcore.api.barrage</a></td><td>Barrage related</td></tr>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.gift/index.html">io.trtc.tuikit.atomicxcore.api.gift</a></td><td>Gift related</td></tr>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.device/index.html">io.trtc.tuikit.atomicxcore.api.device</a></td><td>Device related</td></tr>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.view/index.html">io.trtc.tuikit.atomicxcore.api.view</a></td><td>View components</td></tr>
+</tbody>
+</table><div style="text-align: center; padding: 20px 0; color: #999; font-size: 12px;">
+© 2025 Tencent. All rights reserved.
+</div></div></div>
   </div>
   <h2 class="">Packages</h2>
   <div class="table"><a data-name="362029651%2FPackages%2F-1933612244" anchor-label="io.trtc.tuikit.atomicxcore.api" id="362029651%2FPackages%2F-1933612244" data-filterable-set=":atomicxcore:dokkaHtml/release"></a>
@@ -168,6 +514,24 @@
         <div></div>
       </div>
     </div>
+<a data-name="-785309990%2FPackages%2F-1933612244" anchor-label="io.trtc.tuikit.atomicxcore.api.room" id="-785309990%2FPackages%2F-1933612244" data-filterable-set=":atomicxcore:dokkaHtml/release"></a>
+    <div class="table-row" data-filterable-current=":atomicxcore:dokkaHtml/release" data-filterable-set=":atomicxcore:dokkaHtml/release">
+      <div>
+        <div class="main-subrow ">
+          <div class=""><span class="inline-flex">
+              <div><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.room/index.html">io.trtc.tuikit.atomicxcore.api.room</a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-785309990%2FPackages%2F-1933612244"></span>
+                <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+              </span></span></div>
+          <div class="pull-right">
+            <div class="platform-tags no-gutters">
+              <div class="platform-tag jvm-like">androidJvm</div>
+            </div>
+          </div>
+        </div>
+        <div></div>
+      </div>
+    </div>
 <a data-name="-1325084636%2FPackages%2F-1933612244" anchor-label="io.trtc.tuikit.atomicxcore.api.view" id="-1325084636%2FPackages%2F-1933612244" data-filterable-set=":atomicxcore:dokkaHtml/release"></a>
     <div class="table-row" data-filterable-current=":atomicxcore:dokkaHtml/release" data-filterable-set=":atomicxcore:dokkaHtml/release">
       <div>
@@ -189,7 +553,7 @@
   </div>
 </div>
       <div class="footer">
-        <span class="go-to-top-icon"><a href="#content" id="go-to-top-link"></a></span><span>© 2025 Copyright</span><span
+        <span class="go-to-top-icon"><a href="#content" id="go-to-top-link"></a></span><span>© 2026 Copyright</span><span
                 class="pull-right"><span>Generated by </span><a
                 href="https://github.com/Kotlin/dokka"><span>dokka</span><span class="padded-icon"></span></a></span>
       </div>

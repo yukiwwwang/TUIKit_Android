@@ -7,12 +7,12 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageView
 import android.widget.TextView
-import com.tencent.cloud.tuikit.engine.common.TUICommonDefine
 import com.tencent.qcloud.tuicore.TUILogin
-import com.tencent.qcloud.tuicore.util.ToastUtil
 import com.tencent.qcloud.tuikit.tuicallkit.TUICallKit.Companion.createInstance
 import com.tencent.uikit.app.R
 import com.tencent.uikit.app.main.BaseActivity
+import io.trtc.tuikit.atomicx.widget.basicwidget.toast.AtomicToast
+import io.trtc.tuikit.atomicxcore.api.CompletionHandler
 
 class SettingDetailActivity : BaseActivity() {
     private var editContent: EditText? = null
@@ -83,21 +83,21 @@ class SettingDetailActivity : BaseActivity() {
 
             else -> {}
         }
-        ToastUtil.toastShortMessage(getString(R.string.app_set_success))
+        AtomicToast.show(this, getString(R.string.app_set_success), AtomicToast.Style.SUCCESS)
         finish()
     }
 
     private fun setUserAvatar(avatar: String) {
         createInstance(getApplicationContext()).setSelfInfo(
             TUILogin.getNickName(), avatar,
-            object : TUICommonDefine.Callback {
+            object : CompletionHandler {
                 override fun onSuccess() {
-                    ToastUtil.toastShortMessage(getString(R.string.app_set_success))
+                    AtomicToast.show(this@SettingDetailActivity, getString(R.string.app_set_success), AtomicToast.Style.SUCCESS)
                     finish()
                 }
 
-                override fun onError(errCode: Int, errMsg: String?) {
-                    ToastUtil.toastShortMessage(getString(R.string.app_set_fail))
+                override fun onFailure(code: Int, desc: String) {
+                    AtomicToast.show(this@SettingDetailActivity, getString(R.string.app_set_fail), AtomicToast.Style.ERROR)
                 }
             })
     }

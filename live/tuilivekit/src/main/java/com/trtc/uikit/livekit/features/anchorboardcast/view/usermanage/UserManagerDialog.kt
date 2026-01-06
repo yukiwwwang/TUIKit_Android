@@ -5,16 +5,15 @@ import android.text.TextUtils
 import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
-import androidx.constraintlayout.utils.widget.ImageFilterView
-import com.tencent.cloud.tuikit.engine.room.TUIRoomDefine
-import com.tencent.cloud.tuikit.engine.room.TUIRoomEngine
-import com.tencent.cloud.tuikit.engine.room.TUIRoomObserver
-import com.trtc.tuikit.common.imageloader.ImageLoader
 import com.trtc.uikit.livekit.R
-import com.trtc.uikit.livekit.common.ui.PopupDialog
 import com.trtc.uikit.livekit.common.ui.setDebounceClickListener
-import com.trtc.uikit.livekit.features.anchorboardcast.manager.AnchorManager
-import com.trtc.uikit.livekit.features.anchorboardcast.state.UserState
+import com.trtc.uikit.livekit.features.anchorboardcast.store.AnchorStore
+import io.trtc.tuikit.atomicx.widget.basicwidget.avatar.AtomicAvatar
+import io.trtc.tuikit.atomicx.widget.basicwidget.avatar.AtomicAvatar.AvatarContent
+import io.trtc.tuikit.atomicx.widget.basicwidget.popover.AtomicPopover
+import io.trtc.tuikit.atomicxcore.api.live.LiveAudienceListener
+import io.trtc.tuikit.atomicxcore.api.live.LiveAudienceStore
+import io.trtc.tuikit.atomicxcore.api.live.LiveUserInfo
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -22,53 +21,49 @@ import kotlinx.coroutines.launch
 
 class UserManagerDialog(
     private val context: Context,
-    private val liveStreamManager: AnchorManager
-) : PopupDialog(context) {
+    private val anchorStore: AnchorStore,
+    private val userInfo: LiveUserInfo,
+) : AtomicPopover(context) {
 
-    private var userInfo: UserState.UserInfo? = null
-    private lateinit var imageHeadView: ImageFilterView
+    private lateinit var imageHeadView: AtomicAvatar
     private lateinit var userIdText: TextView
     private lateinit var userNameText: TextView
     private lateinit var ivDisableMessage: ImageView
     private lateinit var tvDisableMessage: TextView
     private lateinit var textUnfollow: TextView
     private lateinit var imageFollowIcon: ImageView
+    private var isMessageDisabled = false
     private var confirmDialog: ConfirmDialog? = null
     private var subscribeStateJob: Job? = null
 
-    private val tuiRoomObserver = object : TUIRoomObserver() {
-        override fun onKickedOffSeat(seatIndex: Int, operateUser: TUIRoomDefine.UserInfo?) {
-            dismiss()
-            confirmDialog?.dismiss()
-        }
-
-        override fun onRemoteUserLeaveRoom(roomId: String?, userInfo: TUIRoomDefine.UserInfo?) {
-            if (this@UserManagerDialog.userInfo == null || userInfo == null) {
-                return
-            }
-            if (TextUtils.isEmpty(this@UserManagerDialog.userInfo?.userId) ||
-                TextUtils.isEmpty(userInfo.userId)
+    private val liveAudienceListener = object : LiveAudienceListener() {
+        override fun onAudienceLeft(audience: LiveUserInfo) {
+            if (TextUtils.isEmpty(userInfo.userID) || TextUtils.isEmpty(audience.userID)
             ) {
                 return
             }
-            if (userInfo.userId == this@UserManagerDialog.userInfo?.userId) {
+            if (userInfo.userID == audience.userID) {
                 dismiss()
                 confirmDialog?.dismiss()
+            }
+        }
+
+        override fun onAudienceMessageDisabled(audience: LiveUserInfo, isDisable: Boolean) {
+            if (userInfo.userID != audience.userID) {
+                return
+            }
+            if (isDisable) {
+                ivDisableMessage.setImageResource(R.drawable.livekit_ic_disable_message)
+                tvDisableMessage.setText(R.string.common_enable_message)
+            } else {
+                ivDisableMessage.setImageResource(R.drawable.livekit_ic_enable_message)
+                tvDisableMessage.setText(R.string.common_disable_message)
             }
         }
     }
 
     init {
         initView()
-    }
-
-    fun init(userInfo: TUIRoomDefine.UserInfo) {
-        this.userInfo = liveStreamManager.getUserManager().getUserFromUserList(userInfo.userId)
-        if (this.userInfo == null) {
-            this.userInfo = liveStreamManager.getUserManager().addUserInUserList(userInfo)
-        }
-        updateView()
-        liveStreamManager.getUserManager().checkFollowUser(userInfo.userId)
     }
 
     override fun onAttachedToWindow() {
@@ -83,9 +78,34 @@ class UserManagerDialog(
 
     private fun initView() {
         val rootView = View.inflate(context, R.layout.livekit_user_manager, null)
-        setView(rootView)
+        setContent(rootView)
         bindViewId(rootView)
         initFollowButtonView(rootView)
+
+        isMessageDisabled = LiveAudienceStore.create(anchorStore.getState().roomId)
+            .liveAudienceState.messageBannedUserList.value.find { it.userID == userInfo.userID } != null
+        if (isMessageDisabled) {
+            ivDisableMessage.setImageResource(R.drawable.livekit_ic_disable_message)
+            tvDisableMessage.setText(R.string.common_enable_message)
+        } else {
+            ivDisableMessage.setImageResource(R.drawable.livekit_ic_enable_message)
+            tvDisableMessage.setText(R.string.common_disable_message)
+        }
+        userIdText.text = context.getString(R.string.common_user_id, userInfo.userID)
+
+        val name = if (TextUtils.isEmpty(userInfo.userName)) {
+            userInfo.userID
+        } else {
+            userInfo.userName
+        }
+        userNameText.text = name
+
+        imageHeadView.setContent(
+            AvatarContent.URL(
+                userInfo.avatarURL,
+                R.drawable.livekit_ic_avatar
+            )
+        )
     }
 
     private fun bindViewId(rootView: View) {
@@ -105,12 +125,11 @@ class UserManagerDialog(
 
     private fun initFollowButtonView(rootView: View) {
         rootView.findViewById<View>(R.id.fl_follow_panel).setDebounceClickListener {
-            val currentUserInfo = userInfo ?: return@setDebounceClickListener
-            val followingUsers = liveStreamManager.getUserState().followingUserList.value
-            if (followingUsers.contains(currentUserInfo.userId)) {
-                liveStreamManager.getUserManager().unfollowUser(currentUserInfo.userId)
+            val followingUsers = anchorStore.getUserState().followingUserList.value
+            if (followingUsers.contains(userInfo.userID)) {
+                anchorStore.getUserStore().unfollowUser(userInfo.userID)
             } else {
-                liveStreamManager.getUserManager().followUser(currentUserInfo.userId)
+                anchorStore.getUserStore().followUser(userInfo.userID)
             }
         }
     }
@@ -120,99 +139,58 @@ class UserManagerDialog(
             launch {
                 onFollowingUserChanged()
             }
-            launch {
-                updateDisableMessageButton()
-            }
         }
-        TUIRoomEngine.sharedInstance().addObserver(tuiRoomObserver)
+        anchorStore.getLiveAudienceStore().addLiveAudienceListener(liveAudienceListener)
     }
 
     private fun removeObserver() {
         subscribeStateJob?.cancel()
-        TUIRoomEngine.sharedInstance().removeObserver(tuiRoomObserver)
-    }
-
-    private fun updateView() {
-        val currentUserInfo = userInfo ?: return
-
-        if (TextUtils.isEmpty(currentUserInfo.userId)) {
-            return
-        }
-
-        userIdText.text = context.getString(R.string.common_user_id, currentUserInfo.userId)
-
-        val name = if (TextUtils.isEmpty(currentUserInfo.name.value)) {
-            currentUserInfo.userId
-        } else {
-            currentUserInfo.name.value
-        }
-        userNameText.text = name
-
-        if (TextUtils.isEmpty(currentUserInfo.avatarUrl.value)) {
-            imageHeadView.setImageResource(R.drawable.livekit_ic_avatar)
-        } else {
-            ImageLoader.load(
-                context,
-                imageHeadView,
-                currentUserInfo.avatarUrl.value,
-                R.drawable.livekit_ic_avatar
-            )
-        }
-    }
-
-    private suspend fun updateDisableMessageButton() {
-        userInfo?.isMessageDisabled?.collect {
-            if (it) {
-                ivDisableMessage.setImageResource(R.drawable.livekit_ic_disable_message)
-                tvDisableMessage.setText(R.string.common_enable_message)
-            } else {
-                ivDisableMessage.setImageResource(R.drawable.livekit_ic_enable_message)
-                tvDisableMessage.setText(R.string.common_disable_message)
-            }
-        }
+        anchorStore.getLiveAudienceStore().removeLiveAudienceListener(liveAudienceListener)
     }
 
     private suspend fun onFollowingUserChanged() {
-        liveStreamManager.getUserState().followingUserList.collect { followUsers ->
-            userInfo?.let { currentUserInfo ->
-                if (followUsers.contains(currentUserInfo.userId)) {
-                    textUnfollow.visibility = View.GONE
-                    imageFollowIcon.visibility = View.VISIBLE
-                } else {
-                    imageFollowIcon.visibility = View.GONE
-                    textUnfollow.visibility = View.VISIBLE
-                }
+        anchorStore.getUserState().followingUserList.collect { followUsers ->
+            if (followUsers.contains(userInfo.userID)) {
+                textUnfollow.visibility = View.GONE
+                imageFollowIcon.visibility = View.VISIBLE
+            } else {
+                imageFollowIcon.visibility = View.GONE
+                textUnfollow.visibility = View.VISIBLE
             }
         }
     }
 
     private fun onDisableMessageButtonClicked() {
-        val currentUserInfo = userInfo ?: return
-        val isMessageDisabled = currentUserInfo.isMessageDisabled.value
-        liveStreamManager.getUserManager().disableSendingMessageByAdmin(
-            currentUserInfo.userId,
-            !isMessageDisabled
+        isMessageDisabled = !isMessageDisabled
+        anchorStore.getUserStore().disableSendingMessageByAdmin(
+            userInfo.userID,
+            isMessageDisabled
         )
+        if (isMessageDisabled) {
+            ivDisableMessage.setImageResource(R.drawable.livekit_ic_disable_message)
+            tvDisableMessage.setText(R.string.common_enable_message)
+        } else {
+            ivDisableMessage.setImageResource(R.drawable.livekit_ic_enable_message)
+            tvDisableMessage.setText(R.string.common_disable_message)
+        }
     }
 
     private fun onKickUserButtonClicked() {
-        val currentUserInfo = userInfo ?: return
-
         if (confirmDialog == null) {
             confirmDialog = ConfirmDialog(context)
         }
 
-        val name = if (TextUtils.isEmpty(currentUserInfo.name.value)) {
-            currentUserInfo.userId
+        val name = if (TextUtils.isEmpty(userInfo.userName)) {
+            userInfo.userID
         } else {
-            currentUserInfo.name.value
+            userInfo.userName
         }
 
         confirmDialog?.apply {
             setContent(context.getString(R.string.common_kick_user_confirm_message, name))
             setPositiveText(context.getString(R.string.common_kick_out_of_room))
             setPositiveListener {
-                liveStreamManager.getUserManager().kickRemoteUserOutOfRoom(currentUserInfo.userId)
+                anchorStore.getUserStore().kickRemoteUserOutOfRoom(userInfo.userID)
                 dismiss()
             }
             show()

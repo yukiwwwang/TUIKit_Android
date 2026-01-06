@@ -4,28 +4,27 @@ import android.app.Dialog
 import android.content.Context
 import android.os.Bundle
 import android.widget.TextView
-import com.tencent.cloud.tuikit.engine.common.TUICommonDefine
-import com.tencent.qcloud.tuicore.TUILogin
 import com.trtc.uikit.livekit.R
 import com.trtc.uikit.livekit.common.ErrorLocalized
 import com.trtc.uikit.livekit.common.LiveKitLogger
-import com.trtc.uikit.livekit.features.anchorboardcast.manager.AnchorManager
-import com.trtc.uikit.livekit.features.anchorboardcast.state.BattleState
+import com.trtc.uikit.livekit.features.anchorboardcast.store.AnchorBattleStore.Companion.BATTLE_REQUEST_TIMEOUT
+import com.trtc.uikit.livekit.features.anchorboardcast.store.AnchorStore
 import io.trtc.tuikit.atomicxcore.api.CompletionHandler
 import io.trtc.tuikit.atomicxcore.api.live.BattleStore
 import io.trtc.tuikit.atomicxcore.api.live.CoHostStore
 import io.trtc.tuikit.atomicxcore.api.live.LiveListStore
+import io.trtc.tuikit.atomicxcore.api.login.LoginStore
 import java.util.Locale
 
 class BattleCountdownDialog(
     context: Context,
-    private val anchorManager: AnchorManager
+    private val anchorManager: AnchorStore,
 ) : Dialog(context, android.R.style.Theme_Translucent_NoTitleBar) {
 
     private val logger = LiveKitLogger.getFeaturesLogger("BattleCountdownDialog")
     private lateinit var mCountdownView: TextView
     private lateinit var mTipView: TextView
-    private var mCountdownValue = BattleState.BATTLE_REQUEST_TIMEOUT
+    private var mCountdownValue = BATTLE_REQUEST_TIMEOUT
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -74,7 +73,7 @@ class BattleCountdownDialog(
 
     private fun cancelBattle() {
         val list = mutableListOf<String>()
-        val selfId = TUILogin.getUserId()
+        val selfId = LoginStore.shared.loginState.loginUserInfo.value?.userID
         val connectedUsers =
             CoHostStore.create(LiveListStore.shared().liveState.currentLive.value.liveID).coHostState.connected.value
 
@@ -85,7 +84,7 @@ class BattleCountdownDialog(
         }
 
         val battleId = anchorManager.getBattleState().battleId
-        anchorManager.getBattleManager().onCanceledBattle()
+        anchorManager.getAnchorBattleStore().onCanceledBattle()
         BattleStore.create(LiveListStore.shared().liveState.currentLive.value.liveID).cancelBattleRequest(
             battleId,
             list, object : CompletionHandler {
@@ -95,7 +94,7 @@ class BattleCountdownDialog(
 
                 override fun onFailure(code: Int, desc: String) {
                     logger.error("BattleCountdownDialog cancelBattle failed:code:$code,desc:$desc")
-                    ErrorLocalized.onError(TUICommonDefine.Error.fromInt(code))
+                    ErrorLocalized.onError(code)
                 }
 
             })

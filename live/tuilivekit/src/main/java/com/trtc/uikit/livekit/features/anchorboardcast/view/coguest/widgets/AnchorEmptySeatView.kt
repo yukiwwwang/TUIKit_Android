@@ -5,11 +5,11 @@ import android.util.AttributeSet
 import android.view.LayoutInflater
 import android.widget.TextView
 import com.google.gson.Gson
-import com.tencent.cloud.tuikit.engine.room.TUIRoomDefine
 import com.trtc.uikit.livekit.R
 import com.trtc.uikit.livekit.common.LiveKitLogger
-import com.trtc.uikit.livekit.features.anchorboardcast.manager.AnchorManager
+import com.trtc.uikit.livekit.features.anchorboardcast.store.AnchorStore
 import com.trtc.uikit.livekit.features.anchorboardcast.view.BasicView
+import io.trtc.tuikit.atomicxcore.api.live.SeatInfo
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -21,11 +21,11 @@ class AnchorEmptySeatView @JvmOverloads constructor(
     defStyleAttr: Int = 0
 ) : BasicView(context, attrs, defStyleAttr) {
     private val logger = LiveKitLogger.getFeaturesLogger("coGuest-AnchorEmptySeatView")
-    private var seatInfo: TUIRoomDefine.SeatFullInfo? = null
+    private var seatInfo: SeatInfo? = null
     private lateinit var textSeatIndex: TextView
     private var subscribeStateJob: Job? = null
 
-    fun init(manager: AnchorManager, seatInfo: TUIRoomDefine.SeatFullInfo) {
+    fun init(manager: AnchorStore, seatInfo: SeatInfo) {
         logger.info("init seatInfo:" + Gson().toJson(seatInfo))
         this.seatInfo = seatInfo
         super.init(manager)
@@ -38,7 +38,7 @@ class AnchorEmptySeatView @JvmOverloads constructor(
 
     override fun refreshView() {
         seatInfo?.let { info ->
-            val seatIndex = info.seatIndex.toString()
+            val seatIndex = info.index.toString()
             textSeatIndex.text = seatIndex
         }
     }

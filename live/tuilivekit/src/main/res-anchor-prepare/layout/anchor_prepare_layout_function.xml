@@ -25,14 +25,14 @@
             android:src="@drawable/anchor_prepare_function_item_beauty"
             tools:ignore="ContentDescription" />
 
-        <TextView
+        <io.trtc.tuikit.atomicx.widget.basicwidget.label.AtomicLabel
             android:layout_width="match_parent"
             android:layout_height="20dp"
             android:layout_below="@+id/iv_beauty"
             android:gravity="center_horizontal"
             android:text="@string/common_video_settings_item_beauty"
-            android:textColor="@color/common_not_standard_white_e7"
-            android:textSize="12sp" />
+            android:textColor="@color/text_color_primary"
+            android:textSize="@dimen/text_size_12" />
     </RelativeLayout>
 
     <RelativeLayout
@@ -51,14 +51,14 @@
             android:src="@drawable/anchor_prepare_function_item_music"
             tools:ignore="ContentDescription" />
 
-        <TextView
+        <io.trtc.tuikit.atomicx.widget.basicwidget.label.AtomicLabel
             android:layout_width="match_parent"
             android:layout_height="20dp"
             android:layout_below="@+id/iv_audio_effect"
             android:gravity="center_horizontal"
             android:text="@string/common_audio_effect"
-            android:textColor="@color/common_not_standard_white_e7"
-            android:textSize="12sp" />
+            android:textColor="@color/text_color_primary"
+            android:textSize="@dimen/text_size_12" />
     </RelativeLayout>
 
     <RelativeLayout
@@ -77,14 +77,14 @@
             android:src="@drawable/anchor_prepare_function_item_flip"
             tools:ignore="ContentDescription" />
 
-        <TextView
+        <io.trtc.tuikit.atomicx.widget.basicwidget.label.AtomicLabel
             android:layout_width="match_parent"
             android:layout_height="20dp"
             android:layout_below="@+id/iv_flip"
             android:gravity="center_horizontal"
             android:text="@string/common_video_settings_item_flip"
-            android:textColor="@color/common_not_standard_white_e7"
-            android:textSize="12sp" />
+            android:textColor="@color/text_color_primary"
+            android:textSize="@dimen/text_size_12" />
     </RelativeLayout>
 
     <RelativeLayout
@@ -103,14 +103,14 @@
             android:src="@drawable/anchor_prepare_function_item_layout"
             tools:ignore="ContentDescription" />
 
-        <TextView
+        <io.trtc.tuikit.atomicx.widget.basicwidget.label.AtomicLabel
             android:layout_width="match_parent"
             android:layout_height="20dp"
             android:layout_below="@+id/iv_layout"
             android:gravity="center_horizontal"
             android:text="@string/common_template_layout"
-            android:textColor="@color/common_not_standard_white_e7"
-            android:textSize="12sp" />
+            android:textColor="@color/text_color_primary"
+            android:textSize="@dimen/text_size_12" />
     </RelativeLayout>
 
     <RelativeLayout
@@ -129,13 +129,13 @@
             android:src="@drawable/anchor_prepare_function_item_video_setting"
             tools:ignore="ContentDescription" />
 
-        <TextView
+        <io.trtc.tuikit.atomicx.widget.basicwidget.label.AtomicLabel
             android:layout_width="match_parent"
             android:layout_height="20dp"
             android:layout_below="@+id/iv_video_setting"
             android:gravity="center_horizontal"
             android:text="@string/common_dashboard_video_resolution"
-            android:textColor="@color/common_not_standard_white_e7"
-            android:textSize="12sp" />
+            android:textColor="@color/text_color_primary"
+            android:textSize="@dimen/text_size_12" />
     </RelativeLayout>
 </LinearLayout>

@@ -7,15 +7,14 @@
     android:background="@color/common_design_standard_g2"
     android:gravity="start">
 
-    <androidx.constraintlayout.utils.widget.ImageFilterView
+    <io.trtc.tuikit.atomicx.widget.basicwidget.avatar.AtomicAvatar
         android:id="@+id/iv_head"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:avatarSize="m"
         android:layout_alignParentStart="true"
         android:layout_centerVertical="true"
-        android:layout_marginStart="24dp"
-        android:src="@drawable/audience_list_default_avatar"
-        app:round="20dp" />
+        android:layout_marginStart="24dp" />
 
     <TextView
         android:id="@+id/tv_name"

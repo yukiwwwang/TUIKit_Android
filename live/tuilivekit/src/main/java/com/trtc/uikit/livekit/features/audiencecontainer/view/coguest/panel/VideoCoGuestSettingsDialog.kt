@@ -6,10 +6,7 @@ import android.view.LayoutInflater
 import android.widget.Button
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.tencent.cloud.tuikit.engine.common.TUICommonDefine
-import com.tencent.cloud.tuikit.engine.common.TUIVideoView
 import com.tencent.qcloud.tuicore.util.ScreenUtil
-import com.tencent.qcloud.tuicore.util.ToastUtil
 import com.trtc.tuikit.common.permission.PermissionCallback
 import com.trtc.tuikit.common.system.ContextProvider
 import com.trtc.uikit.livekit.R
@@ -17,23 +14,27 @@ import com.trtc.uikit.livekit.common.ErrorLocalized
 import com.trtc.uikit.livekit.common.LiveKitLogger
 import com.trtc.uikit.livekit.common.PermissionRequest
 import com.trtc.uikit.livekit.common.completionHandler
-import com.trtc.uikit.livekit.common.ui.PopupDialog
 import com.trtc.uikit.livekit.common.ui.RoundFrameLayout
 import com.trtc.uikit.livekit.component.beauty.BeautyUtils
-import com.trtc.uikit.livekit.features.audiencecontainer.manager.AudienceManager
+import com.trtc.uikit.livekit.features.audiencecontainer.store.AudienceStore
+import io.trtc.tuikit.atomicx.widget.basicwidget.toast.AtomicToast
+import io.trtc.tuikit.atomicxcore.api.device.DeviceStore
+import io.trtc.tuikit.atomicxcore.api.view.CameraView
+import io.trtc.tuikit.atomicx.widget.basicwidget.popover.AtomicPopover
 
 @SuppressLint("ViewConstructor")
 class VideoCoGuestSettingsDialog(
     context: Context,
-    private val audienceManager: AudienceManager
-) : PopupDialog(context), AudienceManager.AudienceViewListener {
+    private val audienceStore: AudienceStore,
+    private val seatIndex: Int,
+) : AtomicPopover(context), AudienceStore.AudienceViewListener {
 
     companion object {
         private val LOGGER = LiveKitLogger.getLiveStreamLogger("VideoCoGuestSettingsDialog")
     }
 
     private lateinit var roundFrameLayout: RoundFrameLayout
-    private lateinit var previewVideoView: TUIVideoView
+    private lateinit var cameraView: CameraView
     private lateinit var buttonApplyLinkMic: Button
     private lateinit var recycleSettingsOption: RecyclerView
 
@@ -48,15 +49,15 @@ class VideoCoGuestSettingsDialog(
         bindViewId(view)
 
         initRecycleSettingsOption()
-        initPreviewVideoView()
+        initCameraView()
         initApplyLinkMicButton()
         initRoundFrameLayout()
 
-        setView(view)
+        setContent(view)
     }
 
     private fun bindViewId(view: android.view.View) {
-        previewVideoView = view.findViewById(R.id.preview_audience_video)
+        cameraView = view.findViewById(R.id.preview_audience_video)
         buttonApplyLinkMic = view.findViewById(R.id.btn_apply_link_mic)
         recycleSettingsOption = view.findViewById(R.id.video_settings_options)
         roundFrameLayout = view.findViewById(R.id.fl_preview_audience_video)
@@ -64,13 +65,13 @@ class VideoCoGuestSettingsDialog(
 
     override fun onAttachedToWindow() {
         super.onAttachedToWindow()
-        audienceManager.addAudienceViewListener(this)
+        audienceStore.addAudienceViewListener(this)
     }
 
     override fun onDetachedFromWindow() {
         super.onDetachedFromWindow()
-        audienceManager.removeAudienceViewListener(this)
-        audienceManager.getDeviceStore().closeLocalCamera()
+        audienceStore.removeAudienceViewListener(this)
+        audienceStore.getDeviceStore().stopCameraTest()
     }
 
     private fun initRoundFrameLayout() {
@@ -83,7 +84,7 @@ class VideoCoGuestSettingsDialog(
                 return@setOnClickListener
             }
             view.isEnabled = false
-            ToastUtil.toastShortMessageCenter(context.getString(R.string.common_toast_apply_link_mic))
+            AtomicToast.show(context, context.getString(R.string.common_toast_apply_link_mic), AtomicToast.Style.INFO)
             LOGGER.info("requestMicrophonePermissions success")
             PermissionRequest.requestCameraPermissions(
                 ContextProvider.getApplicationContext(),
@@ -94,23 +95,17 @@ class VideoCoGuestSettingsDialog(
                             ContextProvider.getApplicationContext(),
                             object : PermissionCallback() {
                                 override fun onGranted() {
-                                    audienceManager.getViewStore()
+                                    audienceStore.getViewStore()
                                         .updateTakeSeatState(true)
-                                    audienceManager.getViewStore().updateOpenCameraAfterTakeSeatState(true)
-                                    audienceManager.getCoGuestStore()
-                                        .applyForSeat(-1, 60, true.toString(), completionHandler {
+                                    audienceStore.getViewStore().updateOpenCameraAfterTakeSeatState(true)
+                                    this@VideoCoGuestSettingsDialog.audienceStore.getCoGuestStore()
+                                        .applyForSeat(seatIndex, 60, true.toString(), completionHandler {
                                             onSuccess {
-                                                audienceManager.getViewStore()
-                                                    .updateTakeSeatState(false)
+                                                audienceStore.getViewStore().updateTakeSeatState(false)
                                             }
                                             onError { code, _ ->
-                                                audienceManager.getViewStore()
-                                                    .updateTakeSeatState(false)
-                                                ErrorLocalized.onError(
-                                                    TUICommonDefine.Error.fromInt(
-                                                        code
-                                                    )
-                                                )
+                                                audienceStore.getViewStore().updateTakeSeatState(false)
+                                                ErrorLocalized.onError(code)
                                             }
                                         })
                                 }
@@ -129,14 +124,13 @@ class VideoCoGuestSettingsDialog(
         }
     }
 
-    private fun initPreviewVideoView() {
-        audienceManager.getMediaStore().setLocalVideoView(previewVideoView)
-        val isFront = audienceManager.getDeviceStore().deviceState.isFrontCamera.value
+    private fun initCameraView() {
         PermissionRequest.requestCameraPermissions(
             ContextProvider.getApplicationContext(),
             object : PermissionCallback() {
                 override fun onGranted() {
-                    audienceManager.getDeviceStore().openLocalCamera(isFront, null)
+                    audienceStore.getDeviceStore().switchCamera(true)
+                    DeviceStore.shared().startCameraTest(cameraView, null)
                 }
             })
     }
@@ -150,8 +144,8 @@ class VideoCoGuestSettingsDialog(
             }
 
             override fun onFlipItemClicked() {
-                val isFront = audienceManager.getDeviceStore().deviceState.isFrontCamera.value
-                audienceManager.getDeviceStore().switchCamera(!isFront)
+                val isFront = audienceStore.getDeviceStore().deviceState.isFrontCamera.value
+                audienceStore.getDeviceStore().switchCamera(!isFront)
             }
         })
         recycleSettingsOption.adapter = adapter
@@ -169,8 +163,8 @@ class VideoCoGuestSettingsDialog(
         }
 
         override fun onFlipItemClicked() {
-            val isFront = audienceManager.getDeviceStore().deviceState.isFrontCamera.value
-            audienceManager.getDeviceStore().switchCamera(!isFront)
+            val isFront = audienceStore.getDeviceStore().deviceState.isFrontCamera.value
+            audienceStore.getDeviceStore().switchCamera(!isFront)
         }
     }
 }

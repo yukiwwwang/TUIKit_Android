@@ -7,9 +7,9 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.core.content.ContextCompat
 import com.trtc.uikit.livekit.R
-import com.trtc.uikit.livekit.common.ui.PopupDialog
+import io.trtc.tuikit.atomicx.widget.basicwidget.popover.AtomicPopover
 
-class SeatActionSheetDialog(private val context: Context) : PopupDialog(context) {
+class SeatActionSheetDialog(private val context: Context) : AtomicPopover(context) {
 
     private val viewContainer: ViewGroup
 
@@ -18,7 +18,7 @@ class SeatActionSheetDialog(private val context: Context) : PopupDialog(context)
             View.inflate(context, R.layout.livekit_voiceroom_seat_action_sheet_panel, null)
         rootView.background =
             ContextCompat.getDrawable(context, R.drawable.livekit_dialog_background_light)
-        setView(rootView)
+        setContent(rootView)
         viewContainer = rootView.findViewById(R.id.view_container)
         rootView.findViewById<View>(R.id.text_cancel).setOnClickListener { dismiss() }
     }

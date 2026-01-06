@@ -6,58 +6,64 @@ import android.os.Handler
 import android.os.Looper
 import android.util.AttributeSet
 import android.view.LayoutInflater
-import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
-import androidx.lifecycle.Observer
-import com.tencent.cloud.tuikit.engine.common.TUICommonDefine
 import com.trtc.uikit.livekit.R
-import com.trtc.uikit.livekit.component.networkInfo.service.NetworkInfoService
+import com.trtc.uikit.livekit.common.ui.BasicView
 import com.trtc.uikit.livekit.component.networkInfo.store.NetworkInfoState
+import com.trtc.uikit.livekit.component.networkInfo.store.NetworkInfoStore
 import com.trtc.uikit.livekit.component.networkInfo.view.NetworkBadTipsDialog
 import com.trtc.uikit.livekit.component.networkInfo.view.NetworkInfoPanel
+import io.trtc.tuikit.atomicxcore.api.device.DeviceStore
+import io.trtc.tuikit.atomicxcore.api.device.NetworkQuality
+import io.trtc.tuikit.atomicxcore.api.live.LiveEndedReason
+import io.trtc.tuikit.atomicxcore.api.live.LiveInfo
+import io.trtc.tuikit.atomicxcore.api.live.LiveListListener
+import io.trtc.tuikit.atomicxcore.api.live.LiveListStore
+import io.trtc.tuikit.atomicxcore.api.live.LiveSeatStore
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlin.math.min
 
 class NetworkInfoView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
-    defStyleAttr: Int = 0
-) : FrameLayout(context, attrs, defStyleAttr) {
-    private val service: NetworkInfoService = NetworkInfoService(context)
-    private val state: NetworkInfoState = service.networkInfoState
+    defStyleAttr: Int = 0,
+) : BasicView(context, attrs, defStyleAttr) {
+    private val networkInfoStore: NetworkInfoStore = NetworkInfoStore(context)
+    private val state: NetworkInfoState = networkInfoStore.networkInfoState
     private lateinit var imageNetworkStatus: ImageView
     private lateinit var textCreateTime: TextView
     private var networkInfoPanel: NetworkInfoPanel? = null
     private lateinit var layoutNetworkInfo: LinearLayout
     private var createTime: Long = 0L
+    private lateinit var liveInfo: LiveInfo
     private var liveTimeRunnable: Runnable? = null
     private val handler = Handler(Looper.getMainLooper())
-
-    private val netWorkQualityObserver = Observer<TUICommonDefine.NetworkQuality> { networkQuality ->
-        onNetworkQualityChange(networkQuality)
-    }
-
-    private val networkWeakTipsObserver = Observer<Boolean> { isShow ->
-        onNetworkWeakTipsChange(isShow)
-    }
-
-    private val roomDismissedObserver = Observer<Boolean> { dismissed ->
-        onRoomRoomDismissed(dismissed)
+    private val liveListListener = object : LiveListListener() {
+        override fun onLiveEnded(liveID: String, reason: LiveEndedReason, message: String) {
+            if (networkInfoPanel?.isShowing == true) {
+                networkInfoPanel?.dismiss()
+            }
+        }
     }
 
     init {
         initView()
     }
 
-    fun init(createTime: Long) {
+    fun init(liveInfo: LiveInfo) {
+        this.liveInfo = liveInfo
+        init(liveInfo.liveID)
         val now = System.currentTimeMillis()
-        this@NetworkInfoView.createTime = if (createTime <= 0) {
-            now
-        } else {
-            min(createTime, now)
-        }
+        this@NetworkInfoView.createTime = min(liveInfo.createTime, now)
         startLiveTimer()
+    }
+
+    override fun initStore() {
+        LiveSeatStore.create(liveInfo.liveID)
     }
 
     fun setScreenOrientation(isPortrait: Boolean) {
@@ -78,35 +84,61 @@ class NetworkInfoView @JvmOverloads constructor(
 
     override fun onAttachedToWindow() {
         super.onAttachedToWindow()
-        addObserver()
     }
 
     override fun onDetachedFromWindow() {
         super.onDetachedFromWindow()
-        removeObserver()
         stopLiveTimer()
     }
 
-    private fun addObserver() {
-        service.addObserver()
-        state.networkStatus.observeForever(netWorkQualityObserver)
-        state.isDisplayNetworkWeakTips.observeForever(networkWeakTipsObserver)
-        state.roomDismissed.observeForever(roomDismissedObserver)
+    override fun addObserver() {
+        networkInfoStore.addObserver()
+        LiveListStore.shared().addLiveListListener(liveListListener)
+        subscribeStateJob = CoroutineScope(Dispatchers.Main).launch {
+            launch {
+                state.networkStatus.collect {
+                    onNetworkQualityChange(it)
+                }
+            }
+
+            launch {
+                state.isDisplayNetworkWeakTips.collect {
+                    onNetworkWeakTipsChange(it)
+                }
+            }
+
+            launch {
+                LiveSeatStore.create(liveInfo.liveID).liveSeatState.avStatistics.collect {
+                    networkInfoStore.handleStatisticsChanged(it)
+                }
+            }
+
+            launch {
+                LiveSeatStore.create(liveInfo.liveID).liveSeatState.seatList.collect {
+                    networkInfoStore.handleSeatListChanged(it)
+                }
+            }
+
+            launch {
+                DeviceStore.shared().deviceState.networkInfo.collect {
+                    networkInfoStore.handleNetworkQualityChange(it)
+                }
+            }
+        }
     }
 
-    private fun removeObserver() {
-        service.removeObserver()
-        state.networkStatus.removeObserver(netWorkQualityObserver)
-        state.isDisplayNetworkWeakTips.removeObserver(networkWeakTipsObserver)
-        state.roomDismissed.removeObserver(roomDismissedObserver)
+    override fun removeObserver() {
+        networkInfoStore.removeObserver()
+        LiveListStore.shared().removeLiveListListener(liveListListener)
+        subscribeStateJob?.cancel()
     }
 
     private fun initNetworkView() {
         layoutNetworkInfo.setOnClickListener {
             networkInfoPanel = NetworkInfoPanel(
                 context,
-                service,
-                state.isTakeInSeat.value == true
+                networkInfoStore,
+                state.isTakeInSeat.value
             )
             networkInfoPanel?.show()
         }
@@ -114,7 +146,7 @@ class NetworkInfoView @JvmOverloads constructor(
 
     private fun startLiveTimer() {
         liveTimeRunnable?.let { handler.removeCallbacks(it) }
-        
+
         liveTimeRunnable = object : Runnable {
             override fun run() {
                 val now = System.currentTimeMillis()
@@ -142,12 +174,13 @@ class NetworkInfoView @JvmOverloads constructor(
         return String.format("%02d:%02d:%02d", hours, minutes, seconds)
     }
 
-    private fun onNetworkQualityChange(networkQuality: TUICommonDefine.NetworkQuality) {
+    private fun onNetworkQualityChange(networkQuality: NetworkQuality) {
         val resId = when (networkQuality) {
-            TUICommonDefine.NetworkQuality.POOR -> R.drawable.network_info_network_status_poor
-            TUICommonDefine.NetworkQuality.BAD -> R.drawable.network_info_network_status_very_bad
-            TUICommonDefine.NetworkQuality.VERY_BAD,
-            TUICommonDefine.NetworkQuality.DOWN -> R.drawable.network_info_network_status_down
+            NetworkQuality.POOR -> R.drawable.network_info_network_status_poor
+            NetworkQuality.BAD -> R.drawable.network_info_network_status_very_bad
+            NetworkQuality.VERY_BAD,
+            NetworkQuality.DOWN -> R.drawable.network_info_network_status_down
+
             else -> R.drawable.network_info_network_status_good
         }
         imageNetworkStatus.setImageResource(resId)
@@ -157,12 +190,6 @@ class NetworkInfoView @JvmOverloads constructor(
         if (isShow == true) {
             val dialog = NetworkBadTipsDialog(context)
             dialog.show()
-        }
-    }
-
-    private fun onRoomRoomDismissed(dismissed: Boolean?) {
-        if (dismissed == true && networkInfoPanel?.isShowing == true) {
-            networkInfoPanel?.dismiss()
         }
     }
 }

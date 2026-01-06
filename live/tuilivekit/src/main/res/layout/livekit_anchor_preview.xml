@@ -54,22 +54,21 @@
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent" />
 
-    <Button
+    <io.trtc.tuikit.atomicx.widget.basicwidget.button.AtomicButton
         android:id="@+id/btn_start_live"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="52dp"
         android:layout_marginStart="24dp"
         android:layout_marginEnd="24dp"
         android:layout_marginBottom="60dp"
-        android:background="@drawable/livekit_round_button_background"
         android:text="@string/common_start_live"
-        android:textAllCaps="false"
-        android:textColor="@android:color/white"
-        android:textFontWeight="700"
-        android:textSize="20sp"
+        app:buttonVariant="filled"
+        app:buttonColorType="primary"
+        app:customButtonSize="l"
+        app:buttonIconPosition="none"
+        app:textStyle="true"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        tools:ignore="UnusedAttribute" />
+        app:layout_constraintRight_toRightOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

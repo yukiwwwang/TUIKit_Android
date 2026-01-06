@@ -6,20 +6,23 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
-import androidx.constraintlayout.utils.widget.ImageFilterView
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.trtc.tuikit.common.imageloader.ImageLoader
 import com.trtc.uikit.livekit.R
 import com.trtc.uikit.livekit.common.ErrorLocalized
-import com.trtc.uikit.livekit.common.ui.StandardToast
+import io.trtc.tuikit.atomicx.widget.basicwidget.avatar.AtomicAvatar
+import io.trtc.tuikit.atomicx.widget.basicwidget.avatar.AtomicAvatar.AvatarContent
+import io.trtc.tuikit.atomicx.widget.basicwidget.button.AtomicButton
+import io.trtc.tuikit.atomicx.widget.basicwidget.toast.AtomicToast
 import io.trtc.tuikit.atomicxcore.api.CompletionHandler
 import io.trtc.tuikit.atomicxcore.api.live.CoHostLayoutTemplate
 import io.trtc.tuikit.atomicxcore.api.live.CoHostStore
 import io.trtc.tuikit.atomicxcore.api.live.LiveInfo
 import io.trtc.tuikit.atomicxcore.api.live.LiveListStore
 import io.trtc.tuikit.atomicxcore.api.live.LiveSeatStore
+import io.trtc.tuikit.atomicx.widget.basicwidget.button.ButtonVariant
+import io.trtc.tuikit.atomicx.widget.basicwidget.button.ButtonColorType
 
 class BattleInviteAdapter(private val context: Context) :
     ListAdapter<LiveInfo, BattleInviteAdapter.RecommendViewHolder>(DIFF_CALLBACK) {
@@ -50,9 +53,9 @@ class BattleInviteAdapter(private val context: Context) :
     }
 
     inner class RecommendViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        private val imageHead: ImageFilterView = itemView.findViewById(R.id.iv_head)
+        private val imageHead: AtomicAvatar = itemView.findViewById(R.id.iv_head)
         private val textName: TextView = itemView.findViewById(R.id.tv_name)
-        private val textBattle: TextView = itemView.findViewById(R.id.tv_battle)
+        private val buttonBattle: AtomicButton = itemView.findViewById(R.id.tv_battle)
 
         private var lastClickTime: Long = 0L
 
@@ -68,29 +71,31 @@ class BattleInviteAdapter(private val context: Context) :
         }
 
         private fun setAvatar(recommendUser: LiveInfo) {
-            val avatarUrl = recommendUser.liveOwner.avatarURL
-            if (avatarUrl.isNullOrEmpty()) {
-                imageHead.setImageResource(R.drawable.livekit_ic_avatar)
-            } else {
-                ImageLoader.load(context, imageHead, avatarUrl, R.drawable.livekit_ic_avatar)
-            }
+            imageHead.setContent(
+                AvatarContent.URL(
+                    recommendUser.liveOwner.avatarURL,
+                    R.drawable.livekit_ic_avatar
+                )
+            )
         }
 
         private fun updateInviteButtonStateAndAction(recommendUser: LiveInfo) {
             val inviteesList = coHostStore.coHostState.invitees.value
             val isThisUserInvited = inviteesList.any { it.liveID == recommendUser.liveID }
 
-            textBattle.isEnabled = true
+            buttonBattle.isEnabled = true
 
             if (isThisUserInvited) {
-                textBattle.setText(R.string.seat_cancel_invite)
-                textBattle.setBackgroundResource(R.drawable.livekit_btn_grey_edge_bg)
+                buttonBattle.text = context.getString(R.string.seat_cancel_invite)
+                buttonBattle.variant = ButtonVariant.OUTLINED
+                buttonBattle.colorType = ButtonColorType.SECONDARY
             } else {
-                textBattle.setText(R.string.seat_invite_battle)
-                textBattle.setBackgroundResource(R.drawable.livekit_link_mic_accept_background)
+                buttonBattle.text = context.getString(R.string.seat_invite_battle)
+                buttonBattle.variant = ButtonVariant.FILLED
+                buttonBattle.colorType = ButtonColorType.PRIMARY
             }
 
-            textBattle.setOnClickListener {
+            buttonBattle.setOnClickListener {
                 val currentTime = SystemClock.elapsedRealtime()
                 if (currentTime - lastClickTime < DEBOUNCE_INTERVAL_MS) {
                     return@setOnClickListener
@@ -121,13 +126,18 @@ class BattleInviteAdapter(private val context: Context) :
 
         private fun sendInvitation(recommendUser: LiveInfo, isAnyoneElseInvited: Boolean) {
             if (isAnyoneElseInvited) {
-                StandardToast.toastShortMessage(context.getString(R.string.seat_repeat_invite_tips))
+                AtomicToast.show(context, context.getString(R.string.seat_repeat_invite_tips), AtomicToast.Style.WARNING)
+                return
+            }
+
+            if (isBackSeatsOccupied()) {
+                AtomicToast.show(context, context.getString(R.string.common_back_seats_occupied), AtomicToast.Style.WARNING)
                 return
             }
 
             coHostStore.requestHostConnection(
                 recommendUser.liveID,
-                CoHostLayoutTemplate.HOST_STATIC_VOICE_6V6,
+                CoHostLayoutTemplate.HOST_VOICE_CONNECTION,
                 CONNECTION_REQUEST_TIMEOUT,
                 EXTENSION_INFO,
                 object : CompletionHandler {
@@ -138,6 +148,11 @@ class BattleInviteAdapter(private val context: Context) :
                         itemView.post { notifyItemChanged(adapterPosition) }
                     }
                 })
+        }
+
+        private fun isBackSeatsOccupied(): Boolean {
+            val seatList = liveSeatStore.liveSeatState.seatList.value
+            return seatList.any { it.index >= 6 && it.userInfo.userID.isNotEmpty() }
         }
     }
 

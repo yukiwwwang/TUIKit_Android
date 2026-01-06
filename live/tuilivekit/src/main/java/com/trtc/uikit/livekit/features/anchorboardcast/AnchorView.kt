@@ -5,6 +5,7 @@ import android.app.Activity
 import android.app.Activity.RESULT_OK
 import android.content.Context
 import android.content.Intent
+import android.os.Build
 import android.text.TextUtils
 import android.util.AttributeSet
 import android.util.Log
@@ -14,25 +15,20 @@ import android.view.ViewGroup
 import android.widget.FrameLayout
 import android.widget.ImageView
 import com.google.gson.Gson
-import com.tencent.cloud.tuikit.engine.common.TUICommonDefine
-import com.tencent.cloud.tuikit.engine.extension.TUILiveBattleManager
-import com.tencent.cloud.tuikit.engine.room.TUIRoomDefine
-import com.tencent.cloud.tuikit.engine.room.TUIRoomDefine.SeatFullInfo
-import com.tencent.cloud.tuikit.engine.room.TUIRoomDefine.UserInfo
-import com.tencent.cloud.tuikit.engine.room.TUIRoomEngine
+import com.tencent.cloud.tuikit.engine.extension.TUILiveListManager
 import com.tencent.qcloud.tuicore.TUIConstants
 import com.tencent.qcloud.tuicore.TUICore
-import com.tencent.qcloud.tuicore.TUILogin
 import com.tencent.qcloud.tuicore.TUIThemeManager
 import com.trtc.tuikit.common.foregroundservice.VideoForegroundService
 import com.trtc.tuikit.common.permission.PermissionCallback
 import com.trtc.tuikit.common.system.ContextProvider
 import com.trtc.tuikit.common.util.ScreenUtil
-import com.trtc.tuikit.common.util.ToastUtil
 import com.trtc.uikit.livekit.R
+import com.trtc.uikit.livekit.common.COMPONENT_LIVE_STREAM
 import com.trtc.uikit.livekit.common.ErrorLocalized
 import com.trtc.uikit.livekit.common.LiveKitLogger
 import com.trtc.uikit.livekit.common.PermissionRequest
+import com.trtc.uikit.livekit.common.setComponent
 import com.trtc.uikit.livekit.common.ui.RoundFrameLayout
 import com.trtc.uikit.livekit.component.audiencelist.AudienceListView
 import com.trtc.uikit.livekit.component.barrage.BarrageInputView
@@ -51,15 +47,14 @@ import com.trtc.uikit.livekit.component.giftaccess.store.GiftStore
 import com.trtc.uikit.livekit.component.giftaccess.view.BarrageViewTypeDelegate
 import com.trtc.uikit.livekit.component.giftaccess.view.GiftBarrageAdapter
 import com.trtc.uikit.livekit.component.networkInfo.NetworkInfoView
-import com.trtc.uikit.livekit.component.pictureinpicture.PictureInPictureStore
+import com.trtc.uikit.livekit.component.pippanel.PIPPanelStore
 import com.trtc.uikit.livekit.component.roominfo.LiveInfoView
-import com.trtc.uikit.livekit.features.anchorboardcast.manager.AnchorManager
-import com.trtc.uikit.livekit.features.anchorboardcast.state.AnchorConfig
-import com.trtc.uikit.livekit.features.anchorboardcast.state.BattleState
-import com.trtc.uikit.livekit.features.anchorboardcast.state.BattleState.Companion.BATTLE_DURATION
-import com.trtc.uikit.livekit.features.anchorboardcast.state.BattleState.Companion.BATTLE_REQUEST_TIMEOUT
+import com.trtc.uikit.livekit.features.anchorboardcast.store.AnchorBattleStore.Companion.BATTLE_DURATION
+import com.trtc.uikit.livekit.features.anchorboardcast.store.AnchorBattleStore.Companion.BATTLE_REQUEST_TIMEOUT
+import com.trtc.uikit.livekit.features.anchorboardcast.store.AnchorConfig
+import com.trtc.uikit.livekit.features.anchorboardcast.store.AnchorStore
+import com.trtc.uikit.livekit.features.anchorboardcast.store.BattleUser
 import com.trtc.uikit.livekit.features.anchorboardcast.view.BasicView
-import com.trtc.uikit.livekit.features.anchorboardcast.view.EndLiveStreamDialog
 import com.trtc.uikit.livekit.features.anchorboardcast.view.battle.panel.AnchorEndBattleDialog
 import com.trtc.uikit.livekit.features.anchorboardcast.view.battle.panel.BattleCountdownDialog
 import com.trtc.uikit.livekit.features.anchorboardcast.view.battle.widgets.BattleInfoView
@@ -72,13 +67,19 @@ import com.trtc.uikit.livekit.features.anchorboardcast.view.coguest.widgets.Anch
 import com.trtc.uikit.livekit.features.anchorboardcast.view.coguest.widgets.CoGuestBackgroundWidgetsView
 import com.trtc.uikit.livekit.features.anchorboardcast.view.coguest.widgets.CoGuestForegroundWidgetsView
 import com.trtc.uikit.livekit.features.anchorboardcast.view.cohost.panel.AnchorCoHostManageDialog
-import com.trtc.uikit.livekit.features.anchorboardcast.view.cohost.panel.StandardDialog
 import com.trtc.uikit.livekit.features.anchorboardcast.view.cohost.widgets.CoHostBackgroundWidgetsView
 import com.trtc.uikit.livekit.features.anchorboardcast.view.cohost.widgets.CoHostForegroundWidgetsView
 import com.trtc.uikit.livekit.features.anchorboardcast.view.settings.SettingsPanelDialog
 import com.trtc.uikit.livekit.features.anchorboardcast.view.usermanage.UserManagerDialog
+import io.trtc.tuikit.atomicx.widget.basicwidget.alertdialog.AtomicAlertDialog
+import io.trtc.tuikit.atomicx.widget.basicwidget.alertdialog.addItem
+import io.trtc.tuikit.atomicx.widget.basicwidget.alertdialog.cancelButton
+import io.trtc.tuikit.atomicx.widget.basicwidget.alertdialog.confirmButton
+import io.trtc.tuikit.atomicx.widget.basicwidget.alertdialog.init
+import io.trtc.tuikit.atomicx.widget.basicwidget.toast.AtomicToast
 import io.trtc.tuikit.atomicxcore.api.CompletionHandler
 import io.trtc.tuikit.atomicxcore.api.barrage.Barrage
+import io.trtc.tuikit.atomicxcore.api.device.DeviceError
 import io.trtc.tuikit.atomicxcore.api.device.DeviceStatus
 import io.trtc.tuikit.atomicxcore.api.device.DeviceStore
 import io.trtc.tuikit.atomicxcore.api.gift.Gift
@@ -92,6 +93,8 @@ import io.trtc.tuikit.atomicxcore.api.live.CoGuestStore
 import io.trtc.tuikit.atomicxcore.api.live.CoHostListener
 import io.trtc.tuikit.atomicxcore.api.live.CoHostStore
 import io.trtc.tuikit.atomicxcore.api.live.HostListener
+import io.trtc.tuikit.atomicxcore.api.live.LiveAudienceListener
+import io.trtc.tuikit.atomicxcore.api.live.LiveAudienceStore
 import io.trtc.tuikit.atomicxcore.api.live.LiveEndedReason
 import io.trtc.tuikit.atomicxcore.api.live.LiveInfo
 import io.trtc.tuikit.atomicxcore.api.live.LiveInfoCompletionHandler
@@ -100,9 +103,12 @@ import io.trtc.tuikit.atomicxcore.api.live.LiveListListener
 import io.trtc.tuikit.atomicxcore.api.live.LiveListStore
 import io.trtc.tuikit.atomicxcore.api.live.LiveUserInfo
 import io.trtc.tuikit.atomicxcore.api.live.NoResponseReason
+import io.trtc.tuikit.atomicxcore.api.live.SeatInfo
 import io.trtc.tuikit.atomicxcore.api.live.SeatUserInfo
+import io.trtc.tuikit.atomicxcore.api.live.StopLiveCompletionHandler
 import io.trtc.tuikit.atomicxcore.api.live.TakeSeatMode
 import io.trtc.tuikit.atomicxcore.api.live.deprecated.LiveCoreViewDeprecated
+import io.trtc.tuikit.atomicxcore.api.login.LoginStore
 import io.trtc.tuikit.atomicxcore.api.view.CoreViewType
 import io.trtc.tuikit.atomicxcore.api.view.LiveCoreView
 import io.trtc.tuikit.atomicxcore.api.view.VideoViewAdapter
@@ -118,9 +124,8 @@ import java.util.Objects
 
 @SuppressLint("ViewConstructor")
 class AnchorView @JvmOverloads constructor(
-    context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
-) : BasicView(context, attrs, defStyleAttr), EndLiveStreamDialog.EndLiveStreamDialogListener,
-    AnchorManager.LiveStateListener {
+    context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0,
+) : BasicView(context, attrs, defStyleAttr) {
 
     private val logger = LiveKitLogger.getFeaturesLogger("AnchorView")
     private var behavior: RoomBehavior = RoomBehavior.CREATE_ROOM
@@ -142,12 +147,12 @@ class AnchorView @JvmOverloads constructor(
     private lateinit var applyCoGuestFloatView: ApplyCoGuestFloatView
 
     private var anchorCoHostManageDialog: AnchorCoHostManageDialog? = null
-    private var processConnectionDialog: StandardDialog? = null
-    private var processBattleDialog: StandardDialog? = null
+    private var processConnectionDialog: AtomicAlertDialog? = null
+    private var processBattleDialog: AtomicAlertDialog? = null
     private var battleCountdownDialog: BattleCountdownDialog? = null
     private var anchorManagerDialog: AnchorManagerDialog? = null
-    private var userManagerDialog: UserManagerDialog? = null
     private var anchorEndBattleDialog: AnchorEndBattleDialog? = null
+    private var realEndBattleDialog: AtomicAlertDialog? = null
     private lateinit var liveInfo: LiveInfo
     private var isDestroy = false
     private var subscribeStateJob: Job? = null
@@ -157,7 +162,7 @@ class AnchorView @JvmOverloads constructor(
 
     private val coHostListener = object : CoHostListener() {
         override fun onCoHostRequestReceived(
-            inviter: SeatUserInfo, extensionInfo: String
+            inviter: SeatUserInfo, extensionInfo: String,
         ) {
             logger.info("${hashCode()} onCoHostRequestReceived:[inviter:${Gson().toJson(inviter)}]")
             val coGuestStore = CoGuestStore.create(liveInfo.liveID)
@@ -165,7 +170,7 @@ class AnchorView @JvmOverloads constructor(
             val list = mutableListOf<SeatUserInfo>()
 
             for (userInfo in coGuestStore.coGuestState.connected.value) {
-                if (userInfo.userID != TUIRoomEngine.getSelfInfo().userId && userInfo.liveID == liveInfo.liveID) {
+                if (userInfo.userID != LoginStore.shared.loginState.loginUserInfo.value?.userID && userInfo.liveID == liveInfo.liveID) {
                     list.add(userInfo)
                 }
             }
@@ -181,7 +186,7 @@ class AnchorView @JvmOverloads constructor(
 
             val content = context.getString(R.string.common_connect_inviting_append, inviter.userName)
             showConnectionRequestDialog(content, inviter.avatarURL, inviter.liveID)
-            anchorManager?.getCoHostManager()?.onConnectionRequestReceived(inviter)
+            anchorStore?.getAnchorCoHostStore()?.onConnectionRequestReceived(inviter)
         }
 
         override fun onCoHostRequestCancelled(inviter: SeatUserInfo, invitee: SeatUserInfo?) {
@@ -190,18 +195,18 @@ class AnchorView @JvmOverloads constructor(
 
         override fun onCoHostRequestAccepted(invitee: SeatUserInfo) {
             logger.info("${hashCode()} onCrossRoomConnectionAccepted:[invitee:$invitee]")
-            anchorManager?.getCoHostManager()?.onConnectionRequestAccept(invitee)
+            anchorStore?.getAnchorCoHostStore()?.onConnectionRequestAccept(invitee)
         }
 
         override fun onCoHostRequestRejected(invitee: SeatUserInfo) {
             logger.info("${hashCode()} onConnectionRequestReject:[invitee:$invitee]")
-            anchorManager?.getCoHostManager()?.onConnectionRequestReject(invitee)
+            anchorStore?.getAnchorCoHostStore()?.onConnectionRequestReject(invitee)
         }
 
         override fun onCoHostRequestTimeout(inviter: SeatUserInfo, invitee: SeatUserInfo) {
             logger.info("${hashCode()} onCrossRoomConnectionTimeout:[inviter:$inviter,invitee:$invitee")
             processConnectionDialog?.dismiss()
-            anchorManager?.getCoHostManager()?.onConnectionRequestTimeout(inviter, invitee)
+            anchorStore?.getAnchorCoHostStore()?.onConnectionRequestTimeout(inviter, invitee)
         }
     }
 
@@ -230,8 +235,11 @@ class AnchorView @JvmOverloads constructor(
         override fun onHostInvitationNoResponse(guestUser: LiveUserInfo, reason: NoResponseReason) {
             if (reason == NoResponseReason.TIMEOUT) {
                 logger.info("${hashCode()} onUserConnectionAccepted:[guestUser:$guestUser]")
-                com.tencent.qcloud.tuicore.util.ToastUtil.toastShortMessage(
-                    ContextProvider.getApplicationContext().resources.getString(R.string.common_voiceroom_take_seat_timeout)
+                val context = ContextProvider.getApplicationContext()
+                AtomicToast.show(
+                    context,
+                    context.resources.getString(R.string.common_voiceroom_take_seat_timeout),
+                    AtomicToast.Style.INFO
                 )
             }
         }
@@ -240,12 +248,12 @@ class AnchorView @JvmOverloads constructor(
     private val battleListener = object : BattleListener() {
         override fun onBattleStarted(battleInfo: BattleInfo, inviter: SeatUserInfo, invitees: List<SeatUserInfo>) {
             logger.info("${hashCode()} onBattleStarted:[battleInfo:$battleInfo]")
-            anchorManager?.getBattleManager()?.onBattleStarted(battleInfo, inviter, invitees)
+            anchorStore?.getAnchorBattleStore()?.onBattleStarted(battleInfo, inviter, invitees)
         }
 
         override fun onBattleEnded(battleInfo: BattleInfo, reason: BattleEndedReason?) {
             logger.info("${hashCode()} onBattleEnded:[battleInfo:$battleInfo]")
-            anchorManager?.getBattleManager()?.onBattleEnded(battleInfo)
+            anchorStore?.getAnchorBattleStore()?.onBattleEnded(battleInfo)
         }
 
         override fun onUserJoinBattle(battleID: String, battleUser: SeatUserInfo) {
@@ -254,50 +262,61 @@ class AnchorView @JvmOverloads constructor(
 
         override fun onUserExitBattle(battleID: String, battleUser: SeatUserInfo) {
             logger.info("${hashCode()} onUserExitBattle:[battleID:$battleID,battleUser:$battleUser]")
-            anchorManager?.getBattleManager()?.onUserExitBattle(battleUser)
+            anchorStore?.getAnchorBattleStore()?.onUserExitBattle(battleUser)
         }
 
         override fun onBattleRequestReceived(battleID: String, inviter: SeatUserInfo, invitee: SeatUserInfo) {
             logger.info("${hashCode()} onBattleRequestReceived:[battleID:$battleID,inviter:$inviter,invitee:$invitee]")
-            anchorManager?.getBattleManager()?.onBattleRequestReceived(battleID, inviter)
+            anchorStore?.getAnchorBattleStore()?.onBattleRequestReceived(battleID, inviter)
         }
 
         override fun onBattleRequestCancelled(battleID: String, inviter: SeatUserInfo, invitee: SeatUserInfo) {
             logger.info("${hashCode()} onBattleRequestCancelled:[battleID:$battleID,inviter:$inviter,invitee:$invitee]")
-            anchorManager?.getBattleManager()?.onBattleRequestCancelled(inviter)
+            anchorStore?.getAnchorBattleStore()?.onBattleRequestCancelled(inviter)
         }
 
         override fun onBattleRequestTimeout(battleID: String, inviter: SeatUserInfo, invitee: SeatUserInfo) {
             logger.info("${hashCode()} onBattleRequestTimeout:[battleID:$battleID,inviter:$inviter,invitee:$invitee]")
-            anchorManager?.getBattleManager()?.onBattleRequestTimeout(inviter, invitee)
+            anchorStore?.getAnchorBattleStore()?.onBattleRequestTimeout(inviter, invitee)
         }
 
         override fun onBattleRequestAccept(battleID: String, inviter: SeatUserInfo, invitee: SeatUserInfo) {
             logger.info("${hashCode()} onBattleRequestAccept:[battleID:$battleID,inviter:$inviter,invitee:$invitee]")
-            anchorManager?.getBattleManager()?.onBattleRequestAccept(invitee)
+            anchorStore?.getAnchorBattleStore()?.onBattleRequestAccept(invitee)
         }
 
         override fun onBattleRequestReject(battleID: String, inviter: SeatUserInfo, invitee: SeatUserInfo) {
             logger.info("${hashCode()} onBattleRequestReject:[battleID:$battleID,inviter:$inviter,invitee:$invitee]")
-            anchorManager?.getBattleManager()?.onBattleRequestReject(invitee)
+            anchorStore?.getAnchorBattleStore()?.onBattleRequestReject(invitee)
         }
     }
 
     private val liveListListener = object : LiveListListener() {
         override fun onLiveEnded(liveID: String, reason: LiveEndedReason, message: String) {
             if (liveID == liveInfo.liveID) {
-                ToastUtil.toastShortMessage(baseContext.getString(R.string.common_live_has_stop))
                 endLive(false)
             }
         }
 
         override fun onKickedOutOfLive(liveID: String, reason: LiveKickedOutReason, message: String) {
             if (liveID == liveInfo.liveID) {
-                ToastUtil.toastShortMessage(baseContext.getString(R.string.common_kicked_out_of_room_by_owner))
+                AtomicToast.show(
+                    baseContext,
+                    baseContext.getString(R.string.common_kicked_out_of_room_by_owner),
+                    AtomicToast.Style.INFO
+                )
                 endLive()
             }
         }
     }
+
+    private val liveAudienceListener = object : LiveAudienceListener() {
+        override fun onAudienceMessageDisabled(audience: LiveUserInfo, isDisable: Boolean) {
+            logger.info("${hashCode()} onAudienceMessageDisabled:[userID:${audience.userID},isDisable:$isDisable]")
+            anchorStore?.getUserStore()?.onAudienceMessageDisabled(audience.userID, isDisable)
+        }
+    }
+
 
     override fun initView() {
         LayoutInflater.from(baseContext).inflate(R.layout.livekit_livestream_anchor_view, this, true)
@@ -322,14 +341,13 @@ class AnchorView @JvmOverloads constructor(
     }
 
     fun init(
-        liveInfo: LiveInfo, coreView: LiveCoreView?, behavior: RoomBehavior, params: Map<String, Any>?
+        liveInfo: LiveInfo, coreView: LiveCoreView?, behavior: RoomBehavior, params: Map<String, Any>?,
     ) {
         this.behavior = behavior
         this.liveInfo = liveInfo
-        anchorManager = AnchorManager(liveInfo)
-        anchorManager?.setLiveStateListener(this)
+        anchorStore = AnchorStore(liveInfo)
         initLiveCoreView(coreView)
-        super.init(anchorManager!!)
+        super.init(anchorStore!!)
         parseParams(params)
         createVideoMuteBitmap()
         createOrEnterRoom()
@@ -337,8 +355,12 @@ class AnchorView @JvmOverloads constructor(
     }
 
     fun unInit() {
+        if (anchorStore?.getState()?.liveInfo?.keepOwnerOnSeat == true) {
+            LiveListStore.shared().endLive(null)
+        } else {
+            LiveListStore.shared().leaveLive(null)
+        }
         destroy()
-        LiveListStore.shared().endLive(null)
         TUICore.notifyEvent(
             TUIConstants.Privacy.EVENT_ROOM_STATE_CHANGED, TUIConstants.Privacy.EVENT_SUB_KEY_ROOM_STATE_STOP, null
         )
@@ -346,15 +368,15 @@ class AnchorView @JvmOverloads constructor(
     }
 
     fun addAnchorViewListener(listener: AnchorViewListener) {
-        anchorManager?.addAnchorViewListener(listener)
+        anchorStore?.addAnchorViewListener(listener)
     }
 
     fun removeAnchorViewListener(listener: AnchorViewListener) {
-        anchorManager?.removeAnchorViewListener(listener)
+        anchorStore?.removeAnchorViewListener(listener)
     }
 
     fun getState(): AnchorBoardcastState {
-        return anchorManager?.getExternalState() ?: AnchorBoardcastState()
+        return anchorStore?.getExternalState() ?: AnchorBoardcastState()
     }
 
     /**
@@ -368,7 +390,7 @@ class AnchorView @JvmOverloads constructor(
      * @param enable true:Turn on picture-in-picture mode; false:Turn off picture-in-picture mode
      */
     fun enablePipMode(enable: Boolean) {
-        anchorManager?.enablePipMode(enable)
+        anchorStore?.enablePipMode(enable)
 
         val layoutParams = layoutCoreViewContainer.layoutParams as FrameLayout.LayoutParams
         if (enable) {
@@ -385,32 +407,32 @@ class AnchorView @JvmOverloads constructor(
 
     fun disableHeaderLiveData(disable: Boolean?) {
         logger.info("disableHeaderLiveData: disable = $disable")
-        AnchorManager.disableHeaderLiveData(disable == true)
+        AnchorStore.disableHeaderLiveData(disable == true)
     }
 
     fun disableHeaderVisitorCnt(disable: Boolean?) {
         logger.info("disableHeaderVisitorCnt: disable = $disable")
-        AnchorManager.disableHeaderVisitorCnt(disable == true)
+        AnchorStore.disableHeaderVisitorCnt(disable == true)
     }
 
     fun disableFooterCoGuest(disable: Boolean?) {
         logger.info("disableFooterCoGuest: disable = $disable")
-        AnchorManager.disableFooterCoGuest(disable == true)
+        AnchorStore.disableFooterCoGuest(disable == true)
     }
 
     fun disableFooterCoHost(disable: Boolean?) {
         logger.info("disableFooterCoHost: disable = $disable")
-        AnchorManager.disableFooterCoHost(disable == true)
+        AnchorStore.disableFooterCoHost(disable == true)
     }
 
     fun disableFooterBattle(disable: Boolean?) {
         logger.info("disableFooterBattle: disable = $disable")
-        AnchorManager.disableFooterBattle(disable == true)
+        AnchorStore.disableFooterBattle(disable == true)
     }
 
     fun disableFooterSoundEffect(disable: Boolean?) {
         logger.info("disableFooterSoundEffect: disable = $disable")
-        AnchorManager.disableFooterSoundEffect(disable == true)
+        AnchorStore.disableFooterSoundEffect(disable == true)
     }
 
     override fun onDetachedFromWindow() {
@@ -422,13 +444,13 @@ class AnchorView @JvmOverloads constructor(
         // Empty implementation
     }
 
-    private fun showCoGuestManageDialog(userInfo: SeatFullInfo?) {
-        if (userInfo == null || TextUtils.isEmpty(userInfo.userId)) {
+    private fun showCoGuestManageDialog(userInfo: SeatInfo?) {
+        if (userInfo == null || TextUtils.isEmpty(userInfo.userInfo.userID)) {
             return
         }
-        anchorManager?.let {
+        anchorStore?.let {
             if (anchorManagerDialog == null) {
-                anchorManagerDialog = AnchorManagerDialog(baseContext, it, liveCoreView)
+                anchorManagerDialog = AnchorManagerDialog(baseContext, it)
             }
             anchorManagerDialog?.init(userInfo)
             anchorManagerDialog?.show()
@@ -455,18 +477,18 @@ class AnchorView @JvmOverloads constructor(
             R.drawable.livekit_local_mute_image_zh
         }
         val smallMuteImageResId = R.drawable.livekit_local_mute_image_multi
-        mediaManager?.createVideoMuteBitmap(context, bigMuteImageResId, smallMuteImageResId)
+        mediaStore?.createVideoMuteBitmap(context, bigMuteImageResId, smallMuteImageResId)
     }
 
     private fun createOrEnterRoom() {
-        setComponent()
+        setComponent(COMPONENT_LIVE_STREAM)
         liveCoreView.setVideoViewAdapter(object : VideoViewAdapter {
-            override fun createCoGuestView(userInfo: SeatFullInfo?, viewLayer: ViewLayer?): View? {
-                if (TextUtils.isEmpty(userInfo?.userId)) {
+            override fun createCoGuestView(seatInfo: SeatInfo?, viewLayer: ViewLayer?): View? {
+                if (TextUtils.isEmpty(seatInfo?.userInfo?.userID)) {
                     if (viewLayer == ViewLayer.BACKGROUND) {
                         val emptySeatView = AnchorEmptySeatView(context)
-                        if (anchorManager != null && userInfo != null) {
-                            emptySeatView.init(anchorManager!!, userInfo)
+                        if (anchorStore != null && seatInfo != null) {
+                            emptySeatView.init(anchorStore!!, seatInfo)
                         }
                         return emptySeatView
                     }
@@ -475,46 +497,46 @@ class AnchorView @JvmOverloads constructor(
 
                 if (viewLayer == ViewLayer.BACKGROUND) {
                     val backgroundView = CoGuestBackgroundWidgetsView(context)
-                    if (anchorManager != null && userInfo != null) {
-                        backgroundView.init(anchorManager!!, userInfo)
+                    if (anchorStore != null && seatInfo != null) {
+                        backgroundView.init(anchorStore!!, seatInfo)
                     }
                     return backgroundView
                 } else {
                     val foregroundView = CoGuestForegroundWidgetsView(context)
-                    if (anchorManager != null && userInfo != null) {
-                        foregroundView.init(anchorManager!!, userInfo)
+                    if (anchorStore != null && seatInfo != null) {
+                        foregroundView.init(anchorStore!!, seatInfo)
                     }
-                    foregroundView.setOnClickListener { showCoGuestManageDialog(userInfo) }
+                    foregroundView.setOnClickListener { showCoGuestManageDialog(seatInfo) }
                     return foregroundView
                 }
             }
 
-            override fun createCoHostView(coHostUser: SeatFullInfo?, viewLayer: ViewLayer?): View? {
-                if (anchorManager == null || coHostUser == null) {
+            override fun createCoHostView(seatInfo: SeatInfo?, viewLayer: ViewLayer?): View? {
+                if (anchorStore == null || seatInfo == null) {
                     return null
                 }
                 return if (viewLayer == ViewLayer.BACKGROUND) {
                     CoHostBackgroundWidgetsView(baseContext).apply {
-                        init(anchorManager!!, coHostUser)
+                        init(anchorStore!!, seatInfo)
                     }
                 } else {
                     CoHostForegroundWidgetsView(baseContext).apply {
-                        init(anchorManager!!, coHostUser)
+                        init(anchorStore!!, seatInfo)
                     }
                 }
             }
 
-            override fun createBattleView(battleUser: TUILiveBattleManager.BattleUser?): View? {
-                if (anchorManager == null || battleUser == null) {
+            override fun createBattleView(seatInfo: SeatInfo?): View? {
+                if (anchorStore == null || seatInfo == null) {
                     return null
                 }
                 return BattleMemberInfoView(baseContext).apply {
-                    init(anchorManager!!, battleUser!!.userId)
+                    init(anchorStore!!, seatInfo.userInfo.userID)
                 }
             }
 
             override fun createBattleContainerView(): View? {
-                anchorManager?.let {
+                anchorStore?.let {
                     return BattleInfoView(baseContext).apply {
                         init(it)
                     }
@@ -523,7 +545,7 @@ class AnchorView @JvmOverloads constructor(
             }
         })
 
-        PictureInPictureStore.sharedInstance().state.isAnchorStreaming = true
+        PIPPanelStore.sharedInstance().state.isAnchorStreaming = true
 
         if (behavior == RoomBehavior.ENTER_ROOM) {
             enterRoom()
@@ -589,17 +611,16 @@ class AnchorView @JvmOverloads constructor(
                         )
                         TUICore.notifyEvent(EVENT_KEY_TIME_LIMIT, EVENT_SUB_KEY_COUNTDOWN_END, null)
                         liveCoreView.setLocalVideoMuteImage(null, null)
-                        PictureInPictureStore.sharedInstance().state.isAnchorStreaming = false
+                        PIPPanelStore.sharedInstance().state.isAnchorStreaming = false
                         return
                     }
-                    anchorManager?.updateRoomState(liveInfo)
-                    userManager?.getAudienceList()
+                    anchorStore?.updateRoomState(liveInfo)
                     initComponentView()
                 }
 
                 override fun onFailure(code: Int, desc: String) {
-                    PictureInPictureStore.sharedInstance().state.isAnchorStreaming = false
-                    ErrorLocalized.onError(TUICommonDefine.Error.fromInt(code))
+                    PIPPanelStore.sharedInstance().state.isAnchorStreaming = false
+                    ErrorLocalized.onError(code)
                     finishActivity()
                 }
             })
@@ -627,8 +648,7 @@ class AnchorView @JvmOverloads constructor(
                     liveCoreView.setLocalVideoMuteImage(null, null)
                     return
                 }
-                anchorManager?.updateRoomState(liveInfo)
-                userManager?.getAudienceList()
+                anchorStore?.updateRoomState(liveInfo)
                 initComponentView()
                 showAlertUserLiveTips()
                 TUICore.notifyEvent(EVENT_KEY_TIME_LIMIT, EVENT_SUB_KEY_COUNTDOWN_START, null)
@@ -636,26 +656,11 @@ class AnchorView @JvmOverloads constructor(
 
             override fun onFailure(code: Int, desc: String) {
                 logger.error("startLiveStream failed:error:$code,desc:$desc")
-                PictureInPictureStore.sharedInstance().state.isAnchorStreaming = false
-                ErrorLocalized.onError(TUICommonDefine.Error.fromInt(code))
-                if (code == TUICommonDefine.Error.SDK_NOT_INITIALIZED.value) {
-                    finishActivity()
-                }
+                PIPPanelStore.sharedInstance().state.isAnchorStreaming = false
+                ErrorLocalized.onError(code)
+                finishActivity()
             }
-
         })
-    }
-
-    private fun setComponent() {
-        try {
-            val jsonObject = JSONObject().apply {
-                put("api", "component")
-                put("component", 21)
-            }
-            LiveCoreViewDeprecated.callExperimentalAPI(jsonObject.toString())
-        } catch (e: JSONException) {
-            logger.error("dataReport:${Log.getStackTraceString(e)}")
-        }
     }
 
     private fun initComponentView() {
@@ -676,7 +681,7 @@ class AnchorView @JvmOverloads constructor(
 
     private fun initNetworkView() {
         anchorState?.let {
-            networkInfoView.init(it.liveInfo.createTime)
+            networkInfoView.init(it.liveInfo)
         }
     }
 
@@ -684,7 +689,7 @@ class AnchorView @JvmOverloads constructor(
         findViewById<View>(R.id.ll_more).setOnClickListener { view ->
             if (!view.isEnabled) return@setOnClickListener
             view.isEnabled = false
-            anchorManager?.let {
+            anchorStore?.let {
                 val settingsPanelDialog = SettingsPanelDialog(baseContext, it, liveCoreView)
                 settingsPanelDialog.setOnDismissListener { view.isEnabled = true }
                 settingsPanelDialog.show()
@@ -709,13 +714,10 @@ class AnchorView @JvmOverloads constructor(
         anchorState?.let {
             audienceListView.init(it.liveInfo)
             audienceListView.setOnUserItemClickListener(object : AudienceListView.OnUserItemClickListener {
-                override fun onUserItemClick(userInfo: UserInfo) {
-                    anchorManager?.let {
-                        if (userManagerDialog == null) {
-                            userManagerDialog = UserManagerDialog(baseContext, it)
-                        }
-                        userManagerDialog?.init(userInfo)
-                        userManagerDialog?.show()
+                override fun onUserItemClick(userInfo: LiveUserInfo) {
+                    anchorStore?.let {
+                        val userManagerDialog = UserManagerDialog(baseContext, it, userInfo)
+                        userManagerDialog.show()
                     }
                 }
             })
@@ -728,7 +730,7 @@ class AnchorView @JvmOverloads constructor(
 
     private fun initFloatWindowView() {
         imageFloatWindow.setOnClickListener {
-            anchorManager?.notifyPictureInPictureClick()
+            anchorStore?.notifyPictureInPictureClick()
         }
     }
 
@@ -751,16 +753,13 @@ class AnchorView @JvmOverloads constructor(
         barrageStreamView.setItemTypeDelegate(BarrageViewTypeDelegate())
         barrageStreamView.setItemAdapter(GIFT_VIEW_TYPE_1, GiftBarrageAdapter(baseContext))
         barrageStreamView.setOnMessageClickListener(object : BarrageStreamView.OnMessageClickListener {
-            override fun onMessageClick(userInfo: UserInfo) {
-                if (TextUtils.isEmpty(userInfo.userId) || userInfo.userId == TUILogin.getUserId()) {
+            override fun onMessageClick(userInfo: LiveUserInfo) {
+                if (TextUtils.isEmpty(userInfo.userID) || userInfo.userID == LoginStore.shared.loginState.loginUserInfo.value?.userID) {
                     return
                 }
-                anchorManager?.let {
-                    if (userManagerDialog == null) {
-                        userManagerDialog = UserManagerDialog(baseContext, it)
-                    }
-                    userManagerDialog?.init(userInfo)
-                    userManagerDialog?.show()
+                anchorStore?.let {
+                    val userManagerDialog = UserManagerDialog(baseContext, it, userInfo)
+                    userManagerDialog.show()
                 }
             }
         })
@@ -770,7 +769,7 @@ class AnchorView @JvmOverloads constructor(
         viewCoGuest.setOnClickListener { view ->
             if (!view.isEnabled) return@setOnClickListener
             view.isEnabled = false
-            val dialog = AnchorCoGuestManageDialog(baseContext, anchorManager, liveCoreView)
+            val dialog = AnchorCoGuestManageDialog(baseContext, anchorStore, liveCoreView)
             dialog.setOnDismissListener { view.isEnabled = true }
             dialog.show()
         }
@@ -780,7 +779,7 @@ class AnchorView @JvmOverloads constructor(
         viewCoHost.setOnClickListener { view ->
             if (!view.isEnabled) return@setOnClickListener
             view.isEnabled = false
-            anchorManager?.let {
+            anchorStore?.let {
                 anchorCoHostManageDialog = AnchorCoHostManageDialog(baseContext, it, liveCoreView)
                 anchorCoHostManageDialog?.setOnDismissListener { view.isEnabled = true }
                 anchorCoHostManageDialog?.show()
@@ -790,22 +789,27 @@ class AnchorView @JvmOverloads constructor(
 
     private fun initBattleView() {
         viewBattle.setOnClickListener { view ->
-            if (battleManager == null || anchorManager == null || coHostManager == null) {
+            if (anchorBattleStore == null || anchorStore == null || anchorCoHostStore == null) {
                 return@setOnClickListener
             }
-            if (battleState?.isBattleRunning?.value == true && battleManager!!.isSelfInBattle()) {
+            if (battleState?.isBattleRunning?.value == true && anchorBattleStore!!.isSelfInBattle()) {
                 if (anchorEndBattleDialog == null) {
-                    anchorEndBattleDialog = AnchorEndBattleDialog(baseContext, anchorManager!!)
+                    anchorEndBattleDialog = AnchorEndBattleDialog(baseContext)
+                    anchorEndBattleDialog?.setOnEndBattleListener(object : AnchorEndBattleDialog.OnEndBattleListener {
+                        override fun onEndBattle() {
+                            showEndBattleDialog()
+                        }
+                    })
                 }
                 anchorEndBattleDialog?.show()
             } else {
-                if (battleState?.isOnDisplayResult?.value == true || !coHostManager!!.isSelfInCoHost()) {
+                if (battleState?.isOnDisplayResult?.value == true || !anchorCoHostStore!!.isSelfInCoHost()) {
                     logger.warn("can not requestBattle")
                     return@setOnClickListener
                 }
 
                 val list = mutableListOf<String>()
-                val selfId = TUILogin.getUserId()
+                val selfId = LoginStore.shared.loginState.loginUserInfo.value?.userID
                 anchorState?.let {
                     for (user in CoHostStore.create(it.roomId).coHostState.connected.value) {
                         if (user.userID != selfId) {
@@ -822,14 +826,14 @@ class AnchorView @JvmOverloads constructor(
                 BattleStore.create(liveInfo.liveID).requestBattle(
                     battleConfig, list, BATTLE_REQUEST_TIMEOUT, object : BattleRequestCallback {
                         override fun onSuccess(
-                            battleInfo: BattleInfo, resultMap: Map<String, Int>
+                            battleInfo: BattleInfo, resultMap: Map<String, Int>,
                         ) {
-                            anchorManager?.getBattleManager()?.onRequestBattle(battleInfo.battleID, list)
+                            anchorStore?.getAnchorBattleStore()?.onRequestBattle(battleInfo.battleID, list)
                         }
 
                         override fun onError(code: Int, desc: String) {
                             logger.error("requestBattle failed:code:$code,desc:$desc")
-                            ErrorLocalized.onError(TUICommonDefine.Error.fromInt(code))
+                            ErrorLocalized.onError(code)
                         }
 
                     })
@@ -838,7 +842,7 @@ class AnchorView @JvmOverloads constructor(
     }
 
     private fun initApplyCoGuestFloatView() {
-        anchorManager?.let {
+        anchorStore?.let {
             applyCoGuestFloatView.init(it, liveCoreView)
         }
     }
@@ -847,7 +851,7 @@ class AnchorView @JvmOverloads constructor(
         val giftCacheService: GiftCacheService = GiftStore.getInstance().giftCacheService
         giftPlayView.setListener(object : GiftPlayView.TUIGiftPlayViewListener {
             override fun onReceiveGift(
-                view: GiftPlayView?, gift: Gift, giftCount: Int, sender: LiveUserInfo
+                view: GiftPlayView?, gift: Gift, giftCount: Int, sender: LiveUserInfo,
             ) {
                 val barrage = Barrage().apply {
                     textContent = "gift"
@@ -872,7 +876,7 @@ class AnchorView @JvmOverloads constructor(
             }
 
             override fun onPlayGiftAnimation(
-                view: GiftPlayView?, gift: Gift
+                view: GiftPlayView?, gift: Gift,
             ) {
                 giftCacheService.request(gift.resourceURL, object : GiftCacheService.Callback<String> {
                     override fun onResult(error: Int, result: String?) {
@@ -945,6 +949,7 @@ class AnchorView @JvmOverloads constructor(
         CoGuestStore.create(liveInfo.liveID).addHostListener(coGuestListener)
         BattleStore.create(liveInfo.liveID).addBattleListener(battleListener)
         LiveListStore.shared().addLiveListListener(liveListListener)
+        LiveAudienceStore.create(liveInfo.liveID).addLiveAudienceListener(liveAudienceListener)
     }
 
     override fun removeObserver() {
@@ -953,13 +958,164 @@ class AnchorView @JvmOverloads constructor(
         CoGuestStore.create(liveInfo.liveID).removeHostListener(coGuestListener)
         BattleStore.create(liveInfo.liveID).removeBattleListener(battleListener)
         LiveListStore.shared().removeLiveListListener(liveListListener)
+        LiveAudienceStore.create(liveInfo.liveID).removeLiveAudienceListener(liveAudienceListener)
     }
 
     private fun showLiveStreamEndDialog() {
-        anchorManager?.let {
-            val endLiveStreamDialog = EndLiveStreamDialog(baseContext, liveCoreView, it, this)
-            endLiveStreamDialog.show()
+        val store = anchorStore ?: return
+        val currentLiveId = LiveListStore.shared().liveState.currentLive.value.liveID
+
+        val isInCoGuest = CoGuestStore.create(currentLiveId).coGuestState.connected
+            .value.filterNot { it.liveID != currentLiveId }.size > 1
+        val isInCoHost = CoHostStore.create(currentLiveId).coHostState.connected.value.isNotEmpty()
+        val isInBattle = store.getBattleState().isBattleRunning.value == true
+
+        AtomicAlertDialog(baseContext).let { dialog ->
+            if (isInBattle) {
+                val title = baseContext.getString(R.string.common_end_pk_tips)
+
+                dialog.init {
+                    init(title)
+
+                    addItem(
+                        text = baseContext.getString(R.string.common_end_pk),
+                        type = AtomicAlertDialog.TextColorPreset.RED,
+                    ) {
+                        val battleId = store.getBattleState().battleId
+                        BattleStore.create(currentLiveId).exitBattle(battleId, object : CompletionHandler {
+                            override fun onSuccess() {
+                                store.getAnchorBattleStore().onExitBattle()
+                                it.dismiss()
+                            }
+
+                            override fun onFailure(code: Int, desc: String) {
+                                it.dismiss()
+                            }
+                        })
+                    }
+
+                    addItem(
+                        text = baseContext.getString(R.string.common_end_live),
+                        type = AtomicAlertDialog.TextColorPreset.PRIMARY
+                    ) {
+                        exitLive(store)
+                        it.dismiss()
+                    }
+
+                    addItem(
+                        text = baseContext.getString(R.string.common_cancel),
+                        type = AtomicAlertDialog.TextColorPreset.PRIMARY
+                    ) {
+                        it.dismiss()
+                    }
+                }
+            } else if (isInCoHost) {
+                val title = baseContext.getString(R.string.common_end_connection_tips)
+
+                dialog.init {
+                    init(title)
+
+                    addItem(
+                        text = baseContext.getString(R.string.common_end_connection),
+                        type = AtomicAlertDialog.TextColorPreset.RED,
+                    ) {
+                        CoHostStore.create(currentLiveId).exitHostConnection(null)
+                        it.dismiss()
+                    }
+
+                    addItem(
+                        text = baseContext.getString(R.string.common_end_live),
+                        type = AtomicAlertDialog.TextColorPreset.PRIMARY
+                    ) {
+                        exitLive(store)
+                        it.dismiss()
+                    }
+
+                    addItem(
+                        text = baseContext.getString(R.string.common_cancel),
+                        type = AtomicAlertDialog.TextColorPreset.PRIMARY
+                    ) {
+                        it.dismiss()
+                    }
+                }
+            } else if (isInCoGuest) {
+                val title = baseContext.getString(R.string.common_anchor_end_link_tips)
+
+                dialog.init {
+                    init(title)
+
+                    cancelButton(
+                        text = baseContext.getString(R.string.common_cancel),
+                        type = AtomicAlertDialog.TextColorPreset.GREY
+                    ) {
+                        it.dismiss()
+                    }
+
+                    confirmButton(
+                        text = baseContext.getString(R.string.common_end_live),
+                        type = AtomicAlertDialog.TextColorPreset.RED
+                    ) {
+                        exitLive(store)
+                        it.dismiss()
+                    }
+                }
+            } else {
+                dialog.init {
+                    init(baseContext.getString(R.string.live_end_live_tips))
+
+                    cancelButton(
+                        text = baseContext.getString(R.string.common_cancel),
+                        type = AtomicAlertDialog.TextColorPreset.GREY
+                    ) {
+                        it.dismiss()
+                    }
+
+                    confirmButton(
+                        text = baseContext.getString(R.string.common_end_live),
+                        type = AtomicAlertDialog.TextColorPreset.RED
+                    ) {
+                        exitLive(store)
+                        it.dismiss()
+                    }
+                }
+            }
+
+            dialog.show()
         }
+    }
+
+    private fun exitLive(store: AnchorStore) {
+        val keepOwnerOnSeat = store.getState().liveInfo.keepOwnerOnSeat
+
+        if (keepOwnerOnSeat) {
+            LiveListStore.shared().endLive(object : StopLiveCompletionHandler {
+                override fun onSuccess(statisticsData: TUILiveListManager.LiveStatisticsData) {
+                    store.setLiveStatisticsData(statisticsData)
+                    onRoomExitEndStatistics()
+                    store.notifyRoomExit()
+                }
+
+                override fun onFailure(code: Int, desc: String) {
+                    onRoomExitEndStatistics()
+                    store.notifyRoomExit()
+                }
+            })
+        } else {
+            leaveLive()
+        }
+
+        TUICore.notifyEvent(
+            TUIConstants.Privacy.EVENT_ROOM_STATE_CHANGED,
+            TUIConstants.Privacy.EVENT_SUB_KEY_ROOM_STATE_STOP,
+            null
+        )
+        TUICore.notifyEvent("RTCRoomTimeLimitService", "CountdownEnd", null)
+        liveCoreView.setLocalVideoMuteImage(null, null)
+    }
+
+    private fun onRoomExitEndStatistics() {
+        anchorStore?.setExternalState(barrageStreamView.getBarrageCount())
+        PIPPanelStore.sharedInstance().state.isAnchorStreaming = false
     }
 
     private fun onReceivedCoHostRequest(receivedConnectionRequest: SeatUserInfo?) {
@@ -979,20 +1135,25 @@ class AnchorView @JvmOverloads constructor(
     }
 
     private fun showConnectionRequestDialog(content: String, avatarUrl: String, roomId: String) {
-        processConnectionDialog = StandardDialog(context).apply {
-            setContent(content)
-            setAvatar(avatarUrl)
+        processConnectionDialog = AtomicAlertDialog(context).apply {
+            init {
+                title = content
+                countdownDuration = 0
+                confirmButton(
+                    text = context.getString(R.string.common_receive),
+                    type = AtomicAlertDialog.TextColorPreset.BLUE
+                ) { dialog ->
+                    CoHostStore.create(liveInfo.liveID).acceptHostConnection(roomId, null)
+                    dialog.dismiss()
+                }
 
-            val rejectText = context.getString(R.string.common_reject)
-            setNegativeText(rejectText) {
-                CoHostStore.create(liveInfo.liveID).rejectHostConnection(roomId, null)
-                dismiss()
-            }
-
-            val receiveText = context.getString(R.string.common_receive)
-            setPositiveText(receiveText) {
-                CoHostStore.create(liveInfo.liveID).acceptHostConnection(roomId, null)
-                dismiss()
+                cancelButton(
+                    text = context.getString(R.string.common_reject),
+                    type = AtomicAlertDialog.TextColorPreset.GREY
+                ) { dialog ->
+                    CoHostStore.create(liveInfo.liveID).rejectHostConnection(roomId, null)
+                    dialog.dismiss()
+                }
             }
         }
         processConnectionDialog?.show()
@@ -1026,7 +1187,7 @@ class AnchorView @JvmOverloads constructor(
         }
     }
 
-    private fun onReceivedBattleRequestChange(user: BattleState.BattleUser?) {
+    private fun onReceivedBattleRequestChange(user: BattleUser?) {
         if (mediaState?.isPipModeEnabled?.value != true) {
             processBattleDialog?.dismiss()
             processBattleDialog = null
@@ -1035,46 +1196,50 @@ class AnchorView @JvmOverloads constructor(
                 val content = context.getString(
                     R.string.common_battle_inviting, user.userName
                 )
-                processBattleDialog = StandardDialog(context).apply {
-                    setContent(content)
-                    setAvatar(user.avatarUrl)
+                processBattleDialog = AtomicAlertDialog(context).apply {
+                    init {
+                        title = content
+                        countdownDuration = 0
+                        confirmButton(
+                            text = context.getString(R.string.common_receive),
+                            type = AtomicAlertDialog.TextColorPreset.BLUE
+                        ) { dialog ->
+                            dialog.dismiss()
+                            processBattleDialog = null
+                            battleState?.let { battleState ->
+                                BattleStore.create(liveInfo.liveID)
+                                    .acceptBattle(battleState.battleId, object : CompletionHandler {
+                                        override fun onSuccess() {
+                                            anchorStore?.getAnchorBattleStore()?.onResponseBattle()
+                                        }
 
-                    val rejectText = context.getString(R.string.common_reject)
-                    setNegativeText(rejectText) {
-                        dismiss()
-                        processBattleDialog = null
-                        battleState?.let {
-                            BattleStore.create(liveInfo.liveID)
-                                .rejectBattle(it.battleId, object : CompletionHandler {
-                                    override fun onSuccess() {
-                                        anchorManager?.getBattleManager()?.onResponseBattle()
-                                    }
-
-                                    override fun onFailure(code: Int, desc: String) {
-                                        logger.error("respondToBattle failed:code:$code,desc:$desc")
-                                        ErrorLocalized.onError(TUICommonDefine.Error.fromInt(code))
-                                    }
-                                })
+                                        override fun onFailure(code: Int, desc: String) {
+                                            logger.error("respondToBattle failed:code:$code,desc:$desc")
+                                            ErrorLocalized.onError(code)
+                                        }
+                                    })
+                            }
                         }
 
-                    }
+                        cancelButton(
+                            text = context.getString(R.string.common_reject),
+                            type = AtomicAlertDialog.TextColorPreset.GREY
+                        ) { dialog ->
+                            dialog.dismiss()
+                            processBattleDialog = null
+                            battleState?.let { battleState ->
+                                BattleStore.create(liveInfo.liveID)
+                                    .rejectBattle(battleState.battleId, object : CompletionHandler {
+                                        override fun onSuccess() {
+                                            anchorStore?.getAnchorBattleStore()?.onResponseBattle()
+                                        }
 
-                    val receiveText = context.getString(R.string.common_receive)
-                    setPositiveText(receiveText) {
-                        dismiss()
-                        processBattleDialog = null
-                        battleState?.let {
-                            BattleStore.create(liveInfo.liveID)
-                                .acceptBattle(it.battleId, object : CompletionHandler {
-                                    override fun onSuccess() {
-                                        anchorManager?.getBattleManager()?.onResponseBattle()
-                                    }
-
-                                    override fun onFailure(code: Int, desc: String) {
-                                        logger.error("respondToBattle failed:code:$code,desc:$desc")
-                                        ErrorLocalized.onError(TUICommonDefine.Error.fromInt(code))
-                                    }
-                                })
+                                        override fun onFailure(code: Int, desc: String) {
+                                            logger.error("respondToBattle failed:code:$code,desc:$desc")
+                                            ErrorLocalized.onError(code)
+                                        }
+                                    })
+                            }
                         }
                     }
                 }
@@ -1084,7 +1249,7 @@ class AnchorView @JvmOverloads constructor(
     }
 
     private fun showBattleCountdownDialog() {
-        anchorManager?.let {
+        anchorStore?.let {
             if (battleCountdownDialog == null) {
                 battleCountdownDialog = BattleCountdownDialog(baseContext, it)
             }
@@ -1119,7 +1284,7 @@ class AnchorView @JvmOverloads constructor(
             if (it == true) {
                 battleState?.battledUsers?.value?.let { battledUsers ->
                     for (user in battledUsers) {
-                        if (TextUtils.equals(TUILogin.getUserId(), user.userId)) {
+                        if (TextUtils.equals(LoginStore.shared.loginState.loginUserInfo.value?.userID, user.userId)) {
                             enableView(viewCoHost, false)
                             break
                         }
@@ -1129,6 +1294,9 @@ class AnchorView @JvmOverloads constructor(
                 enableView(viewCoHost, true)
                 if (anchorEndBattleDialog?.isShowing == true) {
                     anchorEndBattleDialog?.dismiss()
+                }
+                if (realEndBattleDialog?.isShowing() == true) {
+                    realEndBattleDialog?.dismiss()
                 }
             }
         }
@@ -1143,11 +1311,11 @@ class AnchorView @JvmOverloads constructor(
     private fun updateBattleView() {
         val battleIconView = viewBattle.findViewById<View>(R.id.v_battle_icon)
         val battleResultDisplay = battleState?.isOnDisplayResult?.value
-        if (coHostManager == null || battleManager == null) {
+        if (anchorCoHostStore == null || anchorBattleStore == null) {
             return
         }
-        if (coHostManager!!.isSelfInCoHost()) {
-            if (battleManager!!.isSelfInBattle()) {
+        if (anchorCoHostStore!!.isSelfInCoHost()) {
+            if (anchorBattleStore!!.isSelfInBattle()) {
                 battleIconView.setBackgroundResource(R.drawable.livekit_function_battle_exit)
             } else {
                 battleIconView.setBackgroundResource(R.drawable.livekit_function_battle)
@@ -1172,7 +1340,7 @@ class AnchorView @JvmOverloads constructor(
 
         params["coHostTemplateId"]?.let { coHostTemplateId ->
             if (coHostTemplateId is Int) {
-                anchorManager?.getCoHostManager()?.setCoHostTemplateId(coHostTemplateId)
+                anchorStore?.getAnchorCoHostStore()?.setCoHostTemplateId(coHostTemplateId)
             }
         }
     }
@@ -1185,7 +1353,7 @@ class AnchorView @JvmOverloads constructor(
         DeviceStore.shared().closeLocalMicrophone()
         BeautyUtils.resetBeauty()
         TEBeautyStore.unInit()
-        anchorManager?.destroy()
+        anchorStore?.destroy()
         stopForegroundService()
     }
 
@@ -1234,15 +1402,6 @@ class AnchorView @JvmOverloads constructor(
         VideoForegroundService.stop(context)
     }
 
-    override fun onRoomExit() {
-        endLive()
-    }
-
-    override fun onRoomExitEndStatistics() {
-        anchorManager?.setExternalState(barrageStreamView.getBarrageCount())
-        PictureInPictureStore.sharedInstance().state.isAnchorStreaming = false
-    }
-
     private fun onCoGuestApplicantsChange(applicants: List<LiveUserInfo>) {
         enableView(viewCoHost, applicants.isEmpty())
         anchorCoHostManageDialog?.dismiss()
@@ -1251,44 +1410,34 @@ class AnchorView @JvmOverloads constructor(
     private suspend fun onPipModeObserver() {
         mediaState?.isPipModeEnabled?.collect { enable ->
             if (!enable && liveInfo.liveID.isNotEmpty()) {
-                onReceivedCoHostRequest(CoHostStore.create(liveInfo.liveID).coHostState.applicant.value)
-                onReceivedBattleRequestChange(battleState?.receivedBattleRequest?.value)
-                checkCameraStateAndRestore()
+                postDelayed({
+                    onReceivedCoHostRequest(CoHostStore.create(liveInfo.liveID).coHostState.applicant.value)
+                    onReceivedBattleRequestChange(battleState?.receivedBattleRequest?.value)
+                    checkCameraStateAndRestore()
+                }, if (isPipModeAbnormalPhoneModel()) 500 else 0)
             }
         }
     }
 
+    private fun isPipModeAbnormalPhoneModel(): Boolean {
+        return Build.MANUFACTURER.equals("HUAWEI", ignoreCase = true) || Build.MANUFACTURER.equals("samsung", ignoreCase = true)
+    }
+
     private fun checkCameraStateAndRestore() {
         mediaState?.let {
-            if (it.isCameraOccupied && DeviceStore.shared().deviceState.cameraStatus.value == DeviceStatus.ON) {
+            if (DeviceStore.shared().deviceState.cameraLastError.value == DeviceError.OCCUPIED_ERROR &&
+                DeviceStore.shared().deviceState.cameraStatus.value == DeviceStatus.ON
+            ) {
                 DeviceStore.shared().closeLocalCamera()
                 postDelayed({
                     DeviceStore.shared().openLocalCamera(DeviceStore.shared().deviceState.isFrontCamera.value, null)
                 }, 500)
             }
         }
-        anchorManager?.getMediaManager()?.resetCameraOccupied()
-    }
-
-    override fun onRoomDismissed() {
-        ToastUtil.toastShortMessage(baseContext.getString(R.string.common_live_has_stop))
-        endLive()
-    }
-
-    override fun onKickedOffLine(message: String) {
-        ToastUtil.toastShortMessage(baseContext.getString(R.string.common_kicked_out_of_room_by_owner))
-        endLive()
-    }
-
-    override fun onKickedOutOfRoom(
-        roomId: String, reason: TUIRoomDefine.KickedOutOfRoomReason, message: String
-    ) {
-        ToastUtil.toastShortMessage(baseContext.getString(R.string.common_kicked_out_of_room_by_owner))
-        endLive()
     }
 
     private fun endLive(isFinish: Boolean = true) {
-        PictureInPictureStore.sharedInstance().state.isAnchorStreaming = false
+        PIPPanelStore.sharedInstance().state.isAnchorStreaming = false
         liveCoreView.setLocalVideoMuteImage(null, null)
         LiveListStore.shared().endLive(null)
         TUICore.notifyEvent(
@@ -1298,5 +1447,50 @@ class AnchorView @JvmOverloads constructor(
         if (isFinish) {
             finishActivity()
         }
+    }
+
+    private fun leaveLive(isFinish: Boolean = true) {
+        PIPPanelStore.sharedInstance().state.isAnchorStreaming = false
+        liveCoreView.setLocalVideoMuteImage(null, null)
+        LiveListStore.shared().leaveLive(null)
+        TUICore.notifyEvent(
+            TUIConstants.Privacy.EVENT_ROOM_STATE_CHANGED, TUIConstants.Privacy.EVENT_SUB_KEY_ROOM_STATE_STOP, null
+        )
+        TUICore.notifyEvent(EVENT_KEY_TIME_LIMIT, EVENT_SUB_KEY_COUNTDOWN_END, null)
+        if (isFinish) {
+            finishActivity()
+        }
+    }
+
+    private fun showEndBattleDialog() {
+        realEndBattleDialog = AtomicAlertDialog(context)
+        realEndBattleDialog?.init {
+            init(
+                title = context.getString(R.string.common_battle_end_pk_tips),
+                content = null,
+                iconView = null,
+            )
+
+            cancelButton(context.getString(R.string.common_disconnect_cancel)) {
+                it.dismiss()
+            }
+
+            confirmButton(
+                text = context.getString(R.string.common_battle_end_pk),
+                type = AtomicAlertDialog.TextColorPreset.RED
+            ) {
+                it.dismiss()
+                val battleId = anchorStore?.getBattleState()?.battleId
+                BattleStore.create(LiveListStore.shared().liveState.currentLive.value.liveID)
+                    .exitBattle(battleId, object : CompletionHandler {
+                        override fun onSuccess() {}
+
+                        override fun onFailure(code: Int, desc: String) {
+                            logger.error("AtomicAlertDialog terminateBattle failed:code:$code,desc:$desc")
+                        }
+                    })
+            }
+        }
+        realEndBattleDialog?.show()
     }
 }

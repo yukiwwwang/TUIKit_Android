@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" charset="UTF-8">
+    <title>RoomParticipantListener</title>
+    <link href="../../../images/logo-icon.svg" rel="icon" type="image/svg">
+    <script>var pathToRoot = "../../../";</script>
+    <script>const storage = localStorage.getItem("dokka-dark-mode")
+    if (storage == null) {
+        const osDarkSchemePreferred = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+        if (osDarkSchemePreferred === true) {
+            document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+    } else {
+        const savedDarkMode = JSON.parse(storage)
+        if(savedDarkMode === true) {
+            document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+    }
+    </script>
+<script type="text/javascript" src="../../../scripts/sourceset_dependencies.js" async="async"></script>
+<link href="../../../styles/style.css" rel="Stylesheet">
+<link href="../../../styles/jetbrains-mono.css" rel="Stylesheet">
+<link href="../../../styles/main.css" rel="Stylesheet">
+<link href="../../../styles/prism.css" rel="Stylesheet">
+<link href="../../../styles/logo-styles.css" rel="Stylesheet">
+<script type="text/javascript" src="../../../scripts/clipboard.js" async="async"></script>
+<script type="text/javascript" src="../../../scripts/navigation-loader.js" async="async"></script>
+<script type="text/javascript" src="../../../scripts/platform-content-handler.js" async="async"></script>
+<script type="text/javascript" src="../../../scripts/main.js" defer="defer"></script>
+<script type="text/javascript" src="../../../scripts/prism.js" async="async"></script>
+<script type="text/javascript" src="../../../scripts/symbol-parameters-wrapper_deferred.js" defer="defer"></script>
+</head>
+<body>
+<div class="navigation-wrapper" id="navigation-wrapper">
+    <div id="leftToggler"><span class="icon-toggler"></span></div>
+    <div class="library-name">
+            <a href="../../../index.html">
+                    <span>AtomicX Core API</span>
+            </a>
+    </div>
+    <div>
+    </div>
+    <div class="pull-right d-flex">
+        <div class="filter-section" id="filter-section">
+                <button class="platform-tag platform-selector jvm-like" data-active="" data-filter=":atomicxcore:dokkaHtml/release">androidJvm</button>
+        </div>
+        <button id="theme-toggle-button"><span id="theme-toggle"></span></button>
+        <div id="searchBar"></div>
+    </div>
+</div>
+<div id="container">
+    <div id="leftColumn">
+        <div id="sideMenu"></div>
+    </div>
+    <div id="main">
+<div class="main-content" data-page-type="classlike" id="content" pageIds="AtomicX Core API::io.trtc.tuikit.atomicxcore.api.room/RoomParticipantListener///PointingToDeclaration//-1933612244">
+  <div class="breadcrumbs"><a href="../../../index.html">AtomicX Core API</a><span class="delimiter">/</span><a href="../index.html">io.trtc.tuikit.atomicxcore.api.room</a><span class="delimiter">/</span><span class="current">RoomParticipantListener</span></div>
+  <div class="cover ">
+    <h1 class="cover"><span>Room</span><wbr></wbr><span>Participant</span><wbr></wbr><span><span>Listener</span></span></h1>
+    <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":atomicxcore:dokkaHtml/release"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword">class </span><a href="index.html">RoomParticipantListener</a></div><p class="paragraph">Participant event callback</p></div></div>
+  </div>
+  <div class="tabbedcontent">
+    <div class="tabs-section" tabs-section="tabs-section"><button class="section-tab" data-active="" data-togglable="CONSTRUCTOR,TYPE,PROPERTY,FUNCTION">Members</button></div>
+    <div class="tabs-section-body">
+      <div data-togglable="CONSTRUCTOR">
+        <h2 class="">Constructors</h2>
+        <div class="table"><a data-name="-754041589%2FConstructors%2F-1933612244" anchor-label="RoomParticipantListener" id="-754041589%2FConstructors%2F-1933612244" data-filterable-set=":atomicxcore:dokkaHtml/release"></a>
+          <div class="table-row" data-togglable="CONSTRUCTOR" data-filterable-current=":atomicxcore:dokkaHtml/release" data-filterable-set=":atomicxcore:dokkaHtml/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-room-participant-listener.html"><span>Room</span><wbr></wbr><span>Participant</span><wbr></wbr><span><span>Listener</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-754041589%2FConstructors%2F-1933612244"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":atomicxcore:dokkaHtml/release"><div class="symbol monospace"><span class="token keyword">constructor</span><span class="token punctuation">(</span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div data-togglable="FUNCTION">
+        <h2 class="">Functions</h2>
+        <div class="table"><a data-name="229974137%2FFunctions%2F-1933612244" anchor-label="onAdminRevoked" id="229974137%2FFunctions%2F-1933612244" data-filterable-set=":atomicxcore:dokkaHtml/release"></a>
+          <div class="table-row" data-filterable-current=":atomicxcore:dokkaHtml/release" data-filterable-set=":atomicxcore:dokkaHtml/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="on-admin-revoked.html"><span>on</span><wbr></wbr><span>Admin</span><wbr></wbr><span><span>Revoked</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="229974137%2FFunctions%2F-1933612244"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":atomicxcore:dokkaHtml/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword"></span><span class="token keyword">fun </span><a href="on-admin-revoked.html"><span class="token function">onAdminRevoked</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">userInfo<span class="token operator">: </span><a href="../-room-user/index.html">RoomUser</a></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Triggered when an admin is revoked.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1780583477%2FFunctions%2F-1933612244" anchor-label="onAdminSet" id="1780583477%2FFunctions%2F-1933612244" data-filterable-set=":atomicxcore:dokkaHtml/release"></a>
+          <div class="table-row" data-filterable-current=":atomicxcore:dokkaHtml/release" data-filterable-set=":atomicxcore:dokkaHtml/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="on-admin-set.html"><span>on</span><wbr></wbr><span>Admin</span><wbr></wbr><span><span>Set</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1780583477%2FFunctions%2F-1933612244"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":atomicxcore:dokkaHtml/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword"></span><span class="token keyword">fun </span><a href="on-admin-set.html"><span class="token function">onAdminSet</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">userInfo<span class="token operator">: </span><a href="../-room-user/index.html">RoomUser</a></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Triggered when an admin is set.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1085794368%2FFunctions%2F-1933612244" anchor-label="onAllDevicesDisabled" id="1085794368%2FFunctions%2F-1933612244" data-filterable-set=":atomicxcore:dokkaHtml/release"></a>
+          <div class="table-row" data-filterable-current=":atomicxcore:dokkaHtml/release" data-filterable-set=":atomicxcore:dokkaHtml/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="on-all-devices-disabled.html"><span>on</span><wbr></wbr><span>All</span><wbr></wbr><span>Devices</span><wbr></wbr><span><span>Disabled</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1085794368%2FFunctions%2F-1933612244"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":atomicxcore:dokkaHtml/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword"></span><span class="token keyword">fun </span><a href="on-all-devices-disabled.html"><span class="token function">onAllDevicesDisabled</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">device<span class="token operator">: </span><a href="../../io.trtc.tuikit.atomicxcore.api.device/-device-type/index.html">DeviceType</a><span class="token punctuation">, </span></span><span class="parameter ">disable<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a><span class="token punctuation">, </span></span><span class="parameter ">operator<span class="token operator">: </span><a href="../-room-user/index.html">RoomUser</a></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Triggered when all devices are disabled.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1021659119%2FFunctions%2F-1933612244" anchor-label="onAllMessagesDisabled" id="-1021659119%2FFunctions%2F-1933612244" data-filterable-set=":atomicxcore:dokkaHtml/release"></a>
+          <div class="table-row" data-filterable-current=":atomicxcore:dokkaHtml/release" data-filterable-set=":atomicxcore:dokkaHtml/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="on-all-messages-disabled.html"><span>on</span><wbr></wbr><span>All</span><wbr></wbr><span>Messages</span><wbr></wbr><span><span>Disabled</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1021659119%2FFunctions%2F-1933612244"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":atomicxcore:dokkaHtml/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword"></span><span class="token keyword">fun </span><a href="on-all-messages-disabled.html"><span class="token function">onAllMessagesDisabled</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">disable<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a><span class="token punctuation">, </span></span><span class="parameter ">operator<span class="token operator">: </span><a href="../-room-user/index.html">RoomUser</a></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Triggered when all users are muted.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="2101895968%2FFunctions%2F-1933612244" anchor-label="onDeviceInvitationAccepted" id="2101895968%2FFunctions%2F-1933612244" data-filterable-set=":atomicxcore:dokkaHtml/release"></a>
+          <div class="table-row" data-filterable-current=":atomicxcore:dokkaHtml/release" data-filterable-set=":atomicxcore:dokkaHtml/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="on-device-invitation-accepted.html"><span>on</span><wbr></wbr><span>Device</span><wbr></wbr><span>Invitation</span><wbr></wbr><span><span>Accepted</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="2101895968%2FFunctions%2F-1933612244"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":atomicxcore:dokkaHtml/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword"></span><span class="token keyword">fun </span><a href="on-device-invitation-accepted.html"><span class="token function">onDeviceInvitationAccepted</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">invitation<span class="token operator">: </span><a href="../-device-request-info/index.html">DeviceRequestInfo</a><span class="token punctuation">, </span></span><span class="parameter ">operator<span class="token operator">: </span><a href="../-room-user/index.html">RoomUser</a></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Triggered when a device invitation is accepted.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="2133488701%2FFunctions%2F-1933612244" anchor-label="onDeviceInvitationCancelled" id="2133488701%2FFunctions%2F-1933612244" data-filterable-set=":atomicxcore:dokkaHtml/release"></a>
+          <div class="table-row" data-filterable-current=":atomicxcore:dokkaHtml/release" data-filterable-set=":atomicxcore:dokkaHtml/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="on-device-invitation-cancelled.html"><span>on</span><wbr></wbr><span>Device</span><wbr></wbr><span>Invitation</span><wbr></wbr><span><span>Cancelled</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="2133488701%2FFunctions%2F-1933612244"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":atomicxcore:dokkaHtml/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword"></span><span class="token keyword">fun </span><a href="on-device-invitation-cancelled.html"><span class="token function">onDeviceInvitationCancelled</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">invitation<span class="token operator">: </span><a href="../-device-request-info/index.html">DeviceRequestInfo</a></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Triggered when a device invitation is cancelled.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="575307321%2FFunctions%2F-1933612244" anchor-label="onDeviceInvitationDeclined" id="575307321%2FFunctions%2F-1933612244" data-filterable-set=":atomicxcore:dokkaHtml/release"></a>
+          <div class="table-row" data-filterable-current=":atomicxcore:dokkaHtml/release" data-filterable-set=":atomicxcore:dokkaHtml/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="on-device-invitation-declined.html"><span>on</span><wbr></wbr><span>Device</span><wbr></wbr><span>Invitation</span><wbr></wbr><span><span>Declined</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="575307321%2FFunctions%2F-1933612244"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":atomicxcore:dokkaHtml/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword"></span><span class="token keyword">fun </span><a href="on-device-invitation-declined.html"><span class="token function">onDeviceInvitationDeclined</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">invitation<span class="token operator">: </span><a href="../-device-request-info/index.html">DeviceRequestInfo</a><span class="token punctuation">, </span></span><span class="parameter ">operator<span class="token operator">: </span><a href="../-room-user/index.html">RoomUser</a></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Triggered when a device invitation is declined.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="47956957%2FFunctions%2F-1933612244" anchor-label="onDeviceInvitationReceived" id="47956957%2FFunctions%2F-1933612244" data-filterable-set=":atomicxcore:dokkaHtml/release"></a>
+          <div class="table-row" data-filterable-current=":atomicxcore:dokkaHtml/release" data-filterable-set=":atomicxcore:dokkaHtml/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="on-device-invitation-received.html"><span>on</span><wbr></wbr><span>Device</span><wbr></wbr><span>Invitation</span><wbr></wbr><span><span>Received</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="47956957%2FFunctions%2F-1933612244"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":atomicxcore:dokkaHtml/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword"></span><span class="token keyword">fun </span><a href="on-device-invitation-received.html"><span class="token function">onDeviceInvitationReceived</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">invitation<span class="token operator">: </span><a href="../-device-request-info/index.html">DeviceRequestInfo</a></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Triggered when a device invitation is received.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1156375987%2FFunctions%2F-1933612244" anchor-label="onDeviceInvitationTimeout" id="-1156375987%2FFunctions%2F-1933612244" data-filterable-set=":atomicxcore:dokkaHtml/release"></a>
+          <div class="table-row" data-filterable-current=":atomicxcore:dokkaHtml/release" data-filterable-set=":atomicxcore:dokkaHtml/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="on-device-invitation-timeout.html"><span>on</span><wbr></wbr><span>Device</span><wbr></wbr><span>Invitation</span><wbr></wbr><span><span>Timeout</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1156375987%2FFunctions%2F-1933612244"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":atomicxcore:dokkaHtml/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword"></span><span class="token keyword">fun </span><a href="on-device-invitation-timeout.html"><span class="token function">onDeviceInvitationTimeout</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">invitation<span class="token operator">: </span><a href="../-device-request-info/index.html">DeviceRequestInfo</a></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Triggered when a device invitation times out.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1172037032%2FFunctions%2F-1933612244" anchor-label="onDeviceRequestApproved" id="-1172037032%2FFunctions%2F-1933612244" data-filterable-set=":atomicxcore:dokkaHtml/release"></a>
+          <div class="table-row" data-filterable-current=":atomicxcore:dokkaHtml/release" data-filterable-set=":atomicxcore:dokkaHtml/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="on-device-request-approved.html"><span>on</span><wbr></wbr><span>Device</span><wbr></wbr><span>Request</span><wbr></wbr><span><span>Approved</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1172037032%2FFunctions%2F-1933612244"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":atomicxcore:dokkaHtml/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword"></span><span class="token keyword">fun </span><a href="on-device-request-approved.html"><span class="token function">onDeviceRequestApproved</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">request<span class="token operator">: </span><a href="../-device-request-info/index.html">DeviceRequestInfo</a><span class="token punctuation">, </span></span><span class="parameter ">operator<span class="token operator">: </span><a href="../-room-user/index.html">RoomUser</a></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Triggered when a device request is approved.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-2008321915%2FFunctions%2F-1933612244" anchor-label="onDeviceRequestCancelled" id="-2008321915%2FFunctions%2F-1933612244" data-filterable-set=":atomicxcore:dokkaHtml/release"></a>
+          <div class="table-row" data-filterable-current=":atomicxcore:dokkaHtml/release" data-filterable-set=":atomicxcore:dokkaHtml/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="on-device-request-cancelled.html"><span>on</span><wbr></wbr><span>Device</span><wbr></wbr><span>Request</span><wbr></wbr><span><span>Cancelled</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-2008321915%2FFunctions%2F-1933612244"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":atomicxcore:dokkaHtml/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword"></span><span class="token keyword">fun </span><a href="on-device-request-cancelled.html"><span class="token function">onDeviceRequestCancelled</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">request<span class="token operator">: </span><a href="../-device-request-info/index.html">DeviceRequestInfo</a></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Triggered when a device request is cancelled.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="448668897%2FFunctions%2F-1933612244" anchor-label="onDeviceRequestProcessed" id="448668897%2FFunctions%2F-1933612244" data-filterable-set=":atomicxcore:dokkaHtml/release"></a>
+          <div class="table-row" data-filterable-current=":atomicxcore:dokkaHtml/release" data-filterable-set=":atomicxcore:dokkaHtml/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="on-device-request-processed.html"><span>on</span><wbr></wbr><span>Device</span><wbr></wbr><span>Request</span><wbr></wbr><span><span>Processed</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="448668897%2FFunctions%2F-1933612244"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":atomicxcore:dokkaHtml/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword"></span><span class="token keyword">fun </span><a href="on-device-request-processed.html"><span class="token function">onDeviceRequestProcessed</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">request<span class="token operator">: </span><a href="../-device-request-info/index.html">DeviceRequestInfo</a><span class="token punctuation">, </span></span><span class="parameter ">operator<span class="token operator">: </span><a href="../-room-user/index.html">RoomUser</a></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Triggered when a device request is processed.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="2131107477%2FFunctions%2F-1933612244" anchor-label="onDeviceRequestReceived" id="2131107477%2FFunctions%2F-1933612244" data-filterable-set=":atomicxcore:dokkaHtml/release"></a>
+          <div class="table-row" data-filterable-current=":atomicxcore:dokkaHtml/release" data-filterable-set=":atomicxcore:dokkaHtml/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="on-device-request-received.html"><span>on</span><wbr></wbr><span>Device</span><wbr></wbr><span>Request</span><wbr></wbr><span><span>Received</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="2131107477%2FFunctions%2F-1933612244"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":atomicxcore:dokkaHtml/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword"></span><span class="token keyword">fun </span><a href="on-device-request-received.html"><span class="token function">onDeviceRequestReceived</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">request<span class="token operator">: </span><a href="../-device-request-info/index.html">DeviceRequestInfo</a></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Triggered when a device request is received.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1982454735%2FFunctions%2F-1933612244" anchor-label="onDeviceRequestRejected" id="-1982454735%2FFunctions%2F-1933612244" data-filterable-set=":atomicxcore:dokkaHtml/release"></a>
+          <div class="table-row" data-filterable-current=":atomicxcore:dokkaHtml/release" data-filterable-set=":atomicxcore:dokkaHtml/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="on-device-request-rejected.html"><span>on</span><wbr></wbr><span>Device</span><wbr></wbr><span>Request</span><wbr></wbr><span><span>Rejected</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1982454735%2FFunctions%2F-1933612244"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":atomicxcore:dokkaHtml/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword"></span><span class="token keyword">fun </span><a href="on-device-request-rejected.html"><span class="token function">onDeviceRequestRejected</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">request<span class="token operator">: </span><a href="../-device-request-info/index.html">DeviceRequestInfo</a><span class="token punctuation">, </span></span><span class="parameter ">operator<span class="token operator">: </span><a href="../-room-user/index.html">RoomUser</a></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Triggered when a device request is rejected.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-950630251%2FFunctions%2F-1933612244" anchor-label="onDeviceRequestTimeout" id="-950630251%2FFunctions%2F-1933612244" data-filterable-set=":atomicxcore:dokkaHtml/release"></a>
+          <div class="table-row" data-filterable-current=":atomicxcore:dokkaHtml/release" data-filterable-set=":atomicxcore:dokkaHtml/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="on-device-request-timeout.html"><span>on</span><wbr></wbr><span>Device</span><wbr></wbr><span>Request</span><wbr></wbr><span><span>Timeout</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-950630251%2FFunctions%2F-1933612244"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":atomicxcore:dokkaHtml/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword"></span><span class="token keyword">fun </span><a href="on-device-request-timeout.html"><span class="token function">onDeviceRequestTimeout</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">request<span class="token operator">: </span><a href="../-device-request-info/index.html">DeviceRequestInfo</a></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Triggered when a device request times out.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1788331652%2FFunctions%2F-1933612244" anchor-label="onKickedFromRoom" id="1788331652%2FFunctions%2F-1933612244" data-filterable-set=":atomicxcore:dokkaHtml/release"></a>
+          <div class="table-row" data-filterable-current=":atomicxcore:dokkaHtml/release" data-filterable-set=":atomicxcore:dokkaHtml/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="on-kicked-from-room.html"><span>on</span><wbr></wbr><span>Kicked</span><wbr></wbr><span>From</span><wbr></wbr><span><span>Room</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1788331652%2FFunctions%2F-1933612244"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":atomicxcore:dokkaHtml/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword"></span><span class="token keyword">fun </span><a href="on-kicked-from-room.html"><span class="token function">onKickedFromRoom</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">reason<span class="token operator">: </span><a href="../-kicked-out-of-room-reason/index.html">KickedOutOfRoomReason</a><span class="token punctuation">, </span></span><span class="parameter ">message<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-string/index.html">String</a></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Triggered when kicked from the room.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-126040772%2FFunctions%2F-1933612244" anchor-label="onOwnerChanged" id="-126040772%2FFunctions%2F-1933612244" data-filterable-set=":atomicxcore:dokkaHtml/release"></a>
+          <div class="table-row" data-filterable-current=":atomicxcore:dokkaHtml/release" data-filterable-set=":atomicxcore:dokkaHtml/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="on-owner-changed.html"><span>on</span><wbr></wbr><span>Owner</span><wbr></wbr><span><span>Changed</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-126040772%2FFunctions%2F-1933612244"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":atomicxcore:dokkaHtml/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword"></span><span class="token keyword">fun </span><a href="on-owner-changed.html"><span class="token function">onOwnerChanged</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">newOwner<span class="token operator">: </span><a href="../-room-user/index.html">RoomUser</a><span class="token punctuation">, </span></span><span class="parameter ">oldOwner<span class="token operator">: </span><a href="../-room-user/index.html">RoomUser</a></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Triggered when the owner changes.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1497454995%2FFunctions%2F-1933612244" anchor-label="onParticipantDeviceClosed" id="-1497454995%2FFunctions%2F-1933612244" data-filterable-set=":atomicxcore:dokkaHtml/release"></a>
+          <div class="table-row" data-filterable-current=":atomicxcore:dokkaHtml/release" data-filterable-set=":atomicxcore:dokkaHtml/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="on-participant-device-closed.html"><span>on</span><wbr></wbr><span>Participant</span><wbr></wbr><span>Device</span><wbr></wbr><span><span>Closed</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1497454995%2FFunctions%2F-1933612244"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":atomicxcore:dokkaHtml/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword"></span><span class="token keyword">fun </span><a href="on-participant-device-closed.html"><span class="token function">onParticipantDeviceClosed</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">device<span class="token operator">: </span><a href="../../io.trtc.tuikit.atomicxcore.api.device/-device-type/index.html">DeviceType</a><span class="token punctuation">, </span></span><span class="parameter ">operator<span class="token operator">: </span><a href="../-room-user/index.html">RoomUser</a></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Triggered when a participant's device is closed.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1906063710%2FFunctions%2F-1933612244" anchor-label="onParticipantJoined" id="1906063710%2FFunctions%2F-1933612244" data-filterable-set=":atomicxcore:dokkaHtml/release"></a>
+          <div class="table-row" data-filterable-current=":atomicxcore:dokkaHtml/release" data-filterable-set=":atomicxcore:dokkaHtml/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="on-participant-joined.html"><span>on</span><wbr></wbr><span>Participant</span><wbr></wbr><span><span>Joined</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1906063710%2FFunctions%2F-1933612244"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":atomicxcore:dokkaHtml/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword"></span><span class="token keyword">fun </span><a href="on-participant-joined.html"><span class="token function">onParticipantJoined</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">participant<span class="token operator">: </span><a href="../-room-user/index.html">RoomUser</a></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Triggered when a participant joins the room.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="513784032%2FFunctions%2F-1933612244" anchor-label="onParticipantLeft" id="513784032%2FFunctions%2F-1933612244" data-filterable-set=":atomicxcore:dokkaHtml/release"></a>
+          <div class="table-row" data-filterable-current=":atomicxcore:dokkaHtml/release" data-filterable-set=":atomicxcore:dokkaHtml/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="on-participant-left.html"><span>on</span><wbr></wbr><span>Participant</span><wbr></wbr><span><span>Left</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="513784032%2FFunctions%2F-1933612244"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":atomicxcore:dokkaHtml/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword"></span><span class="token keyword">fun </span><a href="on-participant-left.html"><span class="token function">onParticipantLeft</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">participant<span class="token operator">: </span><a href="../-room-user/index.html">RoomUser</a></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Triggered when a participant leaves the room.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-532175040%2FFunctions%2F-1933612244" anchor-label="onUserMessageDisabled" id="-532175040%2FFunctions%2F-1933612244" data-filterable-set=":atomicxcore:dokkaHtml/release"></a>
+          <div class="table-row" data-filterable-current=":atomicxcore:dokkaHtml/release" data-filterable-set=":atomicxcore:dokkaHtml/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="on-user-message-disabled.html"><span>on</span><wbr></wbr><span>User</span><wbr></wbr><span>Message</span><wbr></wbr><span><span>Disabled</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-532175040%2FFunctions%2F-1933612244"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":atomicxcore:dokkaHtml/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword"></span><span class="token keyword">fun </span><a href="on-user-message-disabled.html"><span class="token function">onUserMessageDisabled</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">disable<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a><span class="token punctuation">, </span></span><span class="parameter ">operator<span class="token operator">: </span><a href="../-room-user/index.html">RoomUser</a></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Triggered when a user is muted.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      <div class="footer">
+        <span class="go-to-top-icon"><a href="#content" id="go-to-top-link"></a></span><span>© 2026 Copyright</span><span
+                class="pull-right"><span>Generated by </span><a
+                href="https://github.com/Kotlin/dokka"><span>dokka</span><span class="padded-icon"></span></a></span>
+      </div>
+    </div>
+</div>
+</body>
+</html>

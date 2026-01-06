@@ -4,16 +4,15 @@ import android.content.Context
 import android.view.View
 import android.widget.TextView
 import com.trtc.uikit.livekit.R
-import com.trtc.uikit.livekit.common.ui.PopupDialog
 import com.trtc.uikit.livekit.component.videoquality.LocalMirrorSelectPanel
 import com.trtc.uikit.livekit.component.videoquality.VideoQualitySelectPanel
+import io.trtc.tuikit.atomicx.widget.basicwidget.popover.AtomicPopover
 import io.trtc.tuikit.atomicxcore.api.device.DeviceStore
 import io.trtc.tuikit.atomicxcore.api.device.MirrorType
 import io.trtc.tuikit.atomicxcore.api.device.VideoQuality
 import io.trtc.tuikit.atomicxcore.api.view.LiveCoreView
 
-class PrepareVideoSettingPanel(context: Context, private val liveCoreView: LiveCoreView) :
-    PopupDialog(context) {
+class PrepareVideoSettingPanel(context: Context, private val liveCoreView: LiveCoreView) : AtomicPopover(context) {
 
     private lateinit var textMirror: TextView
     private lateinit var textVideoQuality: TextView
@@ -24,7 +23,7 @@ class PrepareVideoSettingPanel(context: Context, private val liveCoreView: LiveC
 
     private fun initView() {
         val view = View.inflate(context, R.layout.livekit_anchor_prepare_layout_video_setting, null)
-        setView(view)
+        setContent(view)
 
         textMirror = view.findViewById(R.id.tv_mirror)
         textVideoQuality = view.findViewById(R.id.tv_quality_value)

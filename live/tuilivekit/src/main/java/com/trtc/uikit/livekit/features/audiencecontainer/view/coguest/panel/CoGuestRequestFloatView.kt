@@ -7,10 +7,10 @@ import android.util.AttributeSet
 import android.view.LayoutInflater
 import android.widget.FrameLayout
 import android.widget.TextView
-import androidx.constraintlayout.utils.widget.ImageFilterView
-import com.tencent.qcloud.tuicore.TUILogin
-import com.trtc.tuikit.common.imageloader.ImageLoader
 import com.trtc.uikit.livekit.R
+import io.trtc.tuikit.atomicx.widget.basicwidget.avatar.AtomicAvatar
+import io.trtc.tuikit.atomicx.widget.basicwidget.avatar.AtomicAvatar.AvatarContent
+import io.trtc.tuikit.atomicxcore.api.login.LoginStore
 
 class CoGuestRequestFloatView @JvmOverloads constructor(
     context: Context,
@@ -50,8 +50,13 @@ class CoGuestRequestFloatView @JvmOverloads constructor(
     }
 
     private fun initUserAvatarView() {
-        val icon = findViewById<ImageFilterView>(R.id.link_mic_audience_icon)
-        ImageLoader.load(context, icon, TUILogin.getFaceUrl(), R.drawable.livekit_ic_avatar)
+        val avatar = findViewById<AtomicAvatar>(R.id.link_mic_audience_icon)
+        avatar.setContent(
+            AvatarContent.URL(
+                LoginStore.shared.loginState.loginUserInfo.value?.avatarURL ?: "",
+                R.drawable.livekit_ic_avatar
+            )
+        )
     }
 
     private fun bindViewId() {

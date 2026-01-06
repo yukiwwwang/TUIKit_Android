@@ -3,7 +3,6 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="409dp"
-    android:background="@drawable/anchor_prepare_dialog_background"
     android:orientation="vertical"
     android:padding="16dp">
 
@@ -22,23 +21,23 @@
             android:src="@drawable/anchor_prepare_return_arrow"
             tools:ignore="ContentDescription" />
 
-        <TextView
+        <io.trtc.tuikit.atomicx.widget.basicwidget.label.AtomicLabel
             android:id="@+id/title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_centerInParent="true"
             android:text="@string/common_template_layout_settings"
-            android:textColor="@color/common_text_color_primary"
-            android:textSize="16sp" />
+            android:textColor="@color/text_color_primary"
+            android:textSize="@dimen/text_size_16" />
     </RelativeLayout>
 
-    <TextView
+    <io.trtc.tuikit.atomicx.widget.basicwidget.label.AtomicLabel
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="20dp"
         android:text="@string/common_template_layout_co_host"
-        android:textColor="@color/common_text_color_secondary"
-        android:textSize="14sp" />
+        android:textColor="@color/text_color_secondary"
+        android:textSize="@dimen/text_size_14" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rv_template_co_host"
@@ -46,13 +45,13 @@
         android:layout_height="66dp"
         android:layout_marginTop="2dp" />
 
-    <TextView
+    <io.trtc.tuikit.atomicx.widget.basicwidget.label.AtomicLabel
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="15dp"
         android:text="@string/common_template_layout_co_guest"
-        android:textColor="@color/common_text_color_secondary"
-        android:textSize="14sp" />
+        android:textColor="@color/text_color_secondary"
+        android:textSize="@dimen/text_size_14" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rv_template"

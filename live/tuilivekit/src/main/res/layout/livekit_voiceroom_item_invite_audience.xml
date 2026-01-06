@@ -7,15 +7,14 @@
     android:background="@color/common_design_standard_g2"
     android:gravity="start">
 
-    <androidx.constraintlayout.utils.widget.ImageFilterView
+    <io.trtc.tuikit.atomicx.widget.basicwidget.avatar.AtomicAvatar
         android:id="@+id/iv_head"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:layout_alignParentStart="true"
         android:layout_centerVertical="true"
         android:layout_marginStart="24dp"
-        android:src="@drawable/livekit_ic_avatar"
-        app:round="20dp" />
+        app:avatarSize="m" />
 
     <TextView
         android:id="@+id/tv_name"
@@ -41,17 +40,16 @@
         android:textSize="12sp"
         android:visibility="gone" />
 
-    <TextView
+    <io.trtc.tuikit.atomicx.widget.basicwidget.button.AtomicButton
         android:id="@+id/invite_button"
-        android:layout_width="54dp"
+        android:layout_width="wrap_content"
         android:layout_height="24dp"
         android:layout_alignParentEnd="true"
         android:layout_centerVertical="true"
         android:layout_marginEnd="24dp"
-        android:background="@drawable/livekit_selector_item_invite_user"
         android:gravity="center"
-        android:text="@string/common_voiceroom_invite"
-        android:textColor="@color/common_design_standard_flowkit_white"
-        android:textSize="12sp"
-        tools:ignore="RelativeOverlap" />
+        android:visibility="visible"
+        app:customButtonSize="xs"
+        app:textStyle="false"
+        app:buttonTextSize="12sp" />
 </RelativeLayout>
