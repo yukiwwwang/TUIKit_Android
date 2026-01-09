@@ -67,6 +67,7 @@
 </thead>
 <tbody>
 <tr><td><strong>Login</strong></td><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.login/-login-store/index.html">LoginStore</a></td><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.login/-login-state/index.html">LoginState</a></td><td>User login, logout, profile management</td></tr>
+<tr><td><strong>Call</strong></td><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.call/-call-store/index.html">CallStore</a></td><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.call/-call-state/index.html">CallState</a></td><td>Audio and video calling</td></tr>
 <tr><td><strong>Live</strong></td><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.live/-live-list-store/index.html">LiveListStore</a></td><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.live/-live-list-state/index.html">LiveListState</a></td><td>Live room list management</td></tr>
 <tr><td></td><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.live/-live-audience-store/index.html">LiveAudienceStore</a></td><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.live/-live-audience-state/index.html">LiveAudienceState</a></td><td>Audience state management</td></tr>
 <tr><td></td><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.live/-live-seat-store/index.html">LiveSeatStore</a></td><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.live/-live-seat-state/index.html">LiveSeatState</a></td><td>Seat management</td></tr>
@@ -101,7 +102,36 @@
 <tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.login/-login-state/login-status.html">loginStatus</a></td><td><code>StateFlow&lt;<a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.login/-login-status/index.html">LoginStatus</a>&gt;</code></td><td>Login status</td></tr>
 <tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.login/-login-state/login-user-info.html">loginUserInfo</a></td><td><code>StateFlow&lt;<a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.login/-user-profile/index.html">UserProfile</a>?&gt;</code></td><td>Current logged-in user info</td></tr>
 </tbody>
-</table><p class="paragraph"><strong>Related Types:</strong> <a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.login/-login-status/index.html">LoginStatus</a> | <a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.login/-user-profile/index.html">UserProfile</a> | <a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.login/-gender/index.html">Gender</a> | <a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.login/-allow-type/index.html">AllowType</a> | <a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.login/-login-listener/index.html">LoginListener</a></p><h2 class=""> 📺 Live Module</h2><h3 class=""> <a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.live/-co-guest-store/index.html">CoGuestStore</a></h3><p class="paragraph">Audience co-streaming management, handles co-streaming requests, invitations, acceptance, and rejection between hosts and audiences.</p><p class="paragraph"><strong>Core APIs:</strong></p><table>
+</table><p class="paragraph"><strong>Related Types:</strong> <a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.login/-login-status/index.html">LoginStatus</a> | <a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.login/-user-profile/index.html">UserProfile</a> | <a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.login/-gender/index.html">Gender</a> | <a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.login/-allow-type/index.html">AllowType</a> | <a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.login/-login-listener/index.html">LoginListener</a></p><h2 class=""> 📞 Call Module</h2><h3 class=""> <a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.call/-call-store/index.html">CallStore</a></h3><p class="paragraph">Core class for call management, responsible for initiating, answering, rejecting, hanging up calls, group call management, and call history management.</p><p class="paragraph"><strong>Core APIs:</strong></p><table>
+<thead>
+<tr><th>Method</th><th>Description</th></tr>
+</thead>
+<tbody>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.call/-call-store/calls.html">calls</a></td><td>Initiate a call</td></tr>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.call/-call-store/accept.html">accept</a></td><td>Answer a call</td></tr>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.call/-call-store/reject.html">reject</a></td><td>Reject a call</td></tr>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.call/-call-store/hangup.html">hangup</a></td><td>Hang up a call</td></tr>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.call/-call-store/join.html">join</a></td><td>Join a group call</td></tr>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.call/-call-store/invite.html">invite</a></td><td>Invite users to join a call</td></tr>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.call/-call-store/query-recent-calls.html">queryRecentCalls</a></td><td>Query call history</td></tr>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.call/-call-store/delete-recent-calls.html">deleteRecentCalls</a></td><td>Delete call records</td></tr>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.call/-call-store/add-listener.html">addListener</a></td><td>Add call listener</td></tr>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.call/-call-store/remove-listener.html">removeListener</a></td><td>Remove call listener</td></tr>
+</tbody>
+</table><p class="paragraph"><strong>State Subscription (</strong><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.call/-call-state/index.html"><strong>CallState</strong></a><strong>):</strong></p><table>
+<thead>
+<tr><th>Property</th><th>Type</th><th>Description</th></tr>
+</thead>
+<tbody>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.call/-call-state/active-call.html">activeCall</a></td><td><code>StateFlow&lt;<a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.call/-call-info/index.html">CallInfo</a>&gt;</code></td><td>Current active call info</td></tr>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.call/-call-state/recent-calls.html">recentCalls</a></td><td><code>StateFlow&lt;LinkedHashSet&lt;<a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.call/-call-info/index.html">CallInfo</a>&gt;&gt;</code></td><td>Call history list</td></tr>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.call/-call-state/cursor.html">cursor</a></td><td><code>StateFlow&lt;String&gt;</code></td><td>Pagination cursor</td></tr>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.call/-call-state/self-info.html">selfInfo</a></td><td><code>StateFlow&lt;<a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.call/-call-participant-info/index.html">CallParticipantInfo</a>&gt;</code></td><td>Current user info</td></tr>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.call/-call-state/all-participants.html">allParticipants</a></td><td><code>StateFlow&lt;LinkedHashSet&lt;<a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.call/-call-participant-info/index.html">CallParticipantInfo</a>&gt;&gt;</code></td><td>All participants list</td></tr>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.call/-call-state/speaker-volumes.html">speakerVolumes</a></td><td><code>StateFlow&lt;MutableMap&lt;String, Int&gt;&gt;</code></td><td>Participant volume info</td></tr>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.call/-call-state/network-qualities.html">networkQualities</a></td><td><code>StateFlow&lt;MutableMap&lt;String, <a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.device/-network-quality/index.html">NetworkQuality</a>&gt;&gt;</code></td><td>Participant network quality</td></tr>
+</tbody>
+</table><p class="paragraph"><strong>Related Types:</strong> <a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.call/-call-media-type/index.html">CallMediaType</a> | <a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.call/-call-end-reason/index.html">CallEndReason</a> | <a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.call/-call-direction/index.html">CallDirection</a> | <a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.call/-call-participant-status/index.html">CallParticipantStatus</a> | <a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.call/-call-params/index.html">CallParams</a> | <a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.call/-call-participant-info/index.html">CallParticipantInfo</a> | <a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.call/-call-info/index.html">CallInfo</a> | <a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.call/-call-listener/index.html">CallListener</a></p><h2 class=""> 📺 Live Module</h2><h3 class=""> <a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.live/-co-guest-store/index.html">CoGuestStore</a></h3><p class="paragraph">Audience co-streaming management, handles co-streaming requests, invitations, acceptance, and rejection between hosts and audiences.</p><p class="paragraph"><strong>Core APIs:</strong></p><table>
 <thead>
 <tr><th>Method</th><th>Description</th></tr>
 </thead>
@@ -394,8 +424,9 @@
 </thead>
 <tbody>
 <tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.login/index.html">io.trtc.tuikit.atomicxcore.api.login</a></td><td>Login related</td></tr>
-<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.room/index.html">io.trtc.tuikit.atomicxcore.api.room</a></td><td>Room related</td></tr>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.call/index.html">io.trtc.tuikit.atomicxcore.api.call</a></td><td>Call related</td></tr>
 <tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.live/index.html">io.trtc.tuikit.atomicxcore.api.live</a></td><td>Live related</td></tr>
+<tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.room/index.html">io.trtc.tuikit.atomicxcore.api.room</a></td><td>Room related</td></tr>
 <tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.barrage/index.html">io.trtc.tuikit.atomicxcore.api.barrage</a></td><td>Barrage related</td></tr>
 <tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.gift/index.html">io.trtc.tuikit.atomicxcore.api.gift</a></td><td>Gift related</td></tr>
 <tr><td><a href="-atomic-x -core -a-p-i/io.trtc.tuikit.atomicxcore.api.device/index.html">io.trtc.tuikit.atomicxcore.api.device</a></td><td>Device related</td></tr>
